@@ -1,6 +1,6 @@
 /**
 Class for a Frame. A frame is composed of a graph (tree) of joints.
-Character.h
+MLAFrame.h
 
 @author Quentin Couland
 @version 0.1

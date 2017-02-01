@@ -10,8 +10,9 @@ MlaNode<T>::MlaNode(const MlaNode<T>&  node) : nodeValue(node.nodeValue), parent
 
 template<typename T>
 MlaNode<T>& MlaNode<T>::operator = (const MlaNode<T>&  node){
-	nodeValue = node.value;
+	nodeValue = node.nodeValue;
 	parent = node.parent;
+	return *this;
 }
 
 template<typename T>
