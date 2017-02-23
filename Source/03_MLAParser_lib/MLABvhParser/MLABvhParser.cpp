@@ -177,7 +177,6 @@ Motion* BvhParser::parseBvh(const std::string& inputFile) {
 		copiedFrame->setNames(initialFrame->getNames());
 		copiedFrame->setRoots(initialFrame->getRoots());
 
-		std::cout << "SIZE " << initialFrame->getNames().size() << std::endl;
 		for(unsigned int i=0 ; i<initialFrame->getNames().size() ; i++) {
 			copiedFrame->insertJoint(new Joint(*initialFrame->getJoints().at(i)));
 		}
