@@ -3,8 +3,9 @@
 
 #include "MLATools_lib.h"
 #include "MLAMotion_lib.h"
+#include "MLAParser_lib.h"
 
-#include <iostream>
+
 
 #if defined PLATFORM_WIN32
 //adresses pour le lecture des fichiers

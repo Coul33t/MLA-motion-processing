@@ -1,14 +1,14 @@
 /**
-Class for a Joint. A joint has a name, and is composed of a vector for the initial offsets, and a quaternion for 1 frame.
-Character.h
+Class for a Joint. A Joint has a name, and is composed of a vector for the initial offsets, and a quaternion for 1 frame.
+Joint.h
 
 @author Quentin Couland
 @version 0.1
 
 */
 
-#ifndef __MLA_JOINT_H__
-#define __MLA_JOINT_H__
+#ifndef __MLA_Joint_H__
+#define __MLA_Joint_H__
 
 
 #include "MLATools_lib.h"
@@ -17,26 +17,33 @@ class Joint {
 
 public:
 	Joint();
-	Joint(const Joint& joint);
+	~Joint();
+	Joint(const Joint& Joint);
 
 	Joint& operator=(const Joint& joint);
 
 	void setJointName(const std::string& jointName);
-	void setOffsets(const glm::vec3& offsets);
+	void setPositions(const glm::dvec3& positions);
 	void setOrientations(const glm::quat& orientations);
 
 	const std::string& getJointName() const;
-	const glm::vec3& getOffsets() const;
+	const glm::dvec3& getPositions() const;
 	const glm::quat& getOrientations() const;
+
+	void setParent(Joint* parent);
+	void addChild(Joint* child);
 
 private:
 	std::string m_jointName;
 
 	// a vector with the initial offset
-	glm::vec3 m_offsets;
+	glm::dvec3 m_positions;
 
 	// a quaternion holding the orientation for the frame
 	glm::quat m_orientations;
+
+	Joint* m_parent;
+	std::vector<Joint*> m_child;
 };
 
-#endif //__MLA_JOINT_H__
+#endif //__MLA_Joint_H__

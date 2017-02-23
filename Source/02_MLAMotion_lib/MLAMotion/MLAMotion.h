@@ -11,26 +11,31 @@ Character.h
 #define __MLA_MOTION_H__
 
 
-#include "MLATools_lib.h"
+
 #include "MLAFrame.h"
 
 class Motion {
 
 public:
 	Motion();
+	~Motion();
 	Motion(const Motion& motion);
 
 	Motion& operator=(const Motion& motion);
 
-	void setFrameTime(const float& frameTime);
-	void setFrames(const std::vector<Frame> Frames);
+	void setFrameTime(const double& frameTime);
+	void setFrames(const std::vector<Frame*> Frames);
 
-	const float& getFrameTime() const;
-	const std::vector<Frame>& getFrames() const;
+	const double& getFrameTime() const;
+	const std::vector<Frame*>& getFrames() const;
+	Frame* getFrame(unsigned int idx);
+
+	void addFrame(Frame* frame);
 
 private:
-	float m_frameTime;
-	std::vector<Frame> m_frames;
+	std::string m_motionName;
+	double m_frameTime;
+	std::vector<Frame*> m_frames;
 };
 
 #endif //__MLA_MOTION_H__

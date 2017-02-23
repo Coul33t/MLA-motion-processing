@@ -1,22 +1,22 @@
 PROJECT(02_MLAMotion_lib)
 
 INCLUDE_DIRECTORIES(${01_MLATools_lib_SOURCE_DIR}
-		    ${GLM_INCLUDE_DIR}
- 		    ${GLEW_INCLUDE_DIR}
-		    ${SDL_INCLUDE_DIR}
+	${GLM_INCLUDE_DIR}
+ 	${GLEW_INCLUDE_DIR}
+	${SDL_INCLUDE_DIR}
 )
 
 ADD_LIBRARY(02_MLAMotion_lib STATIC
-		MLAMotion_lib.h
-	
-		MLAMotion/MLAMotion.h
-        MLAMotion/MLAMotion.cpp
+	MLAMotion_lib.h
 
-        MLAMotion/MLAFrame.h
-        MLAMotion/MLAFrame.cpp
+	MLAMotion/MLAMotion.h
+    MLAMotion/MLAMotion.cpp
 
-        MLAMotion/MLAJoint.h
-        MLAMotion/MLAJoint.cpp	
+    MLAMotion/MLAFrame.h
+    MLAMotion/MLAFrame.cpp
+
+    MLAMotion/MLAJoint.h
+    MLAMotion/MLAJoint.cpp	
 )
 
 SOURCE_GROUP("Fichiers d'en-tete" FILES MLAMotion_lib.h)

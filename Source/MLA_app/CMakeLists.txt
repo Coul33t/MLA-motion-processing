@@ -5,7 +5,8 @@ project(MLA_app)
     INCLUDE_DIRECTORIES(
         ${MLA_SOURCE_DIR}/Source
         ${01_MLATools_lib_SOURCE_DIR}
-            ${02_MLAMotion_lib_SOURCE_DIR}  
+        ${02_MLAMotion_lib_SOURCE_DIR}
+		${03_MLAParser_lib_SOURCE_DIR}  
         ${SDL_INCLUDE_DIR}
         ${GLEW_INCLUDE_DIR}
         ${GLM_INCLUDE_DIR}
@@ -33,6 +34,7 @@ project(MLA_app)
 
     
         TARGET_LINK_LIBRARIES(MLA_app
+			03_MLAParser_lib.lib
             02_MLAMotion_lib.lib
             01_MLATools_lib.lib 
             ${SDL_LIB}
@@ -68,7 +70,8 @@ project(MLA_app)
 
     
         TARGET_LINK_LIBRARIES(MLA_app
-                02_MLAlaMotion_lib.a
+				03_MLAParser_lib.a
+                02_MLAMotion_lib.a
                 01_MLATools_lib.a
                 ${SDL_LIB}
                 ${GLEW_LIB}
@@ -83,6 +86,7 @@ project(MLA_app)
     IF(APPLE_OS)
     
         TARGET_LINK_LIBRARIES(MLA_app
+				03_MLAParser_lib.a
                 02_MLAMotion_lib.a
                 01_MLATools_lib.a
                 ${SDL_LIB}

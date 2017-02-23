@@ -34,46 +34,64 @@ Graph.h
 
 #include "MLACommonInclude.h"
 
+
+
 template<typename T>
-class MlaNode {
+class MLANode;
+
+
+template<typename T>
+class MLANode {
 
 	public:
-		MlaNode();
-		MlaNode(const unsigned int& parent, const T value);
-		MlaNode(const MlaNode<T>& node);
-		MlaNode& operator=(const MlaNode<T>& node);
+		MLANode();
+		MLANode(const unsigned int& parent, const T value, const std::string& name="");
+		MLANode(const MLANode<T>& node);
+		MLANode& operator=(const MLANode<T>& node);
+		const bool operator==(const MLANode<T>& node) const;
+		const bool operator!=(const MLANode<T>& node) const;
+
 
 	public:
 		int parent;
 		std::vector<unsigned int> child;
 		T nodeValue;
+		std::string name;
 };
 
 template<typename T>
-class MlaGraph{
+class MLAGraph;
+
+
+template<typename T>
+class MLAGraph{
 	public:
 
-		MlaGraph();
-		virtual ~MlaGraph();
+		MLAGraph();
+		MLAGraph(const MLAGraph<T>& graph);
+		virtual ~MLAGraph();
 
-		const MlaNode<T>& getNode(const unsigned int& idx) const;
+		MLAGraph& operator=(const MLAGraph<T>& graph);
+		const bool operator==(const MLAGraph<T>& graph) const;
+		const bool operator!=(const MLAGraph<T>& graph) const;
 
-		T& getNodeValues(const unsigned int& idx);
+		MLANode<T>* getNode(const unsigned int& idx);
+		MLANode<T>* getNode(const std::string& idx);
 
-		const unsigned int getSizeNode() const;
-
+		T* getNodeValue(const unsigned int& idx);
+		T* getNodeValue(const std::string& idx);
+		const unsigned int getSizeGraph() const;
 		void setChild(const int& parent_idx, const unsigned int& child_idx);
-
 		void addRoot(const T& node);
-
 		void addChild(const int& parent, const T& node);
-
+		void addChild(const std::string& parent, const T& node);
 
 
 	private:
-		std::vector<MlaNode<T> > m_nodes;
+		std::vector<MLANode<T> > m_nodes;
+		std::map<std::string, unsigned int> m_names;
 };
 
-#include "MlaGraph.inl"
+#include "MLAGraph.inl"
 
 #endif //__MLA_GRAPH_H__
