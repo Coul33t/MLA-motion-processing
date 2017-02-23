@@ -16,7 +16,7 @@ class BvhParser {
 
 public:
 	BvhParser();
-	bool parseBvh(const std::string&);
+	Motion* parseBvh(const std::string&);
 	bool searchForward(std::ifstream&, const std::string);
 	bool isDouble(const char* str);
 

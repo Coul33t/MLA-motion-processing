@@ -8,7 +8,7 @@ BvhParser::BvhParser() {
 // Indicateur de progression : \r pour clean la ligne
 
 //TODO: use return value of searchForward()
-bool BvhParser::parseBvh(const std::string& inputFile) {
+Motion* BvhParser::parseBvh(const std::string& inputFile) {
 	
 	std::ifstream infile(inputFile.c_str());
 
@@ -172,11 +172,12 @@ bool BvhParser::parseBvh(const std::string& inputFile) {
 		percentage = 100 * i / frameNumber;
 		std::cout << percentage << " % (" << i << "/" << frameNumber << ")" << "\r";
 
-		Frame* copiedFrame = new Frame(*initialFrame);
+		Frame* copiedFrame = new Frame();
 
 		copiedFrame->setNames(initialFrame->getNames());
 		copiedFrame->setRoots(initialFrame->getRoots());
 
+		std::cout << "SIZE " << initialFrame->getNames().size() << std::endl;
 		for(unsigned int i=0 ; i<initialFrame->getNames().size() ; i++) {
 			copiedFrame->insertJoint(new Joint(*initialFrame->getJoints().at(i)));
 		}
@@ -234,7 +235,7 @@ bool BvhParser::parseBvh(const std::string& inputFile) {
 
 	std::cout << "Motion data gathered." << std::endl;
 	std::cout << "Animation frames built." << std::endl;
-	return true;
+	return motion;
 }
 
 bool BvhParser::searchForward(std::ifstream& infile, const std::string word) {
