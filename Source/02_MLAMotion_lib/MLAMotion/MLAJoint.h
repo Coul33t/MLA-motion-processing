@@ -33,6 +33,9 @@ public:
 	void setParent(Joint* parent);
 	void addChild(Joint* child);
 
+	std::vector<Joint*> getChilds();
+	Joint* getParent();
+
 private:
 	std::string m_jointName;
 

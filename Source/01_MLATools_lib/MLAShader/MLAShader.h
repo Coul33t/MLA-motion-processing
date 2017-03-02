@@ -1,28 +1,29 @@
-#ifndef __MLA_SHADER_H__
-#define __MLA_SHADER_H__
+#ifndef __DEF_SHADER__
+#define __DEF_SHADER__
 
-#include "MLACommonInclude.h"
+#include <glew.h>
 
-class MlaShader {
+#include <iostream>
+#include <string>
+#include <fstream>
+
+class Shader {
 
 public:
-	MlaShader();
-	MlaShader(const MlaShader& shaderACopier);
-	MlaShader(const std::string& vertexSource, const std::string& fragmentSource);
-	~MlaShader();
+	Shader();
+	Shader(Shader const &shaderACopier);
+	Shader(std::string vertexSource, std::string fragmentSource);
+	~Shader();
 
-	MlaShader& operator=(const MlaShader& shaderACopier);
+	Shader& operator=(Shader const &shaderACopier);
 
+	void setVertexSource(const std::string&);
+	void setFragmentSource(const std::string&);
 
-	//bool load();
-	void load();
-
+	bool Load();
+	bool CompileShader(GLuint &shader, GLenum type, std::string const &fichierSource);
 	const GLuint& getProgramID() const;
 
-
-private:
-	void deleteShaderIfExist();
-	bool compileShader(GLuint& shader, const GLenum& type, const std::string& fichierSource);
 
 private:
 	GLuint m_vertexID;
@@ -33,4 +34,4 @@ private:
 	std::string m_fragmentSource;
 };
 
-#endif //__MLA_SHADER_H__
+#endif //__DEF_SHADER__

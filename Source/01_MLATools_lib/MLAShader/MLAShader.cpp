@@ -1,15 +1,13 @@
-#include "MLAShader.h"
+#include "MlaShader.h"
 
 
 // Constructors
-MlaShader::MlaShader() : m_vertexID(0), m_fragmentID(0), m_programID(0), m_vertexSource(""), m_fragmentSource("")
+Shader::Shader() : m_vertexID(0), m_fragmentID(0), m_programID(0), m_vertexSource(), m_fragmentSource()
 {
 }
 
 
-
-
-MlaShader::MlaShader(MlaShader const &shaderToCopy) {
+Shader::Shader(Shader const &shaderToCopy) {
 
 	// Source file copy
 	m_vertexSource = shaderToCopy.m_vertexSource;
@@ -17,78 +15,63 @@ MlaShader::MlaShader(MlaShader const &shaderToCopy) {
 
 
 	// Shader loading
-	load();
+	Load();
 }
 
-//why is there no loading ? to make a test in the Character::character
-MlaShader::MlaShader(const std::string& vertexSource, const std::string& fragmentSource) : m_vertexID(0), m_fragmentID(0), m_programID(0),
+
+Shader::Shader(std::string vertexSource, std::string fragmentSource) : m_vertexID(0), m_fragmentID(0), m_programID(0),
 m_vertexSource(vertexSource), m_fragmentSource(fragmentSource) {
-
-	// Shader loading
-	load();
 }
 
 // Destructor
-//need to check if the shader exists
-//MlaShader::~MlaShader() {
-//    glDeleteShader(m_vertexID);
-//    glDeleteShader(m_fragmentID);
-//    glDeleteProgram(m_programID);
-//}
-
-// Destructor
-MlaShader::~MlaShader() {
-	// Destruction of a potential old shader
-	deleteShaderIfExist();
-
+Shader::~Shader() {
+	glDeleteShader(m_vertexID);
+	glDeleteShader(m_fragmentID);
+	glDeleteProgram(m_programID);
 }
 
 
 // Methods
 
-MlaShader& MlaShader::operator=(const MlaShader& shaderToCopy) {
+Shader& Shader::operator=(Shader const &shaderToCopy) {
 
 	// Source file copy
 	m_vertexSource = shaderToCopy.m_vertexSource;
 	m_fragmentSource = shaderToCopy.m_fragmentSource;
 
 	// Shader loading
-	load();
+	Load();
 
 	return *this;
 }
 
 
-//add this function to not repeat code
-void MlaShader::deleteShaderIfExist(){
-	// Destruction of a potential old shader
-	if (m_vertexID && (glIsShader(m_vertexID) == GL_TRUE))
-		glDeleteShader(m_vertexID);
-
-	if (m_fragmentID && (glIsShader(m_fragmentID) == GL_TRUE))
-		glDeleteShader(m_fragmentID);
-
-	if (m_programID && (glIsProgram(m_programID) == GL_TRUE))
-		glDeleteProgram(m_programID);
-
+void Shader::setVertexSource(const std::string& vertexSource) {
+	m_vertexSource = vertexSource;
+}
+void Shader::setFragmentSource(const std::string& fragmentSource) {
+	m_fragmentSource = fragmentSource;
 }
 
-//bool MlaShader::load() {
-void MlaShader::load() {
+bool Shader::Load() {
 
 	// Destruction of a potential old shader
-	deleteShaderIfExist();
+	if (glIsShader(m_vertexID) == GL_TRUE)
+		glDeleteShader(m_vertexID);
+
+	if (glIsShader(m_fragmentID) == GL_TRUE)
+		glDeleteShader(m_fragmentID);
+
+	if (glIsProgram(m_programID) == GL_TRUE)
+		glDeleteProgram(m_programID);
 
 
 	// Compilation of the new shaders
-	if (!compileShader(m_vertexID, GL_VERTEX_SHADER, m_vertexSource)){
-		MlaECoutLine("Fail compile vertex shader");
-		return;
-	}
-	if (!compileShader(m_fragmentID, GL_FRAGMENT_SHADER, m_fragmentSource)){
-		MlaECoutLine("Fail compile fragment shader");
-		return;
-	}
+	if (!CompileShader(m_vertexID, GL_VERTEX_SHADER, m_vertexSource))
+		return false;
+
+	if (!CompileShader(m_fragmentID, GL_FRAGMENT_SHADER, m_fragmentSource))
+		return false;
 
 
 	// Program creation
@@ -128,36 +111,33 @@ void MlaShader::load() {
 		error[errorSize] = '\0';
 
 		// Error display
-		MlaECoutLine("Link error: " + std::string(error));
-		// std::cout << error << std::endl;
+		std::cout << error << std::endl;
 
 
 		// Freeing memory and returning false
 		delete[] error;
 		glDeleteProgram(m_programID);
 
-		// return false;
+		return false;
 	}
 
 
 
 	// Else, everybody went good
 
-	//else
-	//  return true;
+	else
+		return true;
 }
 
 
-//this is a private function
-bool MlaShader::compileShader(GLuint &shader, const GLenum& type, const std::string &sourceFile) {
+bool Shader::CompileShader(GLuint &shader, GLenum type, std::string const &sourceFile) {
 
 	// Shader creation
 	shader = glCreateShader(type);
 
 	// Shader checking
 	if (shader == 0) {
-		MlaECoutLine("Error, shader type (" + std::to_string(type) + ") does not exist");
-		//std::cout << "Error, shader type (" << type << ") does not exist" << std::endl;
+		std::cout << "Error, shader type (" << type << ") does not exist" << std::endl;
 		return false;
 	}
 
@@ -166,9 +146,7 @@ bool MlaShader::compileShader(GLuint &shader, const GLenum& type, const std::str
 
 	// Opening test
 	if (!file) {
-
-		MlaECoutLine("Error, file " + sourceFile + " not found");
-		//std::cout << "Error, file " << sourceFile << " not found" << std::endl;
+		std::cout << "Error, file " << sourceFile << " not found" << std::endl;
 		glDeleteShader(shader);
 		return false;
 	}
@@ -211,7 +189,6 @@ bool MlaShader::compileShader(GLuint &shader, const GLenum& type, const std::str
 		error[errorSize] = '\0';
 
 		// Error display
-		MlaECoutLine("Compilation error: " + std::string(error));
 		std::cout << error << std::endl;
 
 		// Freeing memory and returning false
@@ -227,6 +204,6 @@ bool MlaShader::compileShader(GLuint &shader, const GLenum& type, const std::str
 
 
 // Getter
-const GLuint& MlaShader::getProgramID() const {
+const GLuint& Shader::getProgramID() const {
 	return m_programID;
 }

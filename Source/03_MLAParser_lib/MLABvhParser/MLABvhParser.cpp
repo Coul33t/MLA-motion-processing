@@ -158,6 +158,13 @@ Motion* BvhParser::parseBvh(const std::string& inputFile) {
 
 	motion->addFrame(initialFrame);
 
+	// using initialFrame->getNames().size() (to get the number  
+	// of joints) used up to 57% of this function's running time. 
+	// Using initialFrame->getJoints().size() is incredibly faster 
+	// (approximately 100 times faster), but why make a call to this 
+	// function each time, rather than doing it only 1 time ?
+	unsigned int jointNumber = initialFrame->getJoints().size();
+
 	// Why not : " Frame* copiedFrame = new Frame(*initialFrame); " ?
 	// Because if we do so, the member std::vector<Joint*> m_joints
 	// will be copied as is, and the pointers inside will point to
@@ -177,7 +184,7 @@ Motion* BvhParser::parseBvh(const std::string& inputFile) {
 		copiedFrame->setNames(initialFrame->getNames());
 		copiedFrame->setRoots(initialFrame->getRoots());
 
-		for(unsigned int i=0 ; i<initialFrame->getNames().size() ; i++) {
+		for (unsigned int i = 0; i<jointNumber; i++) {
 			copiedFrame->insertJoint(new Joint(*initialFrame->getJoints().at(i)));
 		}
 
@@ -200,7 +207,7 @@ Motion* BvhParser::parseBvh(const std::string& inputFile) {
 		// j = joint
 		for(unsigned int j=0 ; j<jointList.size() ; j++) {
 
-			// Endsites does not have information for the animation,
+			// Endsites do not have information for the animation,
 			// so we skip them
 			if (!(jointList.at(j).find("End") == 0)) {
 				std::vector<std::string> currentChannels = channels[jointList.at(j)];
@@ -252,6 +259,8 @@ bool BvhParser::searchForward(std::ifstream& infile, const std::string word) {
 //returns True if the str is a valid double, false else
 bool BvhParser::isDouble(const char* str) {
 	char* endptr = 0;
+
+	// try to parse str into a floating point number (returns double)
 	std::strtod(str, &endptr);
 
 	if(*endptr != '\0' || endptr == str)

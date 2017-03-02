@@ -60,7 +60,10 @@
 // macro for math functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifndef M_PI
-#define M_PI (atan(1.0)*4.0)
+// in c++11, M_PI is no more supported (at least here)
+// and using std::atan(1.0)*4 can results in some precision
+// loss and added compilation time (negligible).
+#define M_PI 3.141592653589793238462643383279502884
 #endif
 
 #define	FLOAT_CMP(float1,float2) (fabs(float1 - float2) < FLT_EPSILON) 

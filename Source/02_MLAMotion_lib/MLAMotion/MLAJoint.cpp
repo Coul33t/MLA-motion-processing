@@ -1,7 +1,7 @@
 #include "MLAJoint.h"
 
 Joint::Joint() {
-
+	m_parent = nullptr;
 }
 
 Joint::~Joint() {
@@ -53,4 +53,12 @@ void Joint::setParent(Joint* parent) {
 
 void Joint::addChild(Joint* child) {
 	m_child.push_back(child);
+}
+
+std::vector<Joint*> Joint::getChilds() {
+	return m_child;
+}
+
+Joint* Joint::getParent() {
+	return m_parent;
 }
