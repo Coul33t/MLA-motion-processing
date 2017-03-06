@@ -10,24 +10,11 @@ ADD_LIBRARY(01_MLATools_lib STATIC
 	MLATools_lib.h 
 	MLACommonInclude.h
 
-	MLAGraph/MLAGraph.inl
-	MLAGraph/MLAGraph.h
-
 	MLAShader/MLAShader.cpp
 	MLAShader/MLAShader.h
-
-	MLATree/MLATree.inl
-	MLATree/MLATree.h
-
 )
 
 SOURCE_GROUP("Fichiers d'en-tete" FILES MLATools_lib.h MLACommonInclude.h)
 
-SOURCE_GROUP("MLAGraph\\Fichiers d'en-tete" FILES MLAGraph/MLAGraph.h)
-SOURCE_GROUP("MLAGraph\\Fichiers inline" FILES MLAGraph/MLAGraph.inl)
-
 SOURCE_GROUP("MLAShader\\Fichiers d'en-tete" FILES MLAShader/MLAShader.h)
 SOURCE_GROUP("MLAShader\\Fichiers sources" FILES MLAShader/MLAShader.cpp)
-
-SOURCE_GROUP("MLATree\\Fichiers d'en-tete" FILES MLATree/MLATree.h)
-SOURCE_GROUP("MLATree\\Fichiers inline" FILES MLATree/MLATree.inl)
