@@ -215,21 +215,15 @@ void MainWindow::Animate(Motion* motion, float mixFactor, float elapsedTime) {
 		base_frame = 1;
 	}
 
-	// Used to store a vector of quaternion, for the sake of code clarity.
-	std::vector<glm::quat> tmp_quat_vector;
-	glm::quat current_quat, current_quat_1, current_quat_2;
+	// Used to interpolate between 2 quaternions, for the sake of code clarity.
+	glm::quat current_quat, next_quat;
 
 	glm::mat4 saved_modelview = m_modelview;
-
-	// Hold the 4x4 matrix from a quaternion.
-	glm::mat4 quat_to_mat;
 
 	std::map<std::string, glm::mat4> quaternions_to_mat_map;
 
 	// Used to interpolate the position of the root. For the sake of code clarity, we use 3 vector.
-	glm::vec3 base_offset;
-	glm::vec3 next_offset;
-	glm::vec3 current_offset;
+	glm::vec3 base_offset, next_offset, current_offset;
 
 	// For each graph node
 	for (unsigned int j = 0; j<motion->getFrame(0)->getJoints().size(); j++) {
@@ -254,29 +248,20 @@ void MainWindow::Animate(Motion* motion, float mixFactor, float elapsedTime) {
 			saved_modelview = glm::translate(saved_modelview, current_offset);
 
 			// We find the quat and transform it in a 4x4 matrix
-			current_quat_1 = motion->getFrame(base_frame)->getJoints().at(j)->getOrientations();
+			current_quat = motion->getFrame(base_frame)->getJoints().at(j)->getOrientations();
 			// ... and the next one (base frame + 1) ...
-			current_quat_2 = motion->getFrame(base_frame + 1)->getJoints().at(j)->getOrientations();;
-			// We slerp them and transform into a matrix
-			quat_to_mat = glm::mat4_cast(glm::slerp(current_quat_1, current_quat_2, mixFactor));
+			next_quat = motion->getFrame(base_frame + 1)->getJoints().at(j)->getOrientations();;
 			
-			// We do the rotation
-			saved_modelview = saved_modelview*quat_to_mat;
+			// We slerp them, transform into a matrix and we do the rotation
+			saved_modelview = saved_modelview*glm::mat4_cast(glm::slerp(current_quat, next_quat, mixFactor));
 
 			point_vertice[0] = current_offset[0];
 			point_vertice[1] = current_offset[1];
 			point_vertice[2] = current_offset[2];
 
-			/*
-			std::cout << "Displaying " << m_joint_graph.GetNodeValues(i).joint_name << " : ("
-			<< point_vertice[0] << "," << point_vertice[1] << "," << point_vertice[2] << ")" << std::endl;
-			*/
-
 			DisplayPoint(m_projection, m_modelview, point_vertice, point_colour);
 
 			// We pair it with the joint name and we put it into the map
-			// Why ? FOR THE GLORY OF SATAN OF COURSE
-			// (We need it for the rest of the program, to get the parent's modelview)
 			quaternions_to_mat_map.insert(std::make_pair(motion->getFrame(base_frame)->getJoints().at(j)->getJointName(), saved_modelview));
 		}
 
@@ -302,19 +287,12 @@ void MainWindow::Animate(Motion* motion, float mixFactor, float elapsedTime) {
 			line_vertices[4] = motion->getFrame(base_frame)->getJoints().at(j)->getPositions()[1];
 			line_vertices[5] = motion->getFrame(base_frame)->getJoints().at(j)->getPositions()[2];
 
-
-			point_vertice[0] = motion->getFrame(base_frame)->getJoints().at(j)->getPositions()[0];
-			point_vertice[1] = motion->getFrame(base_frame)->getJoints().at(j)->getPositions()[1];
-			point_vertice[2] = motion->getFrame(base_frame)->getJoints().at(j)->getPositions()[2];
+			point_vertice[0] = line_vertices[3];
+			point_vertice[1] = line_vertices[4];
+			point_vertice[2] = line_vertices[5];
 
 			// We draw our line
 			DisplayLine(m_projection, saved_modelview, line_vertices, line_colour);
-
-			/*
-			std::cout << "Displaying " << m_joint_graph.GetNodeValues(i).joint_name << " : ("
-			<< point_vertice[0] << "," << point_vertice[1] << "," << point_vertice[2] << ")" << std::endl;
-			std::cout << "Displaying between " << m_joint_graph.GetNodeValues(m_joint_graph.GetNode(i).parent).joint_name << " and " << m_joint_graph.GetNodeValues(i).joint_name << std::endl;
-			*/
 
 			// We draw the point
 			DisplayPoint(m_projection, saved_modelview, point_vertice, point_colour);
@@ -323,18 +301,13 @@ void MainWindow::Animate(Motion* motion, float mixFactor, float elapsedTime) {
 			saved_modelview = glm::translate(saved_modelview, glm::vec3(point_vertice[0], point_vertice[1], point_vertice[2]));
 
 			// We find the quat and transform it in a 4x4 matrix
-			current_quat_1 = motion->getFrame(base_frame)->getJoints().at(j)->getOrientations();
+			current_quat = motion->getFrame(base_frame)->getJoints().at(j)->getOrientations();
 			// ... and the next one (base frame + 1) ...
-			current_quat_2 = motion->getFrame(base_frame + 1)->getJoints().at(j)->getOrientations();;
-			// We slerp them and transform into a matrix
-			quat_to_mat = glm::mat4_cast(glm::slerp(current_quat_1, current_quat_2, mixFactor));
-
-			// We do the rotation
-			saved_modelview = saved_modelview*quat_to_mat;
+			next_quat = motion->getFrame(base_frame + 1)->getJoints().at(j)->getOrientations();;
+			// We slerp them, transform into a matrix, and we do the rotation
+			saved_modelview = saved_modelview*glm::mat4_cast(glm::slerp(current_quat, next_quat, mixFactor));
 
 			// We pair it with the joint name and we put it into the map
-			// Why ? FOR THE GLORY OF SATAN OF COURSE
-			// (We need it for the rest of the program)
 			quaternions_to_mat_map.insert(std::make_pair(motion->getFrame(base_frame)->getJoints().at(j)->getJointName(), saved_modelview));
 
 		}
