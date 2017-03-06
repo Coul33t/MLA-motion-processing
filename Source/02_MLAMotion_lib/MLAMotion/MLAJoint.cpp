@@ -27,7 +27,7 @@ void Joint::setJointName(const std::string& jointName) {
 	m_jointName = jointName;
 }
 
-void Joint::setPositions(const glm::dvec3& positions) {
+void Joint::setPositions(const glm::vec3& positions) {
 	m_positions = positions;
 }
 
@@ -39,7 +39,7 @@ const std::string& Joint::getJointName() const {
 	return m_jointName;
 }
 
-const glm::dvec3& Joint::getPositions() const {
+const glm::vec3& Joint::getPositions() const {
 	return m_positions;
 }
 

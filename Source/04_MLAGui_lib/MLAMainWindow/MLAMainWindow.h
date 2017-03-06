@@ -20,8 +20,9 @@ public:
 	void DrawStaticMotion(Motion*);
 	void Animate(Motion*, float, float);
 
-	void DisplayLine(glm::mat4 &projection, glm::mat4 &modelview, double *line_vertices, double *line_colour);
-	void DisplayPoint(glm::mat4 &projection, glm::mat4 &modelview, double *point, double *point_color);
+
+	void DisplayLine(glm::mat4 &projection, glm::mat4 &modelview, float *line_vertices, float *line_colour);
+	void DisplayPoint(glm::mat4 &projection, glm::mat4 &modelview, float *point, float *point_color);
 
 private:
 	std::string m_windowTitle;

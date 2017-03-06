@@ -80,6 +80,7 @@ Motion* BvhParser::parseBvh(const std::string& inputFile) {
 		currentJoint->setJointName(jointList.back());
 		currentJoint->setPositions(glm::dvec3(tmpOffsets.at(0), tmpOffsets.at(1), tmpOffsets.at(2)));
 		currentJoint->setOrientations(glm::quat());
+		currentJoint->setParent(0);
 
 		if(parent != "NONE") {
 			currentJoint->setParent(initialFrame->getJoint(parent));
@@ -154,7 +155,7 @@ Motion* BvhParser::parseBvh(const std::string& inputFile) {
 	// Interframe time
 	searchForward(infile, "Time:");
 	infile >> currentWord;
-	motion->setFrameTime(atof(currentWord.c_str()));
+	motion->setFrameTime((float)atof(currentWord.c_str()));
 
 	motion->addFrame(initialFrame);
 
@@ -185,7 +186,17 @@ Motion* BvhParser::parseBvh(const std::string& inputFile) {
 		copiedFrame->setRoots(initialFrame->getRoots());
 
 		for (unsigned int i = 0; i<jointNumber; i++) {
-			copiedFrame->insertJoint(new Joint(*initialFrame->getJoints().at(i)));
+			Joint* new_joint = new Joint(*initialFrame->getJoints().at(i));
+			
+			new_joint->setParent(0);
+
+			if (initialFrame->getJoints().at(i)->getParent()) {
+				std::string parentName = initialFrame->getJoints().at(i)->getParent()->getJointName();
+				new_joint->setParent(copiedFrame->getJoint(parentName));
+			}
+			
+			copiedFrame->insertJoint(new_joint);
+
 		}
 
 		motion->addFrame(copiedFrame);
@@ -213,16 +224,30 @@ Motion* BvhParser::parseBvh(const std::string& inputFile) {
 				std::vector<std::string> currentChannels = channels[jointList.at(j)];
 				glm::dvec3 pos;
 				glm::quat ori;
-
+				
+				// Because if we don't check this, we will insert a (0,0,0)
+				// vector inside the motion, regardless of if there was 
+				// position information or not
+				bool posFlag = false;
+				
 				// c = channel
 				for (unsigned int c = 0; c < currentChannels.size(); c++) {
 
-					if (currentChannels.at(c) == "Xposition")
+					if (currentChannels.at(c) == "Xposition") {
 						pos[0] = atof(currentWord.c_str());
-					else if (currentChannels.at(c) == "Yposition")
+						posFlag = true;
+					}
+						
+					else if (currentChannels.at(c) == "Yposition") {
 						pos[1] = atof(currentWord.c_str());
-					else if (currentChannels.at(c) == "Zposition")
+						posFlag = true;
+					}
+						
+					else if (currentChannels.at(c) == "Zposition") {
 						pos[2] = atof(currentWord.c_str());
+						posFlag = true;
+					}
+						
 					else if (currentChannels.at(c) == "Xrotation")
 						ori = ori * glm::quat(glm::dvec3(glm::radians(atof(currentWord.c_str())), 0.0, 0.0));
 					else if (currentChannels.at(c) == "Yrotation")
@@ -233,7 +258,9 @@ Motion* BvhParser::parseBvh(const std::string& inputFile) {
 					infile >> currentWord;
 				}
 
-				motion->getFrame(f)->getJoint(jointList.at(j))->setPositions(pos);
+				if(posFlag)
+					motion->getFrame(f)->getJoint(jointList.at(j))->setPositions(pos);
+
 				motion->getFrame(f)->getJoint(jointList.at(j))->setOrientations(ori);
 			}
 		}

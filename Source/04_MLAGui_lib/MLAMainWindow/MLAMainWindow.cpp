@@ -84,7 +84,7 @@ bool MainWindow::LoadShader(std::string const vertexShader, std::string const fr
 
 void MainWindow::MainLoop(Motion* motion) {
 
-	float total_animation_time = motion->getFrames().size() * motion->getFrameTime() * 1000.0;
+	float total_animation_time = motion->getFrames().size() * motion->getFrameTime() * 1000.0f;
 	float loop_beginning = 0, loop_end = 0, elapsed_time = 0;
 
 	float current_time = 0;
@@ -100,6 +100,9 @@ void MainWindow::MainLoop(Motion* motion) {
 	m_input.TrapMouse(true);
 
 	while (!m_input.End()) {
+
+		// Useful for frame limiting purpose (see at the end of the function)
+		loop_beginning = (float)SDL_GetTicks();
 
 		// Gathering the keyboard events
 		m_input.EventUpdate();
@@ -117,13 +120,13 @@ void MainWindow::MainLoop(Motion* motion) {
 		// Orient camera
 		m_camera.LookAt(m_modelview);
 
-		DrawStaticMotion(motion);
-		//mix_factor = (fmod(current_time / 1000, motion->getFrameTime())) / motion->getFrameTime();
-		//Animate(motion, mix_factor, current_time/1000);
-
+		//DrawStaticMotion(motion);
+		mix_factor = (fmod(current_time / 1000.0f, motion->getFrameTime())) / motion->getFrameTime();
+		
+		Animate(motion, mix_factor, current_time/1000.0f);
 		SDL_GL_SwapWindow(m_window);
 
-		loop_end = SDL_GetTicks();
+		loop_end = (float)SDL_GetTicks();
 		elapsed_time = loop_end - loop_beginning;
 
 		current_time += elapsed_time;
@@ -133,18 +136,10 @@ void MainWindow::MainLoop(Motion* motion) {
 }
 
 void MainWindow::DrawStaticMotion(Motion* motion) {
-	double line_vertices[6];
-	double point_vertice[3];
-	double colour[6];
-
-	// -> [1, 0, 0, 1, 0, 0]
-	// -> [red, red]
-	for (unsigned int i=0; i<6; i++){
-		if (i % 3 == 0)
-			colour[i] = 1.0;
-		else
-			colour[i] = 0.0;
-	}
+	float line_vertices[6];
+	float point_vertice[3];
+	float colour[6] = { 1, 0, 0, 1, 0, 0 };
+	float smaller_color[3] = { 0, 1, 1 };
 
 	glm::mat4 saved_modelview = m_modelview;
 	
@@ -153,7 +148,7 @@ void MainWindow::DrawStaticMotion(Motion* motion) {
 
 	// j = joints
 	for(unsigned int j=0 ; j<motion->getFrame(0)->getJoints().size(); j++) {
-		
+
 		// If it's the root
 		if (motion->getFrame(0)->getJoints().at(j)->getParent() == 0) {
 			
@@ -162,7 +157,7 @@ void MainWindow::DrawStaticMotion(Motion* motion) {
 				motion->getFrame(0)->getJoints().at(j)->getPositions()[1],
 				motion->getFrame(0)->getJoints().at(j)->getPositions()[2]));
 
-			matrix_map.insert(std::pair<std::string, glm::mat4>(motion->getFrame(0)->getJoints().at(j)->getJointName(), saved_modelview));
+			//matrix_map.insert(std::pair<std::string, glm::mat4>(motion->getFrame(0)->getJoints().at(j)->getJointName(), saved_modelview));
 		}
 
 		else {
@@ -176,48 +171,48 @@ void MainWindow::DrawStaticMotion(Motion* motion) {
 				std::cout << "Error : " << motion->getFrame(0)->getJoints().at(j)->getParent()->getJointName() << " not found in std::map<std::string, glm::mat4> matrix_map." << std::endl;
 				break;
 			}
-
-			// Since the parent's modelview will be at its offset, its coordinates are (0,0,0)
-			line_vertices[0] = 0;
-			line_vertices[1] = 0;
-			line_vertices[2] = 0;
-
-			// Since the offsets are relatives to the parent, AND that our current modelview
-			// is at the parent's offset, I guess it's ok to do that.
-			line_vertices[3] = motion->getFrame(0)->getJoints().at(j)->getPositions()[0];
-			line_vertices[4] = motion->getFrame(0)->getJoints().at(j)->getPositions()[1];
-			line_vertices[5] = motion->getFrame(0)->getJoints().at(j)->getPositions()[2];
-
-			// Added to draw points (maybe adding coordinates later)
-			point_vertice[0] = motion->getFrame(0)->getJoints().at(j)->getPositions()[0];
-			point_vertice[1] = motion->getFrame(0)->getJoints().at(j)->getPositions()[1];
-			point_vertice[2] = motion->getFrame(0)->getJoints().at(j)->getPositions()[2];
-
-			// We draw our line
-			DisplayPoint(m_projection, saved_modelview, point_vertice, colour);
-			DisplayLine(m_projection, saved_modelview, line_vertices, colour);
-
-			// We add the offset to the current matrix ...
-			saved_modelview = glm::translate(saved_modelview, glm::vec3(line_vertices[3],
-				line_vertices[4],
-				line_vertices[5]));
-
-			// ... and we put it into our map
-			matrix_map.insert(std::pair<std::string, glm::mat4>(motion->getFrame(0)->getJoints().at(j)->getJointName(), saved_modelview));
 		}
+
+		// Since the parent's modelview will be at its offset, its coordinates are (0,0,0)
+		line_vertices[0] = 0;
+		line_vertices[1] = 0;
+		line_vertices[2] = 0;
+
+		// Since the offsets are relatives to the parent, AND that our current modelview
+		// is at the parent's offset, I guess it's ok to do that.
+		line_vertices[3] = motion->getFrame(0)->getJoints().at(j)->getPositions()[0];
+		line_vertices[4] = motion->getFrame(0)->getJoints().at(j)->getPositions()[1];
+		line_vertices[5] = motion->getFrame(0)->getJoints().at(j)->getPositions()[2];
+
+		// Added to draw points (maybe adding coordinates later)
+		point_vertice[0] = motion->getFrame(0)->getJoints().at(j)->getPositions()[0];
+		point_vertice[1] = motion->getFrame(0)->getJoints().at(j)->getPositions()[1];
+		point_vertice[2] = motion->getFrame(0)->getJoints().at(j)->getPositions()[2];
+
+		// We draw our line
+		DisplayPoint(m_projection, saved_modelview, point_vertice, smaller_color);
+		DisplayLine(m_projection, saved_modelview, line_vertices, colour);
+
+		// We add the offset to the current matrix ...
+		saved_modelview = glm::translate(saved_modelview, glm::vec3(line_vertices[3],
+			line_vertices[4],
+			line_vertices[5]));
+
+		// ... and we put it into our map
+		matrix_map.insert(std::pair<std::string, glm::mat4>(motion->getFrame(0)->getJoints().at(j)->getJointName(), saved_modelview));
 	}
 }
 
 void MainWindow::Animate(Motion* motion, float mixFactor, float elapsedTime) {
-	double line_vertices[6];
-	double point_vertice[3];
-	double line_colour[] = { 1, 0, 1, 1, 0, 1 };
-	double point_colour[] = { 0.25, 0, 1, 0.25, 0, 1 };
+	float line_vertices[6];
+	float point_vertice[3];
+	float line_colour[6] = { 1, 1, 0, 1, 1, 0 };
+	float point_colour[3] = { 1, 0, 1 };
 
-	int base_frame = elapsedTime / motion->getFrameTime();
+	unsigned int base_frame = (int)(elapsedTime / motion->getFrameTime()) + 1;
 
-	if (base_frame == motion->getFrames().size() - 1){
-		base_frame = 0;
+	if (base_frame >= motion->getFrames().size() - 1){
+		base_frame = 1;
 	}
 
 	// Used to store a vector of quaternion, for the sake of code clarity.
@@ -245,15 +240,14 @@ void MainWindow::Animate(Motion* motion, float mixFactor, float elapsedTime) {
 		// ... and the next one (base frame + 1) ...
 		current_quat_2 = motion->getFrame(base_frame + 1)->getJoints().at(j)->getOrientations();;
 		// ... then we slerp (spherical interpolation) then.
-		quaternions_slerp_map.insert(std::make_pair(motion->getFrame(base_frame)->getJoints().at(j)->getJointName(), mix(current_quat_1, current_quat_2, mixFactor)));
+		quaternions_slerp_map.insert(std::make_pair(motion->getFrame(base_frame)->getJoints().at(j)->getJointName(), glm::slerp(current_quat_1, current_quat_2, mixFactor)));
 	}
 
 	// For each graph node
-	// m_joint_graph.GetSizeNode()
 	for (unsigned int j = 0; j<motion->getFrame(0)->getJoints().size(); j++) {
-
+		
 		// If it's the root
-		if (motion->getFrame(base_frame)->getJoints().at(j)->getParent() == 0) {
+		if (!motion->getFrame(base_frame)->getJoints().at(j)->getParent()) {
 
 			// We interpolate the position of the offset
 			base_offset = glm::vec3(motion->getFrame(base_frame)->getJoints().at(j)->getPositions()[0],
@@ -269,10 +263,10 @@ void MainWindow::Animate(Motion* motion, float mixFactor, float elapsedTime) {
 				next_offset[2] + (base_offset[2] - next_offset[2])*mixFactor);
 
 
-			saved_modelview = glm::translate(m_modelview, current_offset);
+			saved_modelview = glm::translate(saved_modelview, current_offset);
 
 			// We find the quat and transform it in a 4x4 matrix
-			quat_to_mat = glm::mat4_cast(motion->getFrame(base_frame)->getJoints().at(j)->getOrientations());
+			quat_to_mat = glm::mat4_cast(quaternions_slerp_map.find(motion->getFrame(base_frame)->getJoints().at(j)->getJointName())->second);
 			// We do the rotation
 			saved_modelview = saved_modelview*quat_to_mat;
 
@@ -336,7 +330,7 @@ void MainWindow::Animate(Motion* motion, float mixFactor, float elapsedTime) {
 			saved_modelview = glm::translate(saved_modelview, glm::vec3(point_vertice[0], point_vertice[1], point_vertice[2]));
 
 			// We find the quat and transform it in a 4x4 matrix
-			quat_to_mat = glm::mat4_cast(motion->getFrame(base_frame)->getJoints().at(j)->getOrientations());
+			quat_to_mat = glm::mat4_cast(quaternions_slerp_map.find(motion->getFrame(base_frame)->getJoints().at(j)->getJointName())->second);
 
 			// We do the rotation
 			saved_modelview = saved_modelview*quat_to_mat;
@@ -350,7 +344,7 @@ void MainWindow::Animate(Motion* motion, float mixFactor, float elapsedTime) {
 	}
 }
 
-void MainWindow::DisplayLine(glm::mat4 &projection, glm::mat4 &modelview, double *line_vertices, double *line_colour) {
+void MainWindow::DisplayLine(glm::mat4 &projection, glm::mat4 &modelview, float *line_vertices, float *line_colour) {
 	glUseProgram(m_shader.getProgramID());
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, line_vertices);
@@ -361,7 +355,7 @@ void MainWindow::DisplayLine(glm::mat4 &projection, glm::mat4 &modelview, double
 	glUniformMatrix4fv(glGetUniformLocation(m_shader.getProgramID(), "modelview"), 1, GL_FALSE, value_ptr(modelview));
 	glUniformMatrix4fv(glGetUniformLocation(m_shader.getProgramID(), "projection"), 1, GL_FALSE, value_ptr(projection));
 
-	glDrawArrays(GL_LINES, 0, 6);
+	glDrawArrays(GL_LINES, 0, 2);
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
@@ -369,7 +363,7 @@ void MainWindow::DisplayLine(glm::mat4 &projection, glm::mat4 &modelview, double
 	glUseProgram(0);
 }
 
-void MainWindow::DisplayPoint(glm::mat4 &projection, glm::mat4 &modelview, double *point, double *point_color) {
+void MainWindow::DisplayPoint(glm::mat4 &projection, glm::mat4 &modelview, float *point, float *point_color) {
 	glPointSize(10);
 	glUseProgram(m_shader.getProgramID());
 
@@ -381,7 +375,7 @@ void MainWindow::DisplayPoint(glm::mat4 &projection, glm::mat4 &modelview, doubl
 	glUniformMatrix4fv(glGetUniformLocation(m_shader.getProgramID(), "modelview"), 1, GL_FALSE, value_ptr(modelview));
 	glUniformMatrix4fv(glGetUniformLocation(m_shader.getProgramID(), "projection"), 1, GL_FALSE, value_ptr(projection));
 
-	glDrawArrays(GL_POINTS, 0, 3);
+	glDrawArrays(GL_POINTS, 0, 1);
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);

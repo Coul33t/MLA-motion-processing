@@ -23,10 +23,10 @@ public:
 
 	Motion& operator=(const Motion& motion);
 
-	void setFrameTime(const double& frameTime);
+	void setFrameTime(const float& frameTime);
 	void setFrames(const std::vector<Frame*> Frames);
 
-	const double& getFrameTime() const;
+	const float& getFrameTime() const;
 	const std::vector<Frame*>& getFrames() const;
 	Frame* getFrame(unsigned int idx);
 
@@ -34,7 +34,7 @@ public:
 
 private:
 	std::string m_motionName;
-	double m_frameTime;
+	float m_frameTime;
 	std::vector<Frame*> m_frames;
 };
 
