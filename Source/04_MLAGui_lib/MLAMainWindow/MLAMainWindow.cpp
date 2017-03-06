@@ -94,7 +94,7 @@ void MainWindow::MainLoop(Motion* motion) {
 	m_modelview = glm::mat4(1.0);
 	
 	// glm::perspective(FOV, screen ratio, near, far)
-	m_projection = glm::perspective(70.0, (double)1600.0/900.0, 0.1, 150.0);
+	m_projection = glm::perspective(70.0, (double)1600.0/900.0, 0.1, 250.0);
 
 	m_input.DisplayCursor(false);
 	m_input.TrapMouse(true);
@@ -224,7 +224,6 @@ void MainWindow::Animate(Motion* motion, float mixFactor, float elapsedTime) {
 	// Hold the 4x4 matrix from a quaternion.
 	glm::mat4 quat_to_mat;
 
-	std::map<std::string, glm::quat> quaternions_slerp_map;
 	std::map<std::string, glm::mat4> quaternions_to_mat_map;
 
 	// Used to interpolate the position of the root. For the sake of code clarity, we use 3 vector.
@@ -232,20 +231,9 @@ void MainWindow::Animate(Motion* motion, float mixFactor, float elapsedTime) {
 	glm::vec3 next_offset;
 	glm::vec3 current_offset;
 
-	// First, we interpolate each quaternion with the next frame's one.
-	// For each joint
-	for (unsigned int j = 0; j<motion->getFrame(0)->getJoints().size(); j++) {
-		// We find the quaternion of the current frame (base frame) ...
-		current_quat_1 = motion->getFrame(base_frame)->getJoints().at(j)->getOrientations();
-		// ... and the next one (base frame + 1) ...
-		current_quat_2 = motion->getFrame(base_frame + 1)->getJoints().at(j)->getOrientations();;
-		// ... then we slerp (spherical interpolation) then.
-		quaternions_slerp_map.insert(std::make_pair(motion->getFrame(base_frame)->getJoints().at(j)->getJointName(), glm::slerp(current_quat_1, current_quat_2, mixFactor)));
-	}
-
 	// For each graph node
 	for (unsigned int j = 0; j<motion->getFrame(0)->getJoints().size(); j++) {
-		
+
 		// If it's the root
 		if (!motion->getFrame(base_frame)->getJoints().at(j)->getParent()) {
 
@@ -266,7 +254,12 @@ void MainWindow::Animate(Motion* motion, float mixFactor, float elapsedTime) {
 			saved_modelview = glm::translate(saved_modelview, current_offset);
 
 			// We find the quat and transform it in a 4x4 matrix
-			quat_to_mat = glm::mat4_cast(quaternions_slerp_map.find(motion->getFrame(base_frame)->getJoints().at(j)->getJointName())->second);
+			current_quat_1 = motion->getFrame(base_frame)->getJoints().at(j)->getOrientations();
+			// ... and the next one (base frame + 1) ...
+			current_quat_2 = motion->getFrame(base_frame + 1)->getJoints().at(j)->getOrientations();;
+			// We slerp them and transform into a matrix
+			quat_to_mat = glm::mat4_cast(glm::slerp(current_quat_1, current_quat_2, mixFactor));
+			
 			// We do the rotation
 			saved_modelview = saved_modelview*quat_to_mat;
 
@@ -330,7 +323,11 @@ void MainWindow::Animate(Motion* motion, float mixFactor, float elapsedTime) {
 			saved_modelview = glm::translate(saved_modelview, glm::vec3(point_vertice[0], point_vertice[1], point_vertice[2]));
 
 			// We find the quat and transform it in a 4x4 matrix
-			quat_to_mat = glm::mat4_cast(quaternions_slerp_map.find(motion->getFrame(base_frame)->getJoints().at(j)->getJointName())->second);
+			current_quat_1 = motion->getFrame(base_frame)->getJoints().at(j)->getOrientations();
+			// ... and the next one (base frame + 1) ...
+			current_quat_2 = motion->getFrame(base_frame + 1)->getJoints().at(j)->getOrientations();;
+			// We slerp them and transform into a matrix
+			quat_to_mat = glm::mat4_cast(glm::slerp(current_quat_1, current_quat_2, mixFactor));
 
 			// We do the rotation
 			saved_modelview = saved_modelview*quat_to_mat;
