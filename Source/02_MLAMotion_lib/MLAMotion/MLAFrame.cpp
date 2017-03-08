@@ -5,8 +5,9 @@ Frame::Frame() {
 }
 
 Frame::~Frame() {
-	for (unsigned int i=0 ; i<m_joints.size() ; i++)
-		free(m_joints.at(i));
+	if (!m_joints.empty())
+		for (unsigned int i=0 ; i<m_joints.size() ; i++)
+			free(m_joints.at(i));
 }
 
 Frame::Frame(const Frame& frame) {

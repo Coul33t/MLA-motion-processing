@@ -9,19 +9,19 @@ class MainWindow {
 
 public:
 	MainWindow();
-	MainWindow(std::string, int, int);
+	MainWindow(const std::string, const int, const int);
 	~MainWindow();
 
 	int WindowInit();
 	bool GLinit();
-	bool LoadShader(std::string const, std::string const);
+	bool LoadShader(const std::string, const std::string);
 	void MainLoop(Motion*);
 
 	void DrawStaticMotion(Motion*);
-	void Animate(Motion*, float, float);
+	void Animate(Motion*, const float, const float);
 
-	void DisplayLine(glm::mat4 &projection, glm::mat4 &modelview, float *line_vertices, float *line_colour);
-	void DisplayPoint(glm::mat4 &projection, glm::mat4 &modelview, float *point, float *point_color);
+	void DisplayLine(glm::mat4 &projection, glm::mat4 &modelview, const float *line_vertices, const float *line_colour);
+	void DisplayPoint(glm::mat4 &projection, glm::mat4 &modelview, const float *point, const float *point_color);
 
 private:
 	std::string m_windowTitle;

@@ -5,8 +5,9 @@ Motion::Motion() {
 }
 
 Motion::~Motion() {
-	for(unsigned int i=0 ; i<m_frames.size() ; i++)
-		free(m_frames.at(i));
+	if(!m_frames.empty())
+		for(unsigned int i=0 ; i<m_frames.size() ; i++)
+			free(m_frames.at(i));
 }
 
 Motion::Motion(const Motion& motion) {

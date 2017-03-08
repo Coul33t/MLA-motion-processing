@@ -5,7 +5,7 @@ m_windowTitle("Default name"), m_windowWidth(1600), m_windowHeight(900), m_windo
 m_projection(), m_camera() {
 }
 
-MainWindow::MainWindow(std::string window_title, int window_width, int window_height) :
+MainWindow::MainWindow(const std::string window_title, const int window_width, const int window_height) :
 m_windowTitle(window_title), m_windowWidth(window_width), m_windowHeight(window_height), m_window(), m_openGLContext(), m_input(),
 m_modelview(), m_projection(), m_camera() {
 }
@@ -70,7 +70,7 @@ bool MainWindow::GLinit() {
 	return true;
 }
 
-bool MainWindow::LoadShader(std::string const vertexShader, std::string const fragmentShader) {
+bool MainWindow::LoadShader(const std::string vertexShader, const std::string fragmentShader) {
 	
 	m_shader.setVertexSource(vertexShader);
 	m_shader.setFragmentSource(fragmentShader);
@@ -203,7 +203,7 @@ void MainWindow::DrawStaticMotion(Motion* motion) {
 	}
 }
 
-void MainWindow::Animate(Motion* motion, float mixFactor, float elapsedTime) {
+void MainWindow::Animate(Motion* motion, const float mixFactor, const float elapsedTime) {
 	float line_vertices[6];
 	float point_vertice[3];
 	float line_colour[6] = { 1, 1, 0, 1, 1, 0 };
@@ -314,7 +314,7 @@ void MainWindow::Animate(Motion* motion, float mixFactor, float elapsedTime) {
 	}
 }
 
-void MainWindow::DisplayLine(glm::mat4 &projection, glm::mat4 &modelview, float *line_vertices, float *line_colour) {
+void MainWindow::DisplayLine(glm::mat4 &projection, glm::mat4 &modelview, const float *line_vertices, const float *line_colour) {
 	glUseProgram(m_shader.getProgramID());
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, line_vertices);
@@ -333,7 +333,7 @@ void MainWindow::DisplayLine(glm::mat4 &projection, glm::mat4 &modelview, float 
 	glUseProgram(0);
 }
 
-void MainWindow::DisplayPoint(glm::mat4 &projection, glm::mat4 &modelview, float *point, float *point_color) {
+void MainWindow::DisplayPoint(glm::mat4 &projection, glm::mat4 &modelview, const float *point, const float *point_color) {
 	glPointSize(10);
 	glUseProgram(m_shader.getProgramID());
 
