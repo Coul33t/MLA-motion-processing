@@ -25,9 +25,12 @@ m_vertexSource(vertexSource), m_fragmentSource(fragmentSource) {
 
 // Destructor
 Shader::~Shader() {
-	glDeleteShader(m_vertexID);
-	glDeleteShader(m_fragmentID);
-	glDeleteProgram(m_programID);
+	if(m_vertexID)
+		glDeleteShader(m_vertexID);
+	if(m_fragmentID)
+		glDeleteShader(m_fragmentID);
+	if(m_programID)
+		glDeleteProgram(m_programID);
 }
 
 
