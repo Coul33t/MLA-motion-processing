@@ -84,20 +84,28 @@ bool MainWindow::LoadShader(const std::string vertexShader, const std::string fr
 
 void MainWindow::MainLoop(Motion* motion) {
 
-	float total_animation_time = motion->getFrames().size() * motion->getFrameTime() * 1000.0f;
-	float loop_beginning = 0, loop_end = 0, elapsed_time = 0;
+	double total_animation_time = motion->getFrames().size() * motion->getFrameTime() * 1000.0f;
+	double loop_beginning = 0, loop_end = 0, elapsed_time = 0;
 
-	float current_time = 0;
-	float mix_factor = 0;
+	double current_time = 0;
+
+	// slerp factor (value between 0 and 1, indicating " where "
+	// we are between the two frames)
+	double mix_factor = 0;
 
 	// identity matrix
-	m_modelview = glm::mat4(1.0);
+	m_modelview = glm::dmat4(1.0);
 	
 	// glm::perspective(FOV, screen ratio, near, far)
-	m_projection = glm::perspective(70.0, (double)1600.0/900.0, 0.1, 250.0);
+	m_projection = glm::perspective(70.0, 1600.0/900.0, 0.1, 250.0);
 
 	m_input.DisplayCursor(false);
 	m_input.TrapMouse(true);
+
+	// Displaying offset (0) or animation (1)
+	unsigned int display_type = 0;
+	
+	float current_speed = 1;
 
 	while (!m_input.End()) {
 
@@ -111,6 +119,43 @@ void MainWindow::MainLoop(Motion* motion) {
 		if (m_input.GetKey(SDL_SCANCODE_ESCAPE))
 			break;
 
+		// Offset
+		if (m_input.GetKey(SDL_SCANCODE_E)) {
+			display_type = 0;
+		}
+
+		// Animation
+		if (m_input.GetKey(SDL_SCANCODE_Q)) {
+			display_type = 1;
+		}
+
+		if(display_type == 1) {
+			if (m_input.GetKey(SDL_SCANCODE_Z) && current_speed > -1) {
+				current_speed -= 0.1f;
+				std::cout << "Current speed : " << current_speed << std::endl;
+			}
+
+			else if (m_input.GetKey(SDL_SCANCODE_X) && current_speed < 1) {
+				current_speed += 0.1f; 
+				std::cout << "Current speed : " << current_speed << std::endl;
+			}
+
+			else if (m_input.GetKey(SDL_SCANCODE_C)) {
+				current_speed = -1;
+				std::cout << "Current speed : " << current_speed << std::endl;
+			}
+
+			else if (m_input.GetKey(SDL_SCANCODE_V)) {
+				current_speed = 0;
+				std::cout << "Current speed : " << current_speed << std::endl;
+			}
+
+			else if (m_input.GetKey(SDL_SCANCODE_B)) {
+				current_speed = 1;
+				std::cout << "Current speed : " << current_speed << std::endl;
+			}
+		}
+
 		// Handle camera's motion
 		m_camera.Move(m_input);
 
@@ -120,56 +165,77 @@ void MainWindow::MainLoop(Motion* motion) {
 		// Orient camera
 		m_camera.LookAt(m_modelview);
 
-		//DrawStaticMotion(motion);
-		mix_factor = (fmod(current_time / 1000.0f, motion->getFrameTime())) / motion->getFrameTime();
+		if(display_type == 0)
+			DrawStaticMotion(motion);		
+
+		else {
+			mix_factor = (fmod(current_time / 1000.0, motion->getFrameTime())) / motion->getFrameTime();
+
+			Animate(motion, mix_factor, current_time / 1000.0);
+		}
 		
-		Animate(motion, mix_factor, current_time/1000.0f);
 		SDL_GL_SwapWindow(m_window);
 
-		loop_end = (float)SDL_GetTicks();
+		loop_end = SDL_GetTicks();
 		elapsed_time = loop_end - loop_beginning;
 
-		current_time += elapsed_time;
+		if(display_type == 1) {
+			current_time += elapsed_time * current_speed;
+			if (current_time < motion->getFrameTime())
+				current_time = total_animation_time;
+		}	
+
+		else
+			current_time = 0;
+
 		if (current_time > total_animation_time)
 			current_time = 0;
 	}
 }
 
 void MainWindow::DrawStaticMotion(Motion* motion) {
-	float line_vertices[6];
-	float point_vertice[3];
-	float colour[6] = { 1, 0, 0, 1, 0, 0 };
-	float smaller_color[3] = { 0, 1, 1 };
+	double line_vertices[6];
+	double point_vertice[3];
+	double colour[6] = { 1, 0, 0, 1, 0, 0 };
+	double point_colour[3] = { 0, 1, 1 };
 
-	glm::mat4 saved_modelview = m_modelview;
+	glm::dmat4 saved_modelview = m_modelview;
 	
 	// Dictionnary to keep the offset matrix for each joint
-	std::map<std::string, glm::mat4> matrix_map;
+	std::map<std::string, glm::dmat4> quaternions_to_mat_map;
 
 	// j = joints
-	for(unsigned int j=0 ; j<motion->getFrame(0)->getJoints().size(); j++) {
+	for(unsigned int j=0 ; j<motion->getFrame(1)->getJoints().size(); j++) {
 
 		// If it's the root
-		if (motion->getFrame(0)->getJoints().at(j)->getParent() == 0) {
+		if (motion->getFrame(1)->getJoints().at(j)->getParent() == 0) {
 			
-			// We translate to the position (mostly useless since the root is almost always at (0,0,0)
-			saved_modelview = glm::translate(m_modelview, glm::vec3(motion->getFrame(0)->getJoints().at(j)->getPositions()[0],
-				motion->getFrame(0)->getJoints().at(j)->getPositions()[1],
-				motion->getFrame(0)->getJoints().at(j)->getPositions()[2]));
+			// We translate to the position
+			saved_modelview = glm::translate(m_modelview, motion->getFrame(1)->getJoints().at(j)->getPositions());
 
-			//matrix_map.insert(std::pair<std::string, glm::mat4>(motion->getFrame(0)->getJoints().at(j)->getJointName(), saved_modelview));
+			// We transform into a matrix and we do the rotation
+			saved_modelview = saved_modelview*glm::mat4_cast(motion->getFrame(1)->getJoints().at(j)->getOrientations());
+
+			point_vertice[0] = motion->getFrame(1)->getJoints().at(j)->getPositions()[0];
+			point_vertice[1] = motion->getFrame(1)->getJoints().at(j)->getPositions()[1];
+			point_vertice[2] = motion->getFrame(1)->getJoints().at(j)->getPositions()[2];
+
+			DisplayPoint(m_projection, m_modelview, point_vertice, point_colour);
+
+			// We pair it with the joint name and we put it into the map
+			quaternions_to_mat_map.insert(std::make_pair(motion->getFrame(1)->getJoints().at(j)->getJointName(), saved_modelview));
 		}
 
 		else {
 			// If we find the modelview matrix for the parent
-			if (matrix_map.find(motion->getFrame(0)->getJoints().at(j)->getParent()->getJointName()) != matrix_map.end()){
-				saved_modelview = matrix_map.find(motion->getFrame(0)->getJoints().at(j)->getParent()->getJointName())->second;
+			if (quaternions_to_mat_map.find(motion->getFrame(1)->getJoints().at(j)->getParent()->getJointName()) != quaternions_to_mat_map.end()){
+				saved_modelview = quaternions_to_mat_map.find(motion->getFrame(1)->getJoints().at(j)->getParent()->getJointName())->second;
 			}
 
 			// Else, ABANDON SHIP
 			else {
-				std::cout << "Error : " << motion->getFrame(0)->getJoints().at(j)->getParent()->getJointName() << " not found in std::map<std::string, glm::mat4> matrix_map." << std::endl;
-				break;
+				std::cout << "Error : " << motion->getFrame(1)->getJoints().at(j)->getParent()->getJointName() << " not found in std::map<std::string, glm::mat4> quaternions_to_mat_map." << std::endl;
+				exit(EXIT_FAILURE);
 			}
 		}
 
@@ -184,30 +250,28 @@ void MainWindow::DrawStaticMotion(Motion* motion) {
 		line_vertices[4] = motion->getFrame(0)->getJoints().at(j)->getPositions()[1];
 		line_vertices[5] = motion->getFrame(0)->getJoints().at(j)->getPositions()[2];
 
-		// Added to draw points (maybe adding coordinates later)
-		point_vertice[0] = motion->getFrame(0)->getJoints().at(j)->getPositions()[0];
-		point_vertice[1] = motion->getFrame(0)->getJoints().at(j)->getPositions()[1];
-		point_vertice[2] = motion->getFrame(0)->getJoints().at(j)->getPositions()[2];
+		// Added to draw points
+		point_vertice[0] = line_vertices[3];
+		point_vertice[1] = line_vertices[4];
+		point_vertice[2] = line_vertices[5];
 
-		// We draw our line
-		DisplayPoint(m_projection, saved_modelview, point_vertice, smaller_color);
+		// We draw the point and the line
+		DisplayPoint(m_projection, saved_modelview, point_vertice, point_colour);
 		DisplayLine(m_projection, saved_modelview, line_vertices, colour);
 
 		// We add the offset to the current matrix ...
-		saved_modelview = glm::translate(saved_modelview, glm::vec3(line_vertices[3],
-			line_vertices[4],
-			line_vertices[5]));
+		saved_modelview = glm::translate(saved_modelview, glm::dvec3(point_vertice[0], point_vertice[1], point_vertice[2]));
 
-		// ... and we put it into our map
-		matrix_map.insert(std::pair<std::string, glm::mat4>(motion->getFrame(0)->getJoints().at(j)->getJointName(), saved_modelview));
+		saved_modelview = saved_modelview*glm::mat4_cast(motion->getFrame(1)->getJoints().at(j)->getOrientations());
+		quaternions_to_mat_map.insert(std::make_pair(motion->getFrame(1)->getJoints().at(j)->getJointName(), saved_modelview));
 	}
 }
 
-void MainWindow::Animate(Motion* motion, const float mixFactor, const float elapsedTime) {
-	float line_vertices[6];
-	float point_vertice[3];
-	float line_colour[6] = { 1, 1, 0, 1, 1, 0 };
-	float point_colour[3] = { 1, 0, 1 };
+void MainWindow::Animate(Motion* motion, const double mixFactor, const double elapsedTime) {
+	double line_vertices[6];
+	double point_vertice[3];
+	double line_colour[6] = { 1, 1, 0, 1, 1, 0 };
+	double point_colour[3] = { 1, 0, 1 };
 
 	unsigned int base_frame = (int)(elapsedTime / motion->getFrameTime()) + 1;
 
@@ -216,14 +280,14 @@ void MainWindow::Animate(Motion* motion, const float mixFactor, const float elap
 	}
 
 	// Used to interpolate between 2 quaternions, for the sake of code clarity.
-	glm::quat current_quat, next_quat;
+	glm::dquat current_quat, next_quat;
 
-	glm::mat4 saved_modelview = m_modelview;
+	glm::dmat4 saved_modelview = m_modelview;
 
-	std::map<std::string, glm::mat4> quaternions_to_mat_map;
+	std::map<std::string, glm::dmat4> quaternions_to_mat_map;
 
 	// Used to interpolate the position of the root. For the sake of code clarity, we use 3 vector.
-	glm::vec3 base_offset, next_offset, current_offset;
+	glm::dvec3 base_offset, next_offset, current_offset;
 
 	// For each graph node
 	for (unsigned int j = 0; j<motion->getFrame(0)->getJoints().size(); j++) {
@@ -232,15 +296,11 @@ void MainWindow::Animate(Motion* motion, const float mixFactor, const float elap
 		if (!motion->getFrame(base_frame)->getJoints().at(j)->getParent()) {
 
 			// We interpolate the position of the offset
-			base_offset = glm::vec3(motion->getFrame(base_frame)->getJoints().at(j)->getPositions()[0],
-				motion->getFrame(base_frame)->getJoints().at(j)->getPositions()[1],
-				motion->getFrame(base_frame)->getJoints().at(j)->getPositions()[2]);
+			base_offset = glm::dvec3(motion->getFrame(base_frame)->getJoints().at(j)->getPositions());
 
-			next_offset = glm::vec3(motion->getFrame(base_frame + 1)->getJoints().at(j)->getPositions()[0],
-				motion->getFrame(base_frame + 1)->getJoints().at(j)->getPositions()[1],
-				motion->getFrame(base_frame + 1)->getJoints().at(j)->getPositions()[2]);
+			next_offset = glm::dvec3(motion->getFrame(base_frame + 1)->getJoints().at(j)->getPositions());
 
-			current_offset = glm::vec3(next_offset[0] + (base_offset[0] - next_offset[0])*mixFactor,
+			current_offset = glm::dvec3(next_offset[0] + (base_offset[0] - next_offset[0])*mixFactor,
 				next_offset[1] + (base_offset[1] - next_offset[1])*mixFactor,
 				next_offset[2] + (base_offset[2] - next_offset[2])*mixFactor);
 
@@ -298,7 +358,7 @@ void MainWindow::Animate(Motion* motion, const float mixFactor, const float elap
 			DisplayPoint(m_projection, saved_modelview, point_vertice, point_colour);
 
 			//We translate to the next joint (the one we just draw)
-			saved_modelview = glm::translate(saved_modelview, glm::vec3(point_vertice[0], point_vertice[1], point_vertice[2]));
+			saved_modelview = glm::translate(saved_modelview, glm::dvec3(point_vertice[0], point_vertice[1], point_vertice[2]));
 
 			// We find the quat and transform it in a 4x4 matrix
 			current_quat = motion->getFrame(base_frame)->getJoints().at(j)->getOrientations();
@@ -314,16 +374,21 @@ void MainWindow::Animate(Motion* motion, const float mixFactor, const float elap
 	}
 }
 
-void MainWindow::DisplayLine(glm::mat4 &projection, glm::mat4 &modelview, const float *line_vertices, const float *line_colour) {
+// Conversion from dmat4 to mat4 : see
+// https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_gpu_shader_fp64.txt
+// to avoid this.
+// Actually, there's a LOT to do to enable this. We have to sdwitch from GL 3.1
+// to 3.2 (or more), but it absolutely breaks the code. TODO, I guess.
+void MainWindow::DisplayLine(glm::dmat4 &projection, glm::dmat4 &modelview, const double *line_vertices, const double *line_colour) {
 	glUseProgram(m_shader.getProgramID());
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, line_vertices);
+	glVertexAttribPointer(0, 3, GL_DOUBLE, GL_FALSE, 0, line_vertices);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, line_colour);
+	glVertexAttribPointer(1, 3, GL_DOUBLE, GL_FALSE, 0, line_colour);
 	glEnableVertexAttribArray(1);
 
-	glUniformMatrix4fv(glGetUniformLocation(m_shader.getProgramID(), "modelview"), 1, GL_FALSE, value_ptr(modelview));
-	glUniformMatrix4fv(glGetUniformLocation(m_shader.getProgramID(), "projection"), 1, GL_FALSE, value_ptr(projection));
+	glUniformMatrix4fv(glGetUniformLocation(m_shader.getProgramID(), "modelview"), 1, GL_FALSE, value_ptr((glm::mat4)modelview));
+	glUniformMatrix4fv(glGetUniformLocation(m_shader.getProgramID(), "projection"), 1, GL_FALSE, value_ptr((glm::mat4)projection));
 
 	glDrawArrays(GL_LINES, 0, 2);
 
@@ -333,17 +398,17 @@ void MainWindow::DisplayLine(glm::mat4 &projection, glm::mat4 &modelview, const 
 	glUseProgram(0);
 }
 
-void MainWindow::DisplayPoint(glm::mat4 &projection, glm::mat4 &modelview, const float *point, const float *point_color) {
+void MainWindow::DisplayPoint(glm::dmat4 &projection, glm::dmat4 &modelview, const double *point, const double *point_color) {
 	glPointSize(10);
 	glUseProgram(m_shader.getProgramID());
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, point);
+	glVertexAttribPointer(0, 3, GL_DOUBLE, GL_FALSE, 0, point);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, point_color);
+	glVertexAttribPointer(1, 3, GL_DOUBLE, GL_FALSE, 0, point_color);
 	glEnableVertexAttribArray(1);
 
-	glUniformMatrix4fv(glGetUniformLocation(m_shader.getProgramID(), "modelview"), 1, GL_FALSE, value_ptr(modelview));
-	glUniformMatrix4fv(glGetUniformLocation(m_shader.getProgramID(), "projection"), 1, GL_FALSE, value_ptr(projection));
+	glUniformMatrix4fv(glGetUniformLocation(m_shader.getProgramID(), "modelview"), 1, GL_FALSE, value_ptr((glm::mat4)modelview));
+	glUniformMatrix4fv(glGetUniformLocation(m_shader.getProgramID(), "projection"), 1, GL_FALSE, value_ptr((glm::mat4)projection));
 
 	glDrawArrays(GL_POINTS, 0, 1);
 

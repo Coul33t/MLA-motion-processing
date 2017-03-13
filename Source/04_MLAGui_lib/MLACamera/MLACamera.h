@@ -14,7 +14,7 @@ public:
 	virtual ~Camera();
 	void Orient(int xRel, int yRel);
 	void Move(Input const &input);
-	void LookAt(glm::mat4 &modelview);
+	void LookAt(glm::dmat4 &modelview);
 
 
 private:

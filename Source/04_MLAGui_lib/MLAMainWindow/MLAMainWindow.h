@@ -18,10 +18,11 @@ public:
 	void MainLoop(Motion*);
 
 	void DrawStaticMotion(Motion*);
-	void Animate(Motion*, const float, const float);
+	void Animate(Motion*, const double, const double);
 
-	void DisplayLine(glm::mat4 &projection, glm::mat4 &modelview, const float *line_vertices, const float *line_colour);
-	void DisplayPoint(glm::mat4 &projection, glm::mat4 &modelview, const float *point, const float *point_color);
+	void DisplayLine(glm::dmat4 &projection, glm::dmat4 &modelview, const double *line_vertices, const double *line_colour);
+	void DisplayPoint(glm::dmat4 &projection, glm::dmat4 &modelview, const double *point, const double *point_color);
+	
 
 private:
 	std::string m_windowTitle;
@@ -37,8 +38,8 @@ private:
 
 	Shader m_shader;
 
-	glm::mat4 m_modelview;
-	glm::mat4 m_projection;
+	glm::dmat4 m_modelview;
+	glm::dmat4 m_projection;
 
 	Camera m_camera;
 };

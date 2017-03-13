@@ -21,7 +21,7 @@ Motion& Motion::operator=(const Motion& motion) {
 	return *this;
 }
 
-void Motion::setFrameTime(const float& frameTime) {
+void Motion::setFrameTime(const double& frameTime) {
 	m_frameTime = frameTime;
 }
 
@@ -29,7 +29,7 @@ void Motion::setFrames(const std::vector<Frame*> frames) {
 	m_frames = frames;
 }
 
-const float& Motion::getFrameTime() const {
+const double& Motion::getFrameTime() const {
 	return m_frameTime;
 }
 

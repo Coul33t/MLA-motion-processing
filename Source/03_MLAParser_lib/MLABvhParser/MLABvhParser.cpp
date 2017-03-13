@@ -3,9 +3,6 @@
 BvhParser::BvhParser() {
 
 }
-// Let's not turn this simple function into an abomination
-
-// Indicateur de progression : \r pour clean la ligne
 
 //TODO: use return value of searchForward()
 Motion* BvhParser::parseBvh(const std::string& inputFile) {
@@ -110,7 +107,7 @@ Motion* BvhParser::parseBvh(const std::string& inputFile) {
 
 			Joint* endJoint = new Joint();
 			endJoint->setJointName("End" + jointList.back());
-			endJoint->setPositions(glm::vec3(tmpOffsets.at(0), tmpOffsets.at(1), tmpOffsets.at(2)));
+			endJoint->setPositions(glm::dvec3(tmpOffsets.at(0), tmpOffsets.at(1), tmpOffsets.at(2)));
 			endJoint->setOrientations(glm::quat());
 				
 			parent = parentNames.back();
@@ -155,9 +152,11 @@ Motion* BvhParser::parseBvh(const std::string& inputFile) {
 	// Interframe time
 	searchForward(infile, "Time:");
 	infile >> currentWord;
-	motion->setFrameTime((float)atof(currentWord.c_str()));
+	motion->setFrameTime(atof(currentWord.c_str()));
 
 	motion->addFrame(initialFrame);
+
+	unsigned int percentage = 0;
 
 	// using initialFrame->getNames().size() (to get the number  
 	// of joints) used up to 57% of this function's running time. 
@@ -166,17 +165,17 @@ Motion* BvhParser::parseBvh(const std::string& inputFile) {
 	// function each time, rather than doing it only 1 time ?
 	unsigned int jointNumber = initialFrame->getJoints().size();
 
+	std::cout << "Copying frames ..." << std::endl;
+
 	// Why not : " Frame* copiedFrame = new Frame(*initialFrame); " ?
 	// Because if we do so, the member std::vector<Joint*> m_joints
 	// will be copied as is, and the pointers inside will point to
 	// the same data as the initial frame. So if you modify one
 	// value, it will modify all the value (since the pointers all
 	// points to the same joint in the memory).
-	unsigned int percentage = 0;
-
-	std::cout << "Copying frames ..." << std::endl;
 
 	for(unsigned int i=0 ; i<frameNumber ; i++) {
+		
 		percentage = 100 * i / frameNumber;
 		std::cout << percentage << " % (" << i << "/" << frameNumber << ")" << "\r";
 
@@ -207,6 +206,9 @@ Motion* BvhParser::parseBvh(const std::string& inputFile) {
 
 	percentage = 0;
 	std::cout << "Motion data gathering ..." << std::endl;
+
+	std::vector<std::string> currentChannels;
+	
 	// f = frame number
 	// = 1, since the first frame is already inserted
 	// frameNumber+1, since the first frame is inserted
@@ -221,10 +223,10 @@ Motion* BvhParser::parseBvh(const std::string& inputFile) {
 			// Endsites do not have information for the animation,
 			// so we skip them
 			if (!(jointList.at(j).find("End") == 0)) {
-				std::vector<std::string> currentChannels = channels[jointList.at(j)];
+				currentChannels = channels[jointList.at(j)];
 				glm::dvec3 pos;
 				glm::quat ori;
-				
+
 				// Because if we don't check this, we will insert a (0,0,0)
 				// vector inside the motion, regardless of if there was 
 				// position information or not
@@ -268,6 +270,7 @@ Motion* BvhParser::parseBvh(const std::string& inputFile) {
 
 	std::cout << "Motion data gathered." << std::endl;
 	std::cout << "Animation frames built." << std::endl;
+	
 	return motion;
 }
 
@@ -276,8 +279,10 @@ bool BvhParser::searchForward(std::ifstream& infile, const std::string word) {
 
 	do {
 		infile >> chunk;
+		
 		if(chunk == word)
 			return true;
+
 	}while(!infile.eof());
 
 	return false;
@@ -287,10 +292,13 @@ bool BvhParser::searchForward(std::ifstream& infile, const std::string word) {
 bool BvhParser::isDouble(const char* str) {
 	char* endptr = 0;
 
-	// try to parse str into a floating point number (returns double)
+	// try to parse str into a floating point number (returns double, although
+	// we do not use the returned value as it would be redundant here,
+	// see http://stackoverflow.com/questions/27973759/return-value-of-strtod-if-string-equals-to-zero)
 	std::strtod(str, &endptr);
 
 	if(*endptr != '\0' || endptr == str)
 		return false;
+
 	return true;
 }

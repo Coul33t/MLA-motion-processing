@@ -3,7 +3,7 @@
 int main(int argc, char *argv[]) {
 	
 	BvhParser parser;
-	Motion* motion = parser.parseBvh(MLA_INPUT_BVH_PATH "01_01_2.bvh");
+	Motion* motion = parser.parseBvh(MLA_INPUT_BVH_PATH "S02_X04.bvh");
 	
 	MainWindow window;
 
@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 
 	window.MainLoop(motion);
 
-	/*std::cout << "Success. Press any key to quit...";
+	/*std::cout << "Press any key to quit...";
 	std::cin.get();*/
 	return 0;
 }

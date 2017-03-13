@@ -23,12 +23,12 @@ public:
 	Joint& operator=(const Joint& joint);
 
 	void setJointName(const std::string& jointName);
-	void setPositions(const glm::vec3& positions);
-	void setOrientations(const glm::quat& orientations);
+	void setPositions(const glm::dvec3& positions);
+	void setOrientations(const glm::dquat& orientations);
 
 	const std::string& getJointName() const;
-	const glm::vec3& getPositions() const;
-	const glm::quat& getOrientations() const;
+	const glm::dvec3& getPositions() const;
+	const glm::dquat& getOrientations() const;
 
 	void setParent(Joint* parent);
 	void addChild(Joint* child);
@@ -40,10 +40,10 @@ private:
 	std::string m_jointName;
 
 	// a vector with the initial offset
-	glm::vec3 m_positions;
+	glm::dvec3 m_positions;
 
 	// a quaternion holding the orientation for the frame
-	glm::quat m_orientations;
+	glm::dquat m_orientations;
 
 	Joint* m_parent;
 	std::vector<Joint*> m_child;
