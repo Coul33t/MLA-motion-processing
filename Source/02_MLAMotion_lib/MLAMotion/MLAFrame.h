@@ -35,7 +35,7 @@ public:
 	void addRoot(unsigned int);
 
 	void setNames(const std::map<std::string, unsigned int>&);
-	const std::map<std::string, unsigned int> getNames() const;
+	const std::map<std::string, unsigned int>& getNames() const;
 
 private:
 	std::vector<Joint*> m_joints;

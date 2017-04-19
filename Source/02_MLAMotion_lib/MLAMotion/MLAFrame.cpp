@@ -62,6 +62,6 @@ void Frame::setNames(const std::map<std::string, unsigned int>& names) {
 	m_names = names;
 }
 
-const std::map<std::string, unsigned int> Frame::getNames() const {
+const std::map<std::string, unsigned int>& Frame::getNames() const {
 	return m_names;
 }
