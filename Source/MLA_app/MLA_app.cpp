@@ -3,7 +3,7 @@
 int main(int argc, char *argv[]) {
 	
 	BvhParser parser;
-	Motion* motion = parser.parseBvh(MLA_INPUT_BVH_PATH "S02_X04.bvh");
+	Motion* motion = parser.parseBvh(MLA_INPUT_BVH_PATH "test_2.bvh");
 	
 	MainWindow window;
 

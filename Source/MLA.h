@@ -5,6 +5,7 @@
 #include "MLAMotion_lib.h"
 #include "MLAParser_lib.h"
 #include "MLAGui_lib.h"
+#include "MLANeuron_lib.h"
 
 
 #if defined PLATFORM_WIN32

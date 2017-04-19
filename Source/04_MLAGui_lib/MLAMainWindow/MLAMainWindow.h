@@ -4,6 +4,7 @@
 #include "MLATools_lib.h"
 #include "MLAMotion_lib.h"
 #include "MLAGui_lib.h"
+#include "MLANeuron_lib.h"
 
 class MainWindow {
 
@@ -42,5 +43,7 @@ private:
 	glm::dmat4 m_projection;
 
 	Camera m_camera;
+
+	NeuronConnection m_neuron;
 };
 #endif //__MLA_MAINWINDOW_H__

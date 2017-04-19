@@ -25,6 +25,7 @@ int MainWindow::WindowInit() {
 		return false;
 	}
 
+	//TODO: switch to GL 3.2+ (see DisplayLine() comment)
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
@@ -119,6 +120,11 @@ void MainWindow::MainLoop(Motion* motion) {
 		if (m_input.GetKey(SDL_SCANCODE_ESCAPE))
 			break;
 
+		// Neuron connection
+		if (m_input.GetKey(SDL_SCANCODE_N)) {
+			m_neuron.Connect();
+		}
+
 		// Offset
 		if (m_input.GetKey(SDL_SCANCODE_E)) {
 			display_type = 0;
@@ -200,16 +206,16 @@ void MainWindow::DrawStaticMotion(Motion* motion) {
 	double point_colour[3] = { 0, 1, 1 };
 
 	glm::dmat4 saved_modelview = m_modelview;
-	
+
 	// Dictionnary to keep the offset matrix for each joint
 	std::map<std::string, glm::dmat4> quaternions_to_mat_map;
 
 	// j = joints
-	for(unsigned int j=0 ; j<motion->getFrame(1)->getJoints().size(); j++) {
+	for (unsigned int j = 0; j<motion->getFrame(1)->getJoints().size(); j++) {
 
 		// If it's the root
 		if (motion->getFrame(1)->getJoints().at(j)->getParent() == 0) {
-			
+
 			// We translate to the position
 			saved_modelview = glm::translate(m_modelview, motion->getFrame(1)->getJoints().at(j)->getPositions());
 
@@ -377,7 +383,7 @@ void MainWindow::Animate(Motion* motion, const double mixFactor, const double el
 // Conversion from dmat4 to mat4 : see
 // https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_gpu_shader_fp64.txt
 // to avoid this.
-// Actually, there's a LOT to do to enable this. We have to sdwitch from GL 3.1
+// Actually, there's a LOT to do to enable this. We have to switch from GL 3.1
 // to 3.2 (or more), but it absolutely breaks the code. TODO, I guess.
 void MainWindow::DisplayLine(glm::dmat4 &projection, glm::dmat4 &modelview, const double *line_vertices, const double *line_colour) {
 	glUseProgram(m_shader.getProgramID());
