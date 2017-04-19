@@ -248,7 +248,6 @@ IF(WIN_OS)
     SET(GLEW_LIBRARIES_DIR      ${MLA_SOURCE_DIR}/ThirdParty/Windows/Glew/lib)
 
 
-
     #-------------------------------------
     # SDL
     #-------------------------------------                  
@@ -260,6 +259,14 @@ IF(WIN_OS)
     # GLM
     #-------------------------------------                  
     SET(GLM_INCLUDE_DIR         ${MLA_SOURCE_DIR}/ThirdParty/CrossPlatform/glm)
+
+
+    #-------------------------------------
+    # NEURON SDK
+    #-------------------------------------  
+    SET(NEURON_INCLUDE_DIR         ${MLA_SOURCE_DIR}/ThirdParty/Windows/NeuronDataReaderSDK/include)
+    SET(NEURON_LIBRARIES_DIR       ${MLA_SOURCE_DIR}/ThirdParty/Windows/NeuronDataReaderSDK/lib/x86)
+
 
     #-------------------------------------
     # LIBS
@@ -273,9 +280,11 @@ IF(WIN_OS)
         SET(SDL_LIB         SDL2_x86.lib
                     SDL2main_x86.lib)
 
-        
+        SET(NEURON_LIB      NeuronDataReader.lib)
+
         SET(GLEW_DYNAMIC_LIB        ${MLA_SOURCE_DIR}/ThirdParty/Windows/Glew/dll/x86/glew32.dll)
         SET(SDL_DYNAMIC_LIB         ${MLA_SOURCE_DIR}/ThirdParty/Windows/SDL/dll/x86/SDL2.dll)
+        SET(NEURON_DYNAMIC_LIB      ${MLA_SOURCE_DIR}/ThirdParty/Windows/NeuronDataReaderSDK/lib/x86/NeuronDataReader.dll)
 
 
         IF(MSVC12)
@@ -293,15 +302,18 @@ IF(WIN_OS)
         SET(SDL_LIB         SDL2_x64.lib
                     SDL2main_x64.lib)
 
-        
+        SET(NEURON_LIB      NeuronDataReader.lib)
+
         SET(GLEW_DYNAMIC_LIB        ${MLA_SOURCE_DIR}/ThirdParty/Windows/Glew/dll/x64/glew32.dll)
         SET(SDL_DYNAMIC_LIB         ${MLA_SOURCE_DIR}/ThirdParty/Windows/SDL/dll/x64/SDL2.dll)
+        SET(NEURON_DYNAMIC_LIB      ${MLA_SOURCE_DIR}/ThirdParty/Windows/NeuronDataReaderSDK/lib/x64/NeuronDataReader.dll)
 
     ENDIF(CMAKE_ARCHITECTURE_TYPE STREQUAL "x64" )
     
     IF (CMAKE_BUILD_TYPE STREQUAL "Release")
         MESSAGE("Do not forget to set Visual Studio configuration to Release mode")
     ENDIF(CMAKE_BUILD_TYPE STREQUAL "Release")
+
 ENDIF(WIN_OS)
 
 
