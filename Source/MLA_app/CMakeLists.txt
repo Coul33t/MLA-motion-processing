@@ -7,16 +7,19 @@ project(MLA_app)
         ${01_MLATools_lib_SOURCE_DIR}
         ${02_MLAMotion_lib_SOURCE_DIR}
 		${03_MLAParser_lib_SOURCE_DIR}
-        ${04_MLAGui_lib_SOURCE_DIR}  
-        ${SDL_INCLUDE_DIR}
+        ${04_MLAGui_lib_SOURCE_DIR}
+        ${05_MLANeuron_lib_SOURCE_DIR}  
+		${SDL_INCLUDE_DIR}
         ${GLEW_INCLUDE_DIR}
         ${GLM_INCLUDE_DIR}
+        ${NEURON_INCLUDE_DIR}
     )
 
     LINK_DIRECTORIES(
-         ${LIBRARY_OUTPUT_PATH}
-         ${SDL_LIBRARIES_DIR}
-         ${GLEW_LIBRARIES_DIR}
+        ${LIBRARY_OUTPUT_PATH}
+        ${SDL_LIBRARIES_DIR}
+        ${GLEW_LIBRARIES_DIR}
+        ${NEURON_LIBRARIES_DIR}
     )
 
 
@@ -35,13 +38,15 @@ project(MLA_app)
 
     
         TARGET_LINK_LIBRARIES(MLA_app
+            05_MLANeuron_lib.lib
             04_MLAGui_lib.lib
 			03_MLAParser_lib.lib
             02_MLAMotion_lib.lib
             01_MLATools_lib.lib 
             ${SDL_LIB}
             ${GLEW_LIB}
-            ${OPENGL_LIB} 
+            ${OPENGL_LIB}
+            ${NEURON_LIB}
         )
     
         #-------------------------------------
@@ -63,6 +68,14 @@ project(MLA_app)
                     ${EXECUTABLE_OUTPUT_PATH})          # <--this is out-file path
 
 
+        #-------------------------------------
+        # Neuron
+        #-------------------------------------
+        add_custom_command(TARGET MLA_app   POST_BUILD      # Adds a post-build event to MyTest
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different   # which executes "cmake - E copy_if_different..."
+                    ${NEURON_DYNAMIC_LIB}             # <--this is in-file
+                    ${EXECUTABLE_OUTPUT_PATH})          # <--this is out-file path
+
     ENDIF(WIN_OS)
 
 
@@ -72,6 +85,7 @@ project(MLA_app)
 
     
         TARGET_LINK_LIBRARIES(MLA_app
+                05_MLANeuron_lib.lib
                 04_MLAGui_lib.a
 				03_MLAParser_lib.a
                 02_MLAMotion_lib.a
@@ -89,6 +103,7 @@ project(MLA_app)
     IF(APPLE_OS)
     
         TARGET_LINK_LIBRARIES(MLA_app
+                05_MLANeuron_lib.a
                 04_MLAGui_lib.a
 				03_MLAParser_lib.a
                 02_MLAMotion_lib.a
