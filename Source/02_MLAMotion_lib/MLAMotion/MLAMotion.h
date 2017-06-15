@@ -32,6 +32,9 @@ public:
 
 	void addFrame(Frame* frame);
 
+	void interpolateJoint(Joint*, Joint*, Joint*, double);
+	Frame* interpolateFrame(Frame*, Frame*, double);
+
 private:
 	std::string m_motionName;
 	double m_frameTime;

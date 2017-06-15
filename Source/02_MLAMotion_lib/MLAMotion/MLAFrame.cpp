@@ -31,11 +31,11 @@ const std::vector<Joint*>& Frame::getJoints() const {
 	return m_joints;
 }
 
-void Frame::setRoots(const std::vector<unsigned int>& roots) {
+void Frame::setRoots(const std::vector<Joint*>& roots) {
 	m_roots = roots;
 }
 
-const std::vector<unsigned int>& Frame::getRoots() const {
+const std::vector<Joint*>& Frame::getRoots() const {
 	return m_roots;
 }
 
@@ -54,8 +54,17 @@ Joint* Frame::getJoint(const std::string jointName) {
 	}
 }
 
-void Frame::addRoot(unsigned int idx) {
-	m_roots.push_back(idx);
+Joint* Frame::getJoint(const unsigned int idx) {
+	if(idx < m_joints.size()) {
+		return m_joints.at(idx);
+	}
+	else {
+		return 0;
+	}
+}
+
+void Frame::addRoot(Joint* j) {
+	m_roots.push_back(j);
 }
 
 void Frame::setNames(const std::map<std::string, unsigned int>& names) {

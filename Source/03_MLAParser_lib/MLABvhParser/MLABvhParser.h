@@ -20,6 +20,10 @@ public:
 	bool searchForward(std::ifstream&, const std::string);
 	bool isDouble(const char* str);
 
+	/*void parseHeader(const std::string&, Motion*);
+	void parseInformations(const std::string&, Motion*);
+	void parseFrames(const std::string&, Motion*);*/
+
 private:
 
 };

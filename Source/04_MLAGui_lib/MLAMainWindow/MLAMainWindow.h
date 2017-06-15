@@ -3,8 +3,10 @@
 
 #include "MLATools_lib.h"
 #include "MLAMotion_lib.h"
+#include "MLAParser_lib.h"
 #include "MLAGui_lib.h"
 #include "MLANeuron_lib.h"
+#include "MLARender_lib.h"
 
 class MainWindow {
 
@@ -21,8 +23,7 @@ public:
 	void DrawStaticMotion(Motion*);
 	void Animate(Motion*, const double, const double);
 
-	void DisplayLine(glm::dmat4 &projection, glm::dmat4 &modelview, const double *line_vertices, const double *line_colour);
-	void DisplayPoint(glm::dmat4 &projection, glm::dmat4 &modelview, const double *point, const double *point_color);
+	void NeuronAnimate();
 	
 
 private:
@@ -38,6 +39,8 @@ private:
 	int m_state;
 
 	Shader m_shader;
+
+	FrameRender m_frameRender;
 
 	glm::dmat4 m_modelview;
 	glm::dmat4 m_projection;

@@ -4,6 +4,8 @@ INCLUDE_DIRECTORIES(${04_MLAGui_lib_SOURCE_DIR}
 	${02_MLAMotion_lib_SOURCE_DIR}
     ${01_MLATools_lib_SOURCE_DIR}
     ${05_MLANeuron_lib_SOURCE_DIR}
+    ${03_MLAParser_lib_SOURCE_DIR}
+    ${06_MLARender_lib_SOURCE_DIR}
     ${GLM_INCLUDE_DIR}
     ${GLEW_INCLUDE_DIR}
     ${SDL_INCLUDE_DIR}

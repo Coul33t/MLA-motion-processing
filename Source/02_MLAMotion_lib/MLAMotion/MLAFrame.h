@@ -27,12 +27,13 @@ public:
 	const std::vector<Joint*>& getJoints() const;
 
 	Joint* getJoint(const std::string);
+	Joint* getJoint(const unsigned int);
 	void insertJoint(Joint*);
 
-	void setRoots(const std::vector<unsigned int>&);
-	const std::vector<unsigned int>& getRoots() const;
+	void setRoots(const std::vector<Joint*>&);
+	const std::vector<Joint*>& getRoots() const;
 
-	void addRoot(unsigned int);
+	void addRoot(Joint*);
 
 	void setNames(const std::map<std::string, unsigned int>&);
 	const std::map<std::string, unsigned int>& getNames() const;
@@ -40,7 +41,7 @@ public:
 private:
 	std::vector<Joint*> m_joints;
 	std::map<std::string, unsigned int> m_names;
-	std::vector<unsigned int> m_roots;
+	std::vector<Joint*> m_roots;
 };
 
 #endif //__MLA_FRAME_H__

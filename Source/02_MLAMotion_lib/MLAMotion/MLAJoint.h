@@ -11,7 +11,7 @@ Joint.h
 #define __MLA_Joint_H__
 
 
-#include "MLATools_lib.h"
+#include "MLACommonInclude.h"
 
 class Joint {
 

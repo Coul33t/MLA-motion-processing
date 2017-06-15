@@ -4,11 +4,24 @@ NeuronConnection::NeuronConnection() {
 	m_firstWrite = true;
 	m_initialFrame = -1;
 	m_dataCount = -1;
+	m_sendDisplay = false;
 }
 
 
 NeuronConnection::~NeuronConnection() {
 
+}
+
+void NeuronConnection::ToggleDisplay() {
+	m_sendDisplay = !m_sendDisplay;
+}
+
+void NeuronConnection::ToggleExport() {
+	m_bvhExport = !m_bvhExport;
+}
+
+bool NeuronConnection::GetDisplay() {
+	return m_sendDisplay;
 }
 
 bool NeuronConnection::Connect() {
@@ -65,7 +78,11 @@ void NeuronConnection::ShowBvhBoneInfo(SOCKET_REF sender, BvhDataHeader* header,
 	if(m_dataCount == -1)
 		m_dataCount = header->DataCount;
 
-	BvhExport(header, data);
+	if(m_bvhExport)
+		BvhExport(header, data);
+
+	if(m_sendDisplay)
+		DisplayBvh(header, data);
 }
 
 // Unused
@@ -88,18 +105,16 @@ void NeuronConnection::BvhExport(BvhDataHeader* header, float* data) {
 		// Stupid way to wipe the content of tmp.bvh
 		// TODO: do it the right way
 		// EDIT: actually not that stupid.
-		m_outfile.open("tmp.bvh", std::ios_base::out);
+		m_outfile.open("../../../Data/Bvh/tmp.bvh", std::ios_base::out);
 		m_outfile.close();
 	}
 
-	m_outfile.open("tmp.bvh", std::ios::out | std::ios::app);
+	m_outfile.open("../../../Data/Bvh/tmp.bvh", std::ios::out | std::ios::app);
 
 	if (!m_outfile.fail()) {
 		m_currentFrame = header->FrameIndex;
 
 		if(m_perJoint == 3) {
-			// Root (Why ?)
-			//m_outfile << data[0] << " " << data[1] << " " << data[2] << " ";
 
 			for (unsigned int i=0 ; i<BVHBoneCount ; i++) {
 
@@ -147,17 +162,17 @@ void NeuronConnection::BvhExport(BvhDataHeader* header, float* data) {
 
 ***********************************************************************/
 void NeuronConnection::FinalizeBvh() {
-	InitializeBvhHeader();
+	InitializeBvhHeader("../../../Data/Bvh/test.bvh");
 	BvhFrameInformations();
 	BvhMotionCopy();
 }
 
 // Copy the template of the Neuron bvh header (see appendix A in the doc)
-void NeuronConnection::InitializeBvhHeader() {
-	m_outfile.open("test.bvh");
+void NeuronConnection::InitializeBvhHeader(const char* fileName) {
+	m_outfile.open(fileName);
 
 	if(m_outfile.is_open()) {
-		std::ifstream bvh_header_template("bvh_header_template.bvh");
+		std::ifstream bvh_header_template("../../../Data/Bvh/bvh_header_template.bvh");
 
 		if(bvh_header_template.is_open()) {
 			
@@ -207,7 +222,7 @@ void NeuronConnection::InitializeBvhHeader() {
 
 // Add informations about frame number and interframe time
 void NeuronConnection::BvhFrameInformations() {
-	m_outfile.open("test.bvh", std::ios_base::app);
+	m_outfile.open("../../../Data/Bvh/test.bvh", std::ios_base::app);
 
 	if(!m_outfile.fail()) {
 
@@ -223,9 +238,9 @@ void NeuronConnection::BvhFrameInformations() {
 
 // Copy the motion data (position and orientation)
 void NeuronConnection::BvhMotionCopy() {
-	m_outfile.open("test.bvh", std::ios_base::app);
+	m_outfile.open("../../../Data/Bvh/test.bvh", std::ios_base::app);
 
-	std::ifstream motionInfo("tmp.bvh");
+	std::ifstream motionInfo("../../../Data/Bvh/tmp.bvh");
 	std::string line;
 
 	while(std::getline(motionInfo, line)) {
@@ -236,5 +251,56 @@ void NeuronConnection::BvhMotionCopy() {
 	m_outfile.close();
 
 	// Delete the file
-	std::remove("tmp.bvh");
+	std::remove("../../../Data/Bvh/tmp.bvh");
+}
+
+void NeuronConnection::DisplayBvh(BvhDataHeader* header, float* data) {
+	// Erase old content
+	m_outfile.open("../../../Data/Bvh/display_tmp_bvh.bvh", std::ios_base::out);
+	m_outfile.close();
+
+	InitializeBvhHeader("../../../Data/Bvh/display_tmp_bvh.bvh");
+
+	m_outfile.open("../../../Data/Bvh/display_tmp_bvh.bvh", std::ios::out | std::ios::app);
+
+	if (!m_outfile.fail()) {
+
+		m_outfile << "Frames: 1\n";
+
+		if ((m_dataCount / m_perJoint) < 18)
+			m_outfile << "Frame Time: " << 1.0 / 120 << "\n";
+		else
+			m_outfile << "Frame Time: " << 1.0 / 60 << "\n";
+
+		if (m_perJoint == 3) {
+
+			for (unsigned int i = 0; i<BVHBoneCount; i++) {
+
+				// data[	3       +  (i * 3)   +      0]
+				//		root offset | bone index | rotation index
+
+				m_outfile << data[(i * 3) + 0] << " ";
+				m_outfile << data[(i * 3) + 1] << " ";
+				m_outfile << data[(i * 3) + 2] << " ";
+			}
+		}
+
+		else if (m_perJoint == 6){
+			for (unsigned int i = 0; i<BVHBoneCount; i++) {
+				m_outfile << data[(i * 6) + 0] << " ";
+				m_outfile << data[(i * 6) + 1] << " ";
+				m_outfile << data[(i * 6) + 2] << " ";
+				m_outfile << data[(i * 6) + 3] << " ";
+				m_outfile << data[(i * 6) + 4] << " ";
+				m_outfile << data[(i * 6) + 5] << " ";
+			}
+		}
+
+		m_outfile << "\n";
+		m_outfile.close();
+	}
+
+	else {
+		std::cout << "Failed to open file display_tmp_bvh.bvh" << std::endl;
+	}
 }

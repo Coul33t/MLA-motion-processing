@@ -15,6 +15,11 @@ public:
 	NeuronConnection();
 	~NeuronConnection();
 
+	void ToggleDisplay();
+	void ToggleExport();
+
+	bool GetDisplay();
+
 	// Connect to the Neuron
 	bool Connect();
 
@@ -31,13 +36,15 @@ public:
 	// Display information about the received Calc data
 	void ShowBvhCalcInfo(SOCKET_REF, CalcDataHeader*, float*);
 
-	void InitializeBvhHeader();
+	void InitializeBvhHeader(const char*);
 
 	void FinalizeBvh();
 	void InitializeBvh(BvhDataHeader*, float*);
 	void BvhExport(BvhDataHeader*, float*);
 	void BvhFrameInformations();
 	void BvhMotionCopy();
+
+	void DisplayBvh(BvhDataHeader*, float*);
 
 private:
 	// Socket used to connect to the Neuron
@@ -54,7 +61,9 @@ private:
 	double m_initialFrame, m_currentFrame;
 	int m_perJoint;
 	int m_dataCount;
-	std::map<int, std::string> m_bones;
+	
+	bool m_sendDisplay;
+	bool m_bvhExport;
 };
 
 /*

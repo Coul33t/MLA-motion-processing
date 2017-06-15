@@ -8,7 +8,8 @@ project(MLA_app)
         ${02_MLAMotion_lib_SOURCE_DIR}
 		${03_MLAParser_lib_SOURCE_DIR}
         ${04_MLAGui_lib_SOURCE_DIR}
-        ${05_MLANeuron_lib_SOURCE_DIR}  
+        ${05_MLANeuron_lib_SOURCE_DIR}
+        ${06_MLARender_lib_SOURCE_DIR}  
 		${SDL_INCLUDE_DIR}
         ${GLEW_INCLUDE_DIR}
         ${GLM_INCLUDE_DIR}
@@ -38,6 +39,7 @@ project(MLA_app)
 
     
         TARGET_LINK_LIBRARIES(MLA_app
+            06_MLARender_lib.lib
             05_MLANeuron_lib.lib
             04_MLAGui_lib.lib
 			03_MLAParser_lib.lib
@@ -85,7 +87,8 @@ project(MLA_app)
 
     
         TARGET_LINK_LIBRARIES(MLA_app
-                05_MLANeuron_lib.lib
+                06_MLARender_lib.a
+                05_MLANeuron_lib.a
                 04_MLAGui_lib.a
 				03_MLAParser_lib.a
                 02_MLAMotion_lib.a
@@ -103,6 +106,7 @@ project(MLA_app)
     IF(APPLE_OS)
     
         TARGET_LINK_LIBRARIES(MLA_app
+                06_MLARender_lib.a
                 05_MLANeuron_lib.a
                 04_MLAGui_lib.a
 				03_MLAParser_lib.a
