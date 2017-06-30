@@ -101,7 +101,7 @@ void FrameRender::Animate(Motion* motion, glm::dmat4& projection, glm::dmat4& mo
 	std::map<std::string, glm::dmat4> quaternions_to_mat_map;
 
 	Frame* interpolatedFrame = motion->interpolateFrame(motion->getFrame(base_frame), motion->getFrame(base_frame + 1), mixFactor);
-
+	
 	// For each graph node
 	for (unsigned int j = 0; j<interpolatedFrame->getJoints().size(); j++) {
 

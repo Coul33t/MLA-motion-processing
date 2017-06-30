@@ -3,7 +3,7 @@
 int main(int argc, char *argv[]) {
 	BvhParser parser;
 
-	Motion* motion = parser.parseBvh(MLA_INPUT_BVH_PATH "Throw_1_Char00.bvh");
+	Motion* motion = parser.parseBvh(MLA_INPUT_BVH_PATH "SPEED_TEST.bvh");
 
 	if(motion == false) {
 		std::cout << "Failed to parse bvh file (is the path/namefile correct ?)" << std::endl;

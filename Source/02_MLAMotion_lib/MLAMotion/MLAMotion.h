@@ -34,6 +34,14 @@ public:
 
 	void interpolateJoint(Joint*, Joint*, Joint*, double);
 	Frame* interpolateFrame(Frame*, Frame*, double);
+	
+	//TODO: move to tools
+	void jointsSpeed(Frame*, Frame*);
+	//TODO: move to tools
+	void getGlobalCoordinates(Joint*, std::map<std::string, glm::dvec3>&, std::map<std::string, glm::dmat4>&);
+
+	//TODO: move to tools
+	void motionFiltering();
 
 private:
 	std::string m_motionName;

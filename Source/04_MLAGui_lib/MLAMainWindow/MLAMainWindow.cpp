@@ -110,6 +110,14 @@ void MainWindow::MainLoop(Motion* motion) {
 
 	bool neuron_connected = false;
 
+	// TEST : motion filtering
+	motion->motionFiltering();
+
+	for (unsigned int i=1 ; i<motion->getFrames().size()-1 ; i++) {
+		motion->jointsSpeed(motion->getFrame(i), motion->getFrame(i + 1));
+		std::cout << std::endl;
+	}	
+
 	while (!m_input.End()) {
 
 		// Useful for frame limiting purpose (see at the end of the function)
@@ -203,7 +211,7 @@ void MainWindow::MainLoop(Motion* motion) {
 				m_frameRender.DrawStaticMotion(motion, m_projection, m_modelview, m_shader);
 
 			else {
-				mix_factor = (fmod(current_time / 1000.0, motion->getFrameTime())) / motion->getFrameTime();
+				mix_factor = (fmod(current_time / 1000.0, motion->getFrameTime())) / motion->getFrameTime();	
 
 				m_frameRender.Animate(motion, m_projection, m_modelview, m_shader, mix_factor, current_time / 1000.0);
 			}
@@ -223,8 +231,9 @@ void MainWindow::MainLoop(Motion* motion) {
 
 		if(display_type == 1) {
 			current_time += elapsed_time * current_speed;
-			if (current_time < motion->getFrameTime())
-				current_time = total_animation_time;
+			// ???
+			/*if (current_time < motion->getFrameTime())
+				current_time = total_animation_time;*/
 		}	
 
 		else
@@ -232,6 +241,7 @@ void MainWindow::MainLoop(Motion* motion) {
 
 		if (current_time > total_animation_time)
 			current_time = 0;
+
 	}
 }
 
