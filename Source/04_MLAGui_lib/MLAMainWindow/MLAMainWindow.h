@@ -48,5 +48,7 @@ private:
 	Camera m_camera;
 
 	NeuronConnection m_neuron;
+	
+	MotionOperation m_motionOp;
 };
 #endif //__MLA_MAINWINDOW_H__

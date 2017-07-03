@@ -111,12 +111,12 @@ void MainWindow::MainLoop(Motion* motion) {
 	bool neuron_connected = false;
 
 	// TEST : motion filtering
-	motion->motionFiltering();
+	m_motionOp.motionFiltering(motion);
 
-	for (unsigned int i=1 ; i<motion->getFrames().size()-1 ; i++) {
+	/*for (unsigned int i=1 ; i<motion->getFrames().size()-1 ; i++) {
 		motion->jointsSpeed(motion->getFrame(i), motion->getFrame(i + 1));
 		std::cout << std::endl;
-	}	
+	}*/
 
 	while (!m_input.End()) {
 
@@ -208,12 +208,18 @@ void MainWindow::MainLoop(Motion* motion) {
 		// If the neuron is not connected
 		if (!neuron_connected) {
 			if (display_type == 0)
-				m_frameRender.DrawStaticMotion(motion, m_projection, m_modelview, m_shader);
+				m_frameRender.RenderFrame(motion->getFrame(1), m_projection, m_modelview, m_shader);
 
 			else {
-				mix_factor = (fmod(current_time / 1000.0, motion->getFrameTime())) / motion->getFrameTime();	
+				mix_factor = (fmod(current_time / 1000.0, motion->getFrameTime())) / motion->getFrameTime();
+				
+				unsigned int base_frame = (int)((current_time / 1000.0) / motion->getFrameTime()) + 1;
 
-				m_frameRender.Animate(motion, m_projection, m_modelview, m_shader, mix_factor, current_time / 1000.0);
+				if (base_frame >= motion->getFrames().size() - 1)
+					base_frame = 1;
+
+				m_frameRender.RenderFrame(m_motionOp.interpolateFrame(motion->getFrame(base_frame), motion->getFrame(base_frame + 1), mix_factor),
+																  m_projection, m_modelview, m_shader);
 			}
 		}
 
