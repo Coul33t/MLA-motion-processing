@@ -6,18 +6,20 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Platform definition
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Linux
 #if defined linux || defined __linux__ || defined __linux
 #  define PLATFORM_LINUX
 #  define PLATFORM_NAME "Linux"
 #endif
 
-// Plateforme Windows
+// Windows
 #if defined _WIN32 || defined WIN32 || defined __NT__ || defined __WIN32__
 #  define PLATFORM_WIN32
 #  define PLATFORM_NAME "Windows"
 #endif
 
-// Plateforme MacOS X
+// MacOS X
 #if ( defined __MWERKS__ && defined __powerc && !defined macintosh ) || defined __APPLE_CC__ || defined macosx || defined(MACOSX) || defined(__APPLE__) || defined(macintosh)
 #  define PLATFORM_MACOSX
 #  define PLATFORM_NAME "MacOS X"
@@ -63,6 +65,7 @@
 // in c++11, M_PI is no more supported (at least here)
 // and using std::atan(1.0)*4 can results in some precision
 // loss and added compilation time (negligible).
+// For all of this reasons, it's better to manually input the values.
 #define M_PI 3.141592653589793238462643383279502884
 #endif
 
@@ -104,9 +107,5 @@
 
 //empty string 
 static std::string EMPTY_STRING(std::string(""));
-
-
-
-
 
 #endif //__MLA_TOOLS_INTERN_INCLUDE_FILES__  

@@ -113,10 +113,12 @@ void MainWindow::MainLoop(Motion* motion) {
 	// TEST : motion filtering
 	m_motionOp.motionFiltering(motion);
 
-	/*for (unsigned int i=1 ; i<motion->getFrames().size()-1 ; i++) {
-		motion->jointsSpeed(motion->getFrame(i), motion->getFrame(i + 1));
-		std::cout << std::endl;
-	}*/
+	for (unsigned int i=1 ; i<motion->getFrames().size()-1 ; i++) {
+		std::string linName = "lin" + std::to_string(i);
+		std::string angName = "ang" + std::to_string(i);
+		CSVExport::ExportData(m_motionOp.jointsLinearSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), linName);
+		CSVExport::ExportData(m_motionOp.jointsAngularSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), angName);
+	}
 
 	while (!m_input.End()) {
 

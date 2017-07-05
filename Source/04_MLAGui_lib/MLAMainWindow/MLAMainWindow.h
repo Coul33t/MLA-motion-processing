@@ -1,3 +1,11 @@
+/**
+MainWindow.h
+
+@author Quentin Couland
+@version 0.1
+
+*/
+
 #ifndef __MLA_MAINWINDOW_H__
 #define __MLA_MAINWINDOW_H__
 

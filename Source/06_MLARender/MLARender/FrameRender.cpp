@@ -8,7 +8,13 @@ FrameRender::~FrameRender() {
 
 }
 
-// Draw a frame.
+/** Draw a frame.
+
+	@param interpolatedFrame: the frame to be drawn
+	@param projection the projection matrix
+	@param modelview the modelview matrix
+	@param shader the shader
+*/
 void FrameRender::RenderFrame(Frame* interpolatedFrame, glm::dmat4& projection, glm::dmat4& modelview, Shader& shader) {
 	double line_vertices[6];
 	double point_vertice[3];
@@ -84,7 +90,13 @@ void FrameRender::RenderFrame(Frame* interpolatedFrame, glm::dmat4& projection, 
 	}
 }
 
-// Draw a single frame from global coordinates.
+/** Draw a skeleton from global coordinates.
+
+	@param globalCoordinates the map containing the coordinates
+	@param projection the projection matrix
+	@param modelview the modelview matrix
+	@param shader the shader
+*/
 void FrameRender::DrawFromGlobal(std::map<std::string, glm::dvec3>& globalCoordinates, glm::dmat4& projection, glm::dmat4& modelview, Shader& shader) {
 	double point_vertice[3];
 	double point_colour[3] = { 0, 1, 1 };
@@ -111,6 +123,15 @@ void FrameRender::DrawFromGlobal(std::map<std::string, glm::dvec3>& globalCoordi
 // to avoid this.
 // Actually, there's a LOT to do to enable this. We have to switch from GL 3.1
 // to 3.2 (or more), but it absolutely breaks the code. TODO, I guess.
+
+/** Draw a line.
+	@param shader the shader
+	@param projection the projection matrix
+	@param modelview the modelview matrix
+	@param line_vertices an array containing the vertices of the line
+	@param line_colour an array representing the color of the line
+
+*/
 void FrameRender::DisplayLine(Shader &shader, glm::dmat4 &projection, glm::dmat4 &modelview, const double *line_vertices, const double *line_colour) {
 	glUseProgram(shader.getProgramID());
 
@@ -130,6 +151,14 @@ void FrameRender::DisplayLine(Shader &shader, glm::dmat4 &projection, glm::dmat4
 	glUseProgram(0);
 }
 
+/** Draw a point.
+	@param shader the shader
+	@param projection the projection matrix
+	@param modelview the modelview matrix
+	@param point array containing the point coordinates
+	@param point_color array representing the color of the point
+
+*/
 void FrameRender::DisplayPoint(Shader &shader, glm::dmat4 &projection, glm::dmat4 &modelview, const double *point, const double *point_color) {
 	glPointSize(10);
 	glUseProgram(shader.getProgramID());
