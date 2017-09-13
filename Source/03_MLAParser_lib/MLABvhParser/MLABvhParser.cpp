@@ -5,9 +5,9 @@ BvhParser::BvhParser() {
 }
 
 //TODO: use return value of searchForward()
-Motion* BvhParser::parseBvh(const std::string& inputFile) {
+Motion* BvhParser::parseBvh(const std::string& folder, const std::string& inputFile) {
 	
-	std::ifstream infile(inputFile.c_str());
+	std::ifstream infile((folder + inputFile).c_str());
 
 	if (infile.fail()) {
 		return false;
@@ -143,6 +143,9 @@ Motion* BvhParser::parseBvh(const std::string& inputFile) {
 	std::cout << "Building motion ..." << std::endl;
 
 	Motion* motion = new Motion();
+
+	// Ugly way to remove .bvh at the end of the string
+	motion->setName(inputFile.substr(0, inputFile.size() - 4));
 
 	// Frame number
 	searchForward(infile, "Frames:");
