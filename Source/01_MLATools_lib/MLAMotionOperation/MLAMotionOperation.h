@@ -10,6 +10,7 @@ MotionOperation.h
 #define __MLA_MOTIONOPERATION_H__
 
 #include "MLAMotion\MLAMotion.h"
+#include <cctype>
 
 class MotionOperation {
 

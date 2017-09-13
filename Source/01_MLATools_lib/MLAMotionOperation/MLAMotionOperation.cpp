@@ -71,7 +71,6 @@ std::map<std::string, double> MotionOperation::jointsLinearSpeed(Frame* f1, Fram
 	std::map<std::string, glm::dmat4> globalMat1;
 	std::map<std::string, glm::dmat4> globalMat2;
 
-	// Check with displaying (same as Animate, without the matrix storage)
 	getGlobalCoordinates(f1->getJoint(0), globalCoord1, globalMat1);
 	getGlobalCoordinates(f2->getJoint(0), globalCoord2, globalMat2);
 
@@ -107,26 +106,38 @@ std::map<std::string, double> MotionOperation::jointsAngularSpeed(Frame* f1, Fra
 	std::map<std::string, glm::dmat4> globalMat1;
 	std::map<std::string, glm::dmat4> globalMat2;
 
-	// Check with displaying (same as Animate, without the matrix storage)
 	getGlobalCoordinates(f1->getJoint(0), globalCoord1, globalMat1);
 	getGlobalCoordinates(f2->getJoint(0), globalCoord2, globalMat2);
 
 	std::map<std::string, double> angularSpeedVector;
 
 	for (std::map<std::string, glm::dvec3> ::iterator it = globalCoord1.begin(); it != globalCoord1.end(); ++it) {
-		glm::dvec3 v1 = globalCoord1.find(it->first)->second;
-		glm::dvec3 v2 = globalCoord2.find(it->first)->second;
+		glm::dvec3 p1 = globalCoord1.find(it->first)->second;
+		glm::dvec3 p2 = globalCoord2.find(it->first)->second;
 
-		double r = vectorLength(glm::dvec3(0, 0, 0), f1->getJoint(it->first)->getPositions());
-		
-		if(r > 0) {
-			double alpha = acos(vectorLength(v1, v2) / pow(r, 2));
-			double angSpeed = glm::radians(alpha) / (frameTime * 100);
+		if (glm::length(p1) * glm::length(p2) > 0) {
+			// rad / sec
+			double angSpeed = ( acos(glm::dot(p1, p2) / (glm::length(p1) * glm::length(p2))) ) / (frameTime * 1000);
 			angularSpeedVector.insert(std::pair<std::string, double>(it->first, angSpeed));
 		}
 
 		else
 			angularSpeedVector.insert(std::pair<std::string, double>(it->first, 0));
+		
+		
+		/*double r = vectorLength(glm::dvec3(0, 0, 0), f1->getJoint(it->first)->getPositions());
+		
+		if (r > 0) {
+			double alpha = acos(glm::radians(vectorLength(v1, v2) / pow(r, 2)));
+			if ((unsigned)(vectorLength(v1, v2) / pow(r, 2)) > 1)
+				std::cout << "ERROR: VALUE OUT OF RANGE " << vectorLength(v1, v2) << " / " << pow(r, 2) << " = " << vectorLength(v1, v2) / pow(r, 2) << std::endl;
+
+			double angSpeed = alpha / (frameTime * 100);
+			angularSpeedVector.insert(std::pair<std::string, double>(it->first, angSpeed));
+		}
+
+		else
+			angularSpeedVector.insert(std::pair<std::string, double>(it->first, 0));*/
 	}
 
 	return angularSpeedVector;
@@ -175,12 +186,16 @@ void MotionOperation::motionFiltering(Motion* motion) {
 	// j = 1 because the first frame is the reference
 	for (unsigned int i = 1; i < motion->getFrames().size(); i++) {
 		// j = 1 because the root actually has position information
-		for (unsigned int j = 1; j < motion->getFrame(i)->getJoints().size(); j++) {
-			motion->getFrame(i)->getJoint(j)->setPositions(glm::dvec3(motion->getFrame(0)->getJoint(j)->getPositions()));
+		for (unsigned int j = 0; j < motion->getFrame(i)->getJoints().size(); j++) {
+			// if the two strings are equal (case insensitive)
+			// The old method of using j = 1 (skipping the ROOT) does not works in all cases,
+			// as Motion Builder, for example, adds a " Reference " root. Fuck you MB.
+			if (_stricmp(motion->getFrame(i)->getJoint(j)->getJointName().c_str(), "hips") != 0)
+				motion->getFrame(i)->getJoint(j)->setPositions(glm::dvec3(motion->getFrame(0)->getJoint(j)->getPositions()));
 		}
 	}
 }
 
-double MotionOperation::vectorLength(glm::dvec3 v1, glm::dvec3 v2) {
-	return sqrt(pow(v2.x - v1.x, 2) + pow(v2.y - v1.y, 2) + pow(v2.z - v1.z, 2));
+double MotionOperation::vectorLength(glm::dvec3 p1, glm::dvec3 p2) {
+	return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2) + pow(p2.z - p1.z, 2));
 }
