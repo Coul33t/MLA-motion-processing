@@ -110,20 +110,6 @@ void MainWindow::MainLoop(Motion* motion) {
 
 	bool neuron_connected = false;
 
-	// TEST : motion filtering
-	m_motionOp.motionFiltering(motion);
-
-	for (unsigned int i=1 ; i<motion->getFrames().size()-1 ; i++) {
-		std::string linName = "lin_full_" + std::to_string(i);
-		std::string angName = "ang_full_" + std::to_string(i);
-		
-		std::string linFolder = "lin\\";
-		std::string angFolder = "ang\\";
-
-		CSVExport::ExportData(m_motionOp.jointsLinearSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), motion->getName(), linFolder, linName);
-		CSVExport::ExportData(m_motionOp.jointsAngularSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), motion->getName(), angFolder, angName);
-	}
-
 	while (!m_input.End()) {
 
 		// Useful for frame limiting purpose (see at the end of the function)
