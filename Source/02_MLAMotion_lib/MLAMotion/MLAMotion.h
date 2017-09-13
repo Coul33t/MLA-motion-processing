@@ -23,12 +23,14 @@ public:
 
 	Motion& operator=(const Motion& motion);
 
-	void setFrameTime(const double& frameTime);
+	void setName(const std::string& name);
+	void setFrameTime(const double frameTime);
 	void setFrames(const std::vector<Frame*> Frames);
 
+	const std::string& getName() const;
 	const double& getFrameTime() const;
 	const std::vector<Frame*>& getFrames() const;
-	Frame* getFrame(unsigned int idx);
+	Frame* getFrame(unsigned int idx) const;
 
 	void addFrame(Frame* frame);
 

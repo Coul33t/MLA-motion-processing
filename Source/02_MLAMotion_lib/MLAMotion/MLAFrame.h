@@ -26,7 +26,7 @@ public:
 	void setJoints(const std::vector<Joint*>&);
 	const std::vector<Joint*>& getJoints() const;
 
-	Joint* getJoint(const std::string);
+	Joint* getJoint(const std::string&);
 	Joint* getJoint(const unsigned int);
 	void insertJoint(Joint*);
 

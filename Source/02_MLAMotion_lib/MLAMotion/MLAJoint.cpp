@@ -56,10 +56,10 @@ void Joint::addChild(Joint* child) {
 	m_child.push_back(child);
 }
 
-std::vector<Joint*> Joint::getChilds() {
+const std::vector<Joint*>& Joint::getChilds() const {
 	return m_child;
 }
 
-Joint* Joint::getParent() {
+Joint* Joint::getParent() const {
 	return m_parent;
 }

@@ -33,8 +33,8 @@ public:
 	void setParent(Joint* parent);
 	void addChild(Joint* child);
 
-	std::vector<Joint*> getChilds();
-	Joint* getParent();
+	const std::vector<Joint*>& getChilds() const;
+	Joint* getParent() const;
 
 private:
 	std::string m_jointName;

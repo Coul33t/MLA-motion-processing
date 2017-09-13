@@ -21,12 +21,20 @@ Motion& Motion::operator=(const Motion& motion) {
 	return *this;
 }
 
+void Motion::setName(const std::string& name) {
+	m_motionName = name;
+}
+
 void Motion::setFrameTime(const double& frameTime) {
 	m_frameTime = frameTime;
 }
 
 void Motion::setFrames(const std::vector<Frame*> frames) {
 	m_frames = frames;
+}
+
+const std::string& Motion::getName() const {
+	return m_motionName;
 }
 
 const double& Motion::getFrameTime() const {
@@ -41,7 +49,7 @@ void Motion::addFrame(Frame* frame) {
 	m_frames.push_back(frame);
 }
 
-Frame* Motion::getFrame(unsigned int idx) {
+Frame* Motion::getFrame(unsigned int idx) const {
 	if(idx < m_frames.size())
 		return m_frames.at(idx);
 	return 0;
