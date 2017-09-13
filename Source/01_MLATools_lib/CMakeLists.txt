@@ -19,7 +19,9 @@ ADD_LIBRARY(01_MLATools_lib STATIC
 
     MLADataExport/CSVExport.h
     MLADataExport/CSVExport.cpp
-)
+
+    MLADataExport/PipeExport.h
+    MLADataExport/PipeExport.cpp)
 
 SOURCE_GROUP("Fichiers d'en-tete" FILES MLATools_lib.h MLACommonInclude.h)
 
@@ -32,3 +34,5 @@ SOURCE_GROUP("MLAMotionOperation\\Fichiers sources" FILES MLAMotionOperation/MLA
 SOURCE_GROUP("MLADataExport\\Fichiers d'en-tete" FILES MLADataExport/CSVExport.h)
 SOURCE_GROUP("MLADataExport\\Fichiers sources" FILES MLADataExport/CSVExport.cpp)
 
+SOURCE_GROUP("MLADataExport\\Fichiers d'en-tete" FILES MLADataExport/PipeExport.h)
+SOURCE_GROUP("MLADataExport\\Fichiers sources" FILES MLADataExport/PipeExport.cpp)
