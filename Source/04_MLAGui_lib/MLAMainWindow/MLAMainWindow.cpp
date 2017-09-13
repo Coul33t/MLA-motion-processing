@@ -114,10 +114,14 @@ void MainWindow::MainLoop(Motion* motion) {
 	m_motionOp.motionFiltering(motion);
 
 	for (unsigned int i=1 ; i<motion->getFrames().size()-1 ; i++) {
-		std::string linName = "lin" + std::to_string(i);
-		std::string angName = "ang" + std::to_string(i);
-		CSVExport::ExportData(m_motionOp.jointsLinearSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), linName);
-		CSVExport::ExportData(m_motionOp.jointsAngularSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), angName);
+		std::string linName = "lin_full_" + std::to_string(i);
+		std::string angName = "ang_full_" + std::to_string(i);
+		
+		std::string linFolder = "lin\\";
+		std::string angFolder = "ang\\";
+
+		CSVExport::ExportData(m_motionOp.jointsLinearSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), motion->getName(), linFolder, linName);
+		CSVExport::ExportData(m_motionOp.jointsAngularSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), motion->getName(), angFolder, angName);
 	}
 
 	while (!m_input.End()) {
@@ -169,6 +173,11 @@ void MainWindow::MainLoop(Motion* motion) {
 		// Animation
 		if (m_input.GetKey(SDL_SCANCODE_Q)) {
 			display_type = 1;
+		}
+
+		if (m_input.GetKey(SDL_SCANCODE_Y)) {
+			std::cout << "Current time : " << current_time / 1000 << std::endl;
+			std::cout << "Current frame : " << (int)((current_time / 1000.0) / motion->getFrameTime()) + 1 << std::endl;
 		}
 
 		if(display_type == 1) {
@@ -255,7 +264,7 @@ void MainWindow::MainLoop(Motion* motion) {
 
 void MainWindow::NeuronAnimate() {
 	BvhParser parser;
-	Motion* motion = parser.parseBvh("../../../Data/Bvh/display_tmp_bvh.bvh");
+	Motion* motion = parser.parseBvh("../../../Data/Bvh/", "display_tmp_bvh.bvh");
 	
 	double line_vertices[6];
 	double point_vertice[3];
