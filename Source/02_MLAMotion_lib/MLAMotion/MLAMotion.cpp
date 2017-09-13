@@ -25,7 +25,7 @@ void Motion::setName(const std::string& name) {
 	m_motionName = name;
 }
 
-void Motion::setFrameTime(const double& frameTime) {
+void Motion::setFrameTime(const double frameTime) {
 	m_frameTime = frameTime;
 }
 

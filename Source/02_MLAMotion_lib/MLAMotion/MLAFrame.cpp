@@ -45,7 +45,7 @@ void Frame::insertJoint(Joint* joint) {
 }
 
 
-Joint* Frame::getJoint(const std::string jointName) {
+Joint* Frame::getJoint(const std::string& jointName) {
 	if (m_names.find(jointName) != m_names.end()) {
 		return m_joints.at(m_names[jointName]);
 	}
