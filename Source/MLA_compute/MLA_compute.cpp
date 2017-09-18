@@ -3,33 +3,59 @@
 int main(int argc, char *argv[]) {
 	BvhParser parser;
 
-	Motion* motion = parser.parseBvh(MLA_INPUT_BVH_PATH, "throw_10_gimbal_smooth_16.bvh");
+	std::vector<std::string> names;
 
-	if(motion == false) {
-		std::cout << "Failed to parse bvh file (is the path/namefile correct ?)" << std::endl;
-		std::cout << "Press ENTER to quit...";
-		std::cin.get();
-		return 1;
+	// Ugly af, but no fast/easy way to get all files into a folder
+	for (int i = 0 ; i<20 ; i++)  {
+		std::string name = "throw_";
+		name += std::to_string(i+1);
+		name += "_cut.bvh";
+		names.push_back(name);
 	}
 
-	MotionOperation motionOp;
+	for (unsigned int cut = 2; cut < 21; cut++){
+		for (unsigned int i = 0; i < names.size(); i++) {
+			std::cout << std::endl << std::endl << "Processing file " << names.at(i) << std::endl;
+			std::string path = MLA_INPUT_BVH_PATH;
+			path += "cut/";
+			Motion* motion = parser.parseBvh(path, names.at(i));
 
-	motionOp.motionFiltering(motion);
+			if (motion == false) {
+				std::cout << "Failed to parse bvh file (is the path/namefile correct ?)" << std::endl;
+				std::cout << "Press ENTER to quit...";
+				std::cin.get();
+				return 1;
+			}
 
-	for (unsigned int i = 1; i<motion->getFrames().size() - 1; i++) {
-		std::string linName = "lin_full_" + std::to_string(i);
-		std::string angName = "ang_full_" + std::to_string(i);
+			MotionOperation motionOp;
 
-		std::string linFolder = "lin\\";
-		std::string angFolder = "ang\\";
+			motionOp.motionFiltering(motion);
 
-		CSVExport::ExportData(motionOp.jointsLinearSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), motion->getName(), linFolder, linName);
-		CSVExport::ExportData(motionOp.jointsAngularSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), motion->getName(), angFolder, angName);
+			/*for (unsigned int i = 1; i<motion->getFrames().size() - 1; i++) {
+				std::string linName = "lin_full_" + std::to_string(i);
+				std::string angName = "ang_full_" + std::to_string(i);
+
+				std::string linFolder = "lin\\";
+				std::string angFolder = "ang\\";
+
+				CSVExport::ExportData(motionOp.jointsLinearSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), motion->getName(), linFolder, linName);
+				CSVExport::ExportData(motionOp.jointsAngularSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), motion->getName(), angFolder, angName);
+				}*/
+
+			std::vector<std::map<std::string, double>> meanLinSpeedInter = motionOp.MeanLinearSpeedInterval(motion, cut);
+
+			for (unsigned int i = 0; i < meanLinSpeedInter.size(); i++) {
+				std::string Name = "lin_mean_" + std::to_string(i);
+				std::string Folder = "lin_mean_" + std::to_string(cut) + "_cut\\";
+
+				//CSVExport::EraseFolderContent(MLA_INPUT_BVH_PATH + motion->getName() + "/lin_mean/");
+				CSVExport::ExportData(meanLinSpeedInter.at(i), motion->getName(), Folder, Name);
+			}
+		}
 	}
+	
 
-
-
-	/*std::cout << "Press any key to quit...";
-	std::cin.get();*/
+	std::cout << std::endl << "Press any key to quit...";
+	std::cin.get();
 	return 0;
 }
