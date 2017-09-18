@@ -52,3 +52,15 @@ bool CSVExport::ExportData(std::map<std::string, double> data, std::string motio
 
 	
 }
+
+void CSVExport::EraseFolderContent(std::string pathname) {
+	
+	struct stat info;
+
+	if (stat(pathname.c_str(), &info) != 0)
+		printf("cannot access %s\n", pathname);
+	else if (info.st_mode & S_IFDIR)  // S_ISDIR() doesn't exist on my windows 
+		printf("%s is a directory\n", pathname);
+	else
+		printf("%s is no directory\n", pathname);
+}
