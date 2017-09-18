@@ -45,6 +45,10 @@ const std::vector<Frame*>& Motion::getFrames() const {
 	return m_frames;
 }
 
+const std::vector<Frame*> Motion::getFrames(unsigned int beg, unsigned int end) {
+	return std::vector<Frame*>(m_frames.begin() + beg, m_frames.begin() + end);
+}
+
 void Motion::addFrame(Frame* frame) {
 	m_frames.push_back(frame);
 }
