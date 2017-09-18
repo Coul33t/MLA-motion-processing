@@ -143,6 +143,86 @@ std::map<std::string, double> MotionOperation::jointsAngularSpeed(Frame* f1, Fra
 	return angularSpeedVector;
 }
 
+/** Compute the mean speed on a set of frames.
+
+		@param frames the set of frames
+
+		@return meanLinSpeed the mean speed for each joint on the frames
+*/
+std::map<std::string, double> MotionOperation::MeanLinearSpeed(std::vector<Frame*> frames, double frameTime) {
+	std::map<std::string, double> meanLinSpeed;
+
+	std::vector<std::map<std::string, double>> linSpeed;
+	std::map<std::string, std::vector<double>> tmp;
+
+	for (std::vector<Frame*>::iterator it = frames.begin(); it != frames.end() - 1; ++it) {
+		linSpeed.push_back(jointsLinearSpeed(*it, *(it + 1), frameTime));
+	}
+
+	for (std::vector<std::map<std::string, double>>::iterator itVec = linSpeed.begin(); itVec != linSpeed.end(); ++itVec) {
+		for (std::map<std::string, double>::iterator itMap = (*itVec).begin(); itMap != (*itVec).end(); ++itMap) {
+			tmp[itMap->first].push_back(itMap->second);
+		}
+	}
+
+	for (std::map<std::string, std::vector<double>>::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+		meanLinSpeed[it->first] = std::accumulate(it->second.begin(), it->second.end(), 0.0) / it->second.size();
+	}
+
+	return meanLinSpeed;
+}
+
+/** Compute the mean speed on given intervals for the full motion.
+
+		@param motion the motion
+		@param n the number of interval
+
+		@return meanLinSpeed A vector containing the mean speed for each joint on the frames, for each interval
+*/
+std::vector<std::map<std::string, double>> MotionOperation::MeanLinearSpeedInterval(Motion* motion, unsigned int n) {
+	std::vector<std::map<std::string, double>> meanLinSpeedInter;
+
+	unsigned int motionLength = motion->getFrames().size();
+	double interval = static_cast<float>(motionLength) / static_cast<float>(n);
+	unsigned int test = 0;
+
+	/*for (float i = 0; i<motionLength; i = i + interval) {
+		test++;
+		if (i + 2 * interval > motionLength) {
+			std::cout << "Last : i(" << i << ") + 2 * interval(" << interval << ") = " << (i + 2 * interval) << std::endl;
+			std::cout << "Final : " << static_cast<int>(floor(i)) << " to " << motionLength << std::endl;
+			std::cout << "(Instead of " << static_cast<int>(floor(i)) << " to " << static_cast<int>(floor(i + interval)) << ")" << std::endl;
+			meanLinSpeedInter.push_back(MeanLinearSpeed(std::vector<Frame*>(motion->getFrames(static_cast<int>(floor(i)), motionLength)), motion->getFrameTime()));
+			break;
+		}
+
+		else {
+			std::cout << static_cast<int>(floor(i)) << " to " << static_cast<int>(floor(i + interval)) << std::endl;
+			meanLinSpeedInter.push_back(MeanLinearSpeed(std::vector<Frame*>(motion->getFrames(static_cast<int>(floor(i)), static_cast<int>(floor(i + interval)))), motion->getFrameTime()));
+		}
+		
+	}*/
+
+	for (unsigned int i = 0; i<n; i++) {
+		test++;
+		if (i == n-1) {
+			//std::cout << "Final : " << static_cast<int>(floor(i*interval)) << " to " << motionLength << "(" << motionLength - static_cast<int>(floor(i * interval)) << ")" << std::endl;
+			//std::cout << "(Instead of " << static_cast<int>(floor(i*interval)) << " to " << static_cast<int>(floor((i*interval) + interval)) << ")" << std::endl;
+			meanLinSpeedInter.push_back(MeanLinearSpeed(std::vector<Frame*>(motion->getFrames(static_cast<int>(floor(i * interval)), motionLength)), motion->getFrameTime()));
+		}
+		else {
+			//std::cout << static_cast<int>(floor(i*interval)) << " to " << static_cast<int>(floor((i*interval) + interval)) << "(" << static_cast<int>(floor((i*interval) + interval)) - static_cast<int>(floor(i*interval)) << ")" << std::endl;
+			meanLinSpeedInter.push_back(MeanLinearSpeed(std::vector<Frame*>(motion->getFrames(static_cast<int>(floor(i * interval)), static_cast<int>(floor((i * interval) + interval)))), motion->getFrameTime()));
+		}
+	}
+
+	/*std::cout << "Motion Length : " << motionLength << std::endl;
+	std::cout << "Subdivisions : " << test << std::endl;
+	std::cout << "Subdivisions size : " << interval << std::endl;*/
+
+	return meanLinSpeedInter;
+}
+
 /** Recursively transforms initial joints (and its childs) local coordinates to global coordinates.
 
 		@param currentJoint the initial joint
@@ -198,4 +278,8 @@ void MotionOperation::motionFiltering(Motion* motion) {
 
 double MotionOperation::vectorLength(glm::dvec3 p1, glm::dvec3 p2) {
 	return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2) + pow(p2.z - p1.z, 2));
+}
+
+double MotionOperation::roundToDecimal(double number, unsigned int decimal) {
+	return (number * pow(10, decimal)) / pow(10,decimal);
 }
