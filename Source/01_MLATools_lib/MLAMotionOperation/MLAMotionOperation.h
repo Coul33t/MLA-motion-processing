@@ -26,7 +26,9 @@ public:
 
 	std::map<std::string, double> MeanLinearSpeed(std::vector<Frame*>, double);
 
-	std::vector<std::map<std::string, double>> MotionOperation::MeanLinearSpeedInterval(Motion*, unsigned int);
+	std::vector<std::map<std::string, double>> MeanLinearSpeedInterval(Motion*, unsigned int);
+
+	std::vector<std::map<std::string, double>> MeanLinearSpeedIntervalFrame(Motion*, unsigned int);
 
 	void getGlobalCoordinates(Joint*, std::map<std::string, glm::dvec3>&, std::map<std::string, glm::dmat4>&);
 

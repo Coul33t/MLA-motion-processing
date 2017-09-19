@@ -184,44 +184,75 @@ std::vector<std::map<std::string, double>> MotionOperation::MeanLinearSpeedInter
 
 	unsigned int motionLength = motion->getFrames().size();
 	double interval = static_cast<float>(motionLength) / static_cast<float>(n);
-	unsigned int test = 0;
 
-	/*for (float i = 0; i<motionLength; i = i + interval) {
-		test++;
-		if (i + 2 * interval > motionLength) {
-			std::cout << "Last : i(" << i << ") + 2 * interval(" << interval << ") = " << (i + 2 * interval) << std::endl;
-			std::cout << "Final : " << static_cast<int>(floor(i)) << " to " << motionLength << std::endl;
-			std::cout << "(Instead of " << static_cast<int>(floor(i)) << " to " << static_cast<int>(floor(i + interval)) << ")" << std::endl;
-			meanLinSpeedInter.push_back(MeanLinearSpeed(std::vector<Frame*>(motion->getFrames(static_cast<int>(floor(i)), motionLength)), motion->getFrameTime()));
-			break;
-		}
-
-		else {
-			std::cout << static_cast<int>(floor(i)) << " to " << static_cast<int>(floor(i + interval)) << std::endl;
-			meanLinSpeedInter.push_back(MeanLinearSpeed(std::vector<Frame*>(motion->getFrames(static_cast<int>(floor(i)), static_cast<int>(floor(i + interval)))), motion->getFrameTime()));
-		}
-		
-	}*/
 
 	for (unsigned int i = 0; i<n; i++) {
-		test++;
 		if (i == n-1) {
-			//std::cout << "Final : " << static_cast<int>(floor(i*interval)) << " to " << motionLength << "(" << motionLength - static_cast<int>(floor(i * interval)) << ")" << std::endl;
-			//std::cout << "(Instead of " << static_cast<int>(floor(i*interval)) << " to " << static_cast<int>(floor((i*interval) + interval)) << ")" << std::endl;
 			meanLinSpeedInter.push_back(MeanLinearSpeed(std::vector<Frame*>(motion->getFrames(static_cast<int>(floor(i * interval)), motionLength)), motion->getFrameTime()));
 		}
 		else {
-			//std::cout << static_cast<int>(floor(i*interval)) << " to " << static_cast<int>(floor((i*interval) + interval)) << "(" << static_cast<int>(floor((i*interval) + interval)) - static_cast<int>(floor(i*interval)) << ")" << std::endl;
 			meanLinSpeedInter.push_back(MeanLinearSpeed(std::vector<Frame*>(motion->getFrames(static_cast<int>(floor(i * interval)), static_cast<int>(floor((i * interval) + interval)))), motion->getFrameTime()));
 		}
 	}
 
-	/*std::cout << "Motion Length : " << motionLength << std::endl;
-	std::cout << "Subdivisions : " << test << std::endl;
-	std::cout << "Subdivisions size : " << interval << std::endl;*/
+	return meanLinSpeedInter;
+}
+
+/** Compute the mean speed on given intervals for the full motion between two frames, with skeleton interpolation.
+
+@param motion the motion
+@param n the number of interval
+
+@return meanLinSpeed A vector containing the mean speed for each joint on the frames, for each interval
+*/
+std::vector<std::map<std::string, double>> MotionOperation::MeanLinearSpeedIntervalFrame(Motion* motion, unsigned int n) {
+	std::vector<std::map<std::string, double>> meanLinSpeedInter;
+
+
+	Frame* begFrame = motion->getFrame(1);
+
+	Frame* endFrame = nullptr;
+
+	int endFrameIdx = -1;
+	double mixFactor = 0;
+
+	// -1 because motion->getFrame(0) = offsets
+	double interval = static_cast<float>(motion->getFrames().size() - 1) / static_cast<float>(n);
+
+	for (unsigned int i = 0; i < n; i++) {
+		// Get the idx of the end frame before the " true " value
+		// ex : 3.3333
+		//   -> 3
+		// Why -1 :
+		// Let says a motion with 91 frames
+		// interval = 45.5
+		// Natural  : 1 -> 45.5, 45.5 -> 91
+		// Computer : 0 -> 44.5, 44.5 -> 90
+		endFrameIdx = static_cast<unsigned int>((i * interval) + interval) - 1;
+		
+		// Only keep the part after the comma, which is our mix factor
+		// ex : 3.3333
+		//   -> 0.3333
+		mixFactor = (((i * interval) + interval) - 1) - endFrameIdx;
+
+		// The true end frame
+		// Why -1 :
+		// The motion has 91 frames (from 1 to 91)
+		// motion->getFrame(0) => motion->getFrame(90)
+		// So, let say endFrameIdx = 45
+		// Natural  : 45 -> 46
+		// Computer : 44 -> 45 
+		endFrame = interpolateFrame(motion->getFrame(endFrameIdx), motion->getFrame(endFrameIdx + 1), mixFactor);
+
+		meanLinSpeedInter.push_back(jointsLinearSpeed(begFrame, endFrame, motion->getFrameTime()));
+
+		// The old end frame became the new beginning frame for the next interval
+		begFrame = endFrame;
+	}
 
 	return meanLinSpeedInter;
 }
+
 
 /** Recursively transforms initial joints (and its childs) local coordinates to global coordinates.
 
