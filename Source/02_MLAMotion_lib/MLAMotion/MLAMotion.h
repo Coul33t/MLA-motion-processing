@@ -26,9 +26,11 @@ public:
 	void setName(const std::string& name);
 	void setFrameTime(const double frameTime);
 	void setFrames(const std::vector<Frame*> Frames);
+	void setOffsetFrame(Frame* frame);
 
 	const std::string& getName() const;
 	const double& getFrameTime() const;
+	const Frame* getOffsetFrame() const;
 	const std::vector<Frame*>& getFrames() const;
 	const std::vector<Frame*> getFrames(unsigned int beg, unsigned int end);
 	Frame* getFrame(unsigned int idx) const;
@@ -38,6 +40,7 @@ public:
 private:
 	std::string m_motionName;
 	double m_frameTime;
+	Frame* m_offsetFrame;
 	std::vector<Frame*> m_frames;
 };
 

@@ -5,9 +5,11 @@ Motion::Motion() {
 }
 
 Motion::~Motion() {
+	delete m_offsetFrame;
+
 	if(!m_frames.empty())
 		for(unsigned int i=0 ; i<m_frames.size() ; i++)
-			free(m_frames.at(i));
+			delete (m_frames.at(i));
 }
 
 Motion::Motion(const Motion& motion) {
@@ -29,6 +31,10 @@ void Motion::setFrameTime(const double frameTime) {
 	m_frameTime = frameTime;
 }
 
+void Motion::setOffsetFrame(Frame* frame) {
+	m_offsetFrame = frame;
+}
+
 void Motion::setFrames(const std::vector<Frame*> frames) {
 	m_frames = frames;
 }
@@ -41,6 +47,9 @@ const double& Motion::getFrameTime() const {
 	return m_frameTime;
 }
 
+const Frame* Motion::getOffsetFrame() const {
+	return m_offsetFrame;
+}
 const std::vector<Frame*>& Motion::getFrames() const {
 	return m_frames;
 }
