@@ -210,13 +210,15 @@ void MainWindow::MainLoop(Motion* motion) {
 			else {
 				mix_factor = (fmod(current_time / 1000.0, motion->getFrameTime())) / motion->getFrameTime();
 				
-				unsigned int base_frame = (int)((current_time / 1000.0) / motion->getFrameTime()) + 1;
+				unsigned int base_frame = (int)((current_time / 1000.0) / motion->getFrameTime());
 
 				if (base_frame >= motion->getFrames().size() - 1)
-					base_frame = 1;
+					base_frame = 0;
 
-				m_frameRender.RenderFrame(m_motionOp.interpolateFrame(motion->getFrame(base_frame), motion->getFrame(base_frame + 1), mix_factor),
-																  m_projection, m_modelview, m_shader);
+				m_frameRender.RenderFrame(m_motionOp.interpolateFrame(motion->getFrame(base_frame), motion->getFrame(base_frame + 1), mix_factor), 
+										  m_projection, 
+										  m_modelview, 
+										  m_shader);
 			}
 		}
 
@@ -246,6 +248,7 @@ void MainWindow::MainLoop(Motion* motion) {
 			current_time = 0;
 
 	}
+
 }
 
 void MainWindow::NeuronAnimate() {
