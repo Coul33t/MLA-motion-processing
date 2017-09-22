@@ -10,7 +10,7 @@ Motion* BvhParser::parseBvh(const std::string& folder, const std::string& inputF
 	std::ifstream infile((folder + inputFile).c_str());
 
 	if (infile.fail()) {
-		return false;
+		return nullptr;
 	}
 
 	std::string currentWord;
@@ -83,9 +83,6 @@ Motion* BvhParser::parseBvh(const std::string& folder, const std::string& inputF
 			currentJoint->setParent(initialFrame->getJoint(parent));
 			initialFrame->getJoint(parent)->addChild(currentJoint);
 		}
-		else if (!(jointList.back().find("End") == 0)){
-			initialFrame->addRoot(currentJoint);
-		}
 
 		initialFrame->insertJoint(currentJoint);
 
@@ -157,7 +154,7 @@ Motion* BvhParser::parseBvh(const std::string& folder, const std::string& inputF
 	infile >> currentWord;
 	motion->setFrameTime(atof(currentWord.c_str()));
 
-	motion->addFrame(initialFrame);
+	motion->setOffsetFrame(initialFrame);
 
 	unsigned int percentage = 0;
 
@@ -183,9 +180,6 @@ Motion* BvhParser::parseBvh(const std::string& folder, const std::string& inputF
 		std::cout << percentage << " % (" << i << "/" << frameNumber << ")" << "\r";
 
 		Frame* copiedFrame = new Frame();
-
-		copiedFrame->setNames(initialFrame->getNames());
-		copiedFrame->setRoots(initialFrame->getRoots());
 
 		for (unsigned int i = 0; i<jointNumber; i++) {
 			Joint* new_joint = new Joint(*initialFrame->getJoints().at(i));
@@ -216,7 +210,7 @@ Motion* BvhParser::parseBvh(const std::string& folder, const std::string& inputF
 	// f = frame number
 	// = 1, since the first frame is already inserted
 	// frameNumber+1, since the first frame is inserted
-	for(unsigned int f=1 ; f<frameNumber+1 ; f++) {
+	for(unsigned int f=0 ; f<frameNumber ; f++) {
 
 		percentage = 100 * f / frameNumber;
 		std::cout << percentage << " % (" << f << "/" << frameNumber << ")" << "\r";
