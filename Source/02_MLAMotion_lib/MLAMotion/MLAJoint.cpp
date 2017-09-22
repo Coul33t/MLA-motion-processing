@@ -5,10 +5,6 @@ Joint::Joint() {
 }
 
 Joint::~Joint() {
-	free(m_parent);
-	if (!m_child.empty())
-		for(unsigned int i=0 ; i<m_child.size() ; i++)
-			free(m_child.at(i));
 }
 
 Joint::Joint(const Joint& joint) {
