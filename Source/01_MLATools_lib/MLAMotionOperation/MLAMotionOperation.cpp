@@ -302,7 +302,7 @@ void MotionOperation::motionFiltering(Motion* motion) {
 		for (unsigned int j = 0; j < motion->getFrame(i)->getJoints().size(); j++) {
 			// if the joint as no parent = root
 			if (motion->getFrame(i)->getJoint(j)->getParent() != nullptr)
-				motion->getFrame(i)->getJoint(j)->setPositions(glm::dvec3(motion->getFrame(0)->getJoint(j)->getPositions()));
+				motion->getFrame(i)->getJoint(j)->setPositions(glm::dvec3(motion->getOffsetFrame()->getJoint(j)->getPositions()));
 		}
 	}
 }

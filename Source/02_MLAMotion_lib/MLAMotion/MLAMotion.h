@@ -30,7 +30,7 @@ public:
 
 	const std::string& getName() const;
 	const double& getFrameTime() const;
-	const Frame* getOffsetFrame() const;
+	Frame* getOffsetFrame() const;
 	const std::vector<Frame*>& getFrames() const;
 	const std::vector<Frame*> getFrames(unsigned int beg, unsigned int end);
 	Frame* getFrame(unsigned int idx) const;

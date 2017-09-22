@@ -47,7 +47,7 @@ const double& Motion::getFrameTime() const {
 	return m_frameTime;
 }
 
-const Frame* Motion::getOffsetFrame() const {
+Frame* Motion::getOffsetFrame() const {
 	return m_offsetFrame;
 }
 const std::vector<Frame*>& Motion::getFrames() const {
