@@ -39,14 +39,10 @@ Frame* MotionOperation::interpolateFrame(Frame* f1, Frame* f2, double mixFactor)
 		
 		newJoint->setJointName(f1->getJoint(i)->getJointName());
 
-		if (f1->getJoint(i)->getParent() == nullptr)
-			interpolatedFrame->addRoot(newJoint);
-
-		else {
+		if (f1->getJoint(i)->getParent() != nullptr) {
 			newJoint->setParent(interpolatedFrame->getJoint(f1->getJoint(i)->getParent()->getJointName()));
 			newJoint->getParent()->addChild(newJoint);
 		}
-
 
 		interpolatedFrame->insertJoint(newJoint);
 	}
@@ -208,51 +204,57 @@ std::vector<std::map<std::string, double>> MotionOperation::MeanLinearSpeedInter
 std::vector<std::map<std::string, double>> MotionOperation::MeanLinearSpeedIntervalFrame(Motion* motion, unsigned int n) {
 	std::vector<std::map<std::string, double>> meanLinSpeedInter;
 
-
-	Frame* begFrame = motion->getFrame(1);
-
+	Frame* begFrame = nullptr;
 	Frame* endFrame = nullptr;
 
-	int endFrameIdx = -1;
+	double frameTime = motion->getFrameTime();
+
+	double  totalTime = motion->getFrames().size() * frameTime;
+
 	double mixFactor = 0;
 
-	// -1 because motion->getFrame(0) = offsets
-	double interval = static_cast<float>(motion->getFrames().size() - 1) / static_cast<float>(n);
+	double interval = totalTime / static_cast<float>(n);
+
+	double firstFrameTime = 0;
+	double endFrameTime = interval;
 
 	for (unsigned int i = 0; i < n; i++) {
-		// Get the idx of the end frame before the " true " value
-		// ex : 3.3333
-		//   -> 3
-		// Why -1 :
-		// Let says a motion with 91 frames
-		// interval = 45.5
-		// Natural  : 1 -> 45.5, 45.5 -> 91
-		// Computer : 0 -> 44.5, 44.5 -> 90
-		endFrameIdx = static_cast<unsigned int>((i * interval) + interval) - 1;
-		
-		// Only keep the part after the comma, which is our mix factor
-		// ex : 3.3333
-		//   -> 0.3333
-		mixFactor = (((i * interval) + interval) - 1) - endFrameIdx;
-
-		// The true end frame
-		// Why -1 :
-		// The motion has 91 frames (from 1 to 91)
-		// motion->getFrame(0) => motion->getFrame(90)
-		// So, let say endFrameIdx = 45
-		// Natural  : 45 -> 46
-		// Computer : 44 -> 45 
-		endFrame = interpolateFrame(motion->getFrame(endFrameIdx), motion->getFrame(endFrameIdx + 1), mixFactor);
+		begFrame = getFrameFromTime(motion, firstFrameTime, frameTime);
+		endFrame = getFrameFromTime(motion, endFrameTime, frameTime);
 
 		meanLinSpeedInter.push_back(jointsLinearSpeed(begFrame, endFrame, motion->getFrameTime()));
 
-		// The old end frame became the new beginning frame for the next interval
-		begFrame = endFrame;
+		firstFrameTime = endFrameTime;
+		endFrameTime += interval;
+
+		delete begFrame;
+		delete endFrame;
 	}
 
 	return meanLinSpeedInter;
 }
 
+Frame* MotionOperation::getFrameFromTime(Motion* motion, double time, double frameTime) {
+	Frame* returnFrame = nullptr;
+	
+	unsigned int frameBef = static_cast<unsigned int>(time / frameTime);
+
+	if (frameBef > 0)
+		frameBef -= 1;
+
+	unsigned int frameAft = frameBef + 1;
+
+	double tpsBef = frameBef * frameTime;
+
+	double mixFactor = ((time - tpsBef) / frameTime) - 1;
+
+	if (mixFactor <= EPSILON)
+		return (returnFrame = interpolateFrame(motion->getFrame(frameBef), motion->getFrame(frameBef), 0));
+	else if (1 + EPSILON >= mixFactor && mixFactor  >= 1 - EPSILON)
+		return (returnFrame = interpolateFrame(motion->getFrame(frameAft), motion->getFrame(frameAft), 1));
+	else
+		return (returnFrame = interpolateFrame(motion->getFrame(frameBef), motion->getFrame(frameAft), mixFactor));
+}
 
 /** Recursively transforms initial joints (and its childs) local coordinates to global coordinates.
 
@@ -298,10 +300,8 @@ void MotionOperation::motionFiltering(Motion* motion) {
 	for (unsigned int i = 1; i < motion->getFrames().size(); i++) {
 		// j = 1 because the root actually has position information
 		for (unsigned int j = 0; j < motion->getFrame(i)->getJoints().size(); j++) {
-			// if the two strings are equal (case insensitive)
-			// The old method of using j = 1 (skipping the ROOT) does not works in all cases,
-			// as Motion Builder, for example, adds a " Reference " root. Fuck you MB.
-			if (_stricmp(motion->getFrame(i)->getJoint(j)->getJointName().c_str(), "hips") != 0)
+			// if the joint as no parent = root
+			if (motion->getFrame(i)->getJoint(j)->getParent() != nullptr)
 				motion->getFrame(i)->getJoint(j)->setPositions(glm::dvec3(motion->getFrame(0)->getJoint(j)->getPositions()));
 		}
 	}
