@@ -10,8 +10,9 @@ MotionOperation.h
 #define __MLA_MOTIONOPERATION_H__
 
 #include "MLAMotion\MLAMotion.h"
-#include <cctype> // _stricmp
 #include <numeric> // std::accumulate
+
+#define EPSILON 0.00001
 
 class MotionOperation {
 
@@ -29,6 +30,8 @@ public:
 	std::vector<std::map<std::string, double>> MeanLinearSpeedInterval(Motion*, unsigned int);
 
 	std::vector<std::map<std::string, double>> MeanLinearSpeedIntervalFrame(Motion*, unsigned int);
+
+	Frame* getFrameFromTime(Motion*, double, double);
 
 	void getGlobalCoordinates(Joint*, std::map<std::string, glm::dvec3>&, std::map<std::string, glm::dmat4>&);
 
