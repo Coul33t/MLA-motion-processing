@@ -1,9 +1,8 @@
 #include "MLA.h"
 
 int main(int argc, char *argv[]) {
-	BvhParser parser;
 
-	Motion* motion = parser.parseBvh(MLA_INPUT_BVH_PATH, "apur.bvh");
+	Motion* motion = bvhparser::parseBvh(MLA_INPUT_BVH_PATH, "throw_5_gimbal_smooth_16.bvh");
 
 	if(motion == false) {
 		std::cout << "Failed to parse bvh file (is the path/namefile correct ?)" << std::endl;

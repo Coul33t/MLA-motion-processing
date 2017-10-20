@@ -30,8 +30,6 @@ public:
 
 	void DrawStaticMotion(Motion*);
 	void Animate(Motion*, const double, const double);
-
-	void NeuronAnimate();
 	
 
 private:
@@ -48,15 +46,11 @@ private:
 
 	Shader m_shader;
 
-	FrameRender m_frameRender;
-
 	glm::dmat4 m_modelview;
 	glm::dmat4 m_projection;
 
 	Camera m_camera;
 
 	NeuronConnection m_neuron;
-	
-	MotionOperation m_motionOp;
 };
 #endif //__MLA_MAINWINDOW_H__

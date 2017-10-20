@@ -1,20 +1,45 @@
 #include "MLA.h"
 
+unsigned int LinearSpeed();
 unsigned int ProcessCut();
 unsigned int ProcessClassic();
 unsigned int MemoryLeakChaser();
 
 int main(int argc, char *argv[]) {
-	ProcessClassic();
+	LinearSpeed();
 	std::cout << std::endl << "Press any key to quit...";
 	std::cin.get();
 	return 0;
 }
 
+unsigned int LinearSpeed() {
+	Motion* motion = nullptr;
+
+	motion = bvhparser::parseBvh(MLA_INPUT_BVH_PATH, "Damien_4_Char00.bvh");
+
+	motionoperation::motionFiltering(motion);
+
+	for (unsigned int i = 1; i < motion->getFrames().size() - 1; i++) {
+		std::string linName = "lin_full_" + std::to_string(i);
+		std::string angName = "ang_full_" + std::to_string(i);
+
+		std::string linFolder = "lin\\";
+		std::string angFolder = "ang\\";
+
+		csvexport::ExportData(motionoperation::jointsLinearSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), motion->getName(), linFolder, linName);
+		csvexport::ExportData(motionoperation::jointsAngularSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), motion->getName(), angFolder, angName);
+	}
+
+	return 0;
+}
+
 unsigned int ProcessCut() {
-	BvhParser parser;
 
 	std::vector<std::string> names;
+
+	Motion* motion = nullptr;
+
+	std::vector<std::map<std::string, double>> meanLinSpeedInter;
 
 	// Ugly af, but no fast/easy way to get all files into a folder
 	for (int i = 0; i<20; i++)  {
@@ -28,7 +53,7 @@ unsigned int ProcessCut() {
 		std::cout << std::endl << std::endl << "Processing file " << names.at(i) << std::endl;
 		std::string path = MLA_INPUT_BVH_PATH;
 		path += "cut/";
-		Motion* motion = parser.parseBvh(path, names.at(i));
+		motion = bvhparser::parseBvh(path, names.at(i));
 
 		if (motion == false) {
 			std::cout << "Failed to parse bvh file (is the path/namefile correct ?)" << std::endl;
@@ -37,30 +62,18 @@ unsigned int ProcessCut() {
 			return 1;
 		}
 
-		MotionOperation motionOp;
+		motionoperation::motionFiltering(motion);
 
-		motionOp.motionFiltering(motion);
-
-		/*for (unsigned int i = 1; i<motion->getFrames().size() - 1; i++) {
-		std::string linName = "lin_full_" + std::to_string(i);
-		std::string angName = "ang_full_" + std::to_string(i);
-
-		std::string linFolder = "lin\\";
-		std::string angFolder = "ang\\";
-
-		CSVExport::ExportData(motionOp.jointsLinearSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), motion->getName(), linFolder, linName);
-		CSVExport::ExportData(motionOp.jointsAngularSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), motion->getName(), angFolder, angName);
-	}*/
 		for (unsigned int cut = 2; cut < 21; cut++){
 			std::cout << "Processing cut " << cut << std::endl;
-			std::vector<std::map<std::string, double>> meanLinSpeedInter = motionOp.MeanLinearSpeedIntervalFrame(motion, cut);
+			meanLinSpeedInter = motionoperation::MeanLinearSpeedIntervalFrame(motion, cut);
 
 			for (unsigned int i = 0; i < meanLinSpeedInter.size(); i++) {
 				std::string Name = "lin_mean_" + std::to_string(i);
 				std::string Folder = "lin_mean_" + std::to_string(cut) + "_cut\\";
 
 				//CSVExport::EraseFolderContent(MLA_INPUT_BVH_PATH + motion->getName() + "/lin_mean/");
-				CSVExport::ExportData(meanLinSpeedInter.at(i), motion->getName(), Folder, Name);
+				csvexport::ExportData(meanLinSpeedInter.at(i), motion->getName(), Folder, Name);
 			}
 		}
 
@@ -71,11 +84,8 @@ unsigned int ProcessCut() {
 }
 
 unsigned int ProcessClassic() {
-	BvhParser parser;
 
 	std::vector<std::string> names;
-
-	MotionOperation motionOp;
 
 	Motion* motion = nullptr;
 
@@ -91,7 +101,7 @@ unsigned int ProcessClassic() {
 
 	for (unsigned int i = 0; i < names.size(); i++) {
 		std::cout << std::endl << std::endl << "Processing file " << names.at(i) << std::endl;
-		motion = parser.parseBvh(MLA_INPUT_BVH_PATH, names.at(i));
+		motion = bvhparser::parseBvh(MLA_INPUT_BVH_PATH, names.at(i));
 
 		if (motion == nullptr) {
 			std::cout << "Failed to parse bvh file (is the path/namefile correct ?)" << std::endl;
@@ -100,29 +110,18 @@ unsigned int ProcessClassic() {
 			return 1;
 		}
 
-		motionOp.motionFiltering(motion);
-
-		/*for (unsigned int i = 1; i<motion->getFrames().size() - 1; i++) {
-		std::string linName = "lin_full_" + std::to_string(i);
-		std::string angName = "ang_full_" + std::to_string(i);
-
-		std::string linFolder = "lin\\";
-		std::string angFolder = "ang\\";
-
-		CSVExport::ExportData(motionOp.jointsLinearSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), motion->getName(), linFolder, linName);
-		CSVExport::ExportData(motionOp.jointsAngularSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()), motion->getName(), angFolder, angName);
-		}*/
+		motionoperation::motionFiltering(motion);
 
 		for (unsigned int cut = 20; cut < 220; cut += 20) {
 			std::cout << "Processing cut " << cut << std::endl;
-			meanLinSpeedInter = motionOp.MeanLinearSpeedIntervalFrame(motion, cut);
+			meanLinSpeedInter = motionoperation::MeanLinearSpeedIntervalFrame(motion, cut);
 
 			for (unsigned int i = 0; i < meanLinSpeedInter.size(); i++) {
 				std::string Name = "lin_mean_" + std::to_string(i);
 				std::string Folder = "lin_mean_" + std::to_string(cut) + "_cut\\";
 
-				//CSVExport::EraseFolderContent(MLA_INPUT_BVH_PATH + motion->getName() + "/lin_mean/");
-				//CSVExport::ExportData(meanLinSpeedInter.at(i), motion->getName(), Folder, Name);
+				//csvexport::EraseFolderContent(MLA_INPUT_BVH_PATH + motion->getName() + "/lin_mean/");
+				csvexport::ExportData(meanLinSpeedInter.at(i), motion->getName(), Folder, Name);
 			}
 		}
 
@@ -136,13 +135,9 @@ unsigned int MemoryLeakChaser(){
 	Motion* motion = nullptr;
 	std::string name = "apur.bvh";
 
-	BvhParser parser;
-
-	MotionOperation motionOp;
-
 	for (unsigned int i=0 ; i<100 ; i++) {
 		std::cout << std::endl << std::endl << "Processing file " << name << std::endl;
-		motion = parser.parseBvh(MLA_INPUT_BVH_PATH, name);
+		motion = bvhparser::parseBvh(MLA_INPUT_BVH_PATH, name);
 
 		if (motion == nullptr) {
 			std::cout << "Failed to parse bvh file (is the path/namefile correct ?)" << std::endl;
@@ -151,7 +146,7 @@ unsigned int MemoryLeakChaser(){
 			return 1;
 		}
 
-		motionOp.MeanLinearSpeedIntervalFrame(motion, 10);
+		motionoperation::MeanLinearSpeedIntervalFrame(motion, 10);
 		delete motion;
 
 	}	

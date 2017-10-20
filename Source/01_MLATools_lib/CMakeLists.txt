@@ -17,6 +17,12 @@ ADD_LIBRARY(01_MLATools_lib STATIC
     MLAMotionOperation/MLAMotionOperation.h
     MLAMotionOperation/MLAMotionOperation.cpp
 
+    MLAMotionOperation/MLASpeedData.h
+    MLAMotionOperation/MLASpeedData.cpp
+
+    MLAFilters/MLAFilters.h
+    MLAFilters/MLAFilters.cpp
+
     MLADataExport/CSVExport.h
     MLADataExport/CSVExport.cpp
 
@@ -30,6 +36,11 @@ SOURCE_GROUP("MLAShader\\Fichiers sources" FILES MLAShader/MLAShader.cpp)
 
 SOURCE_GROUP("MLAMotionOperation\\Fichiers d'en-tete" FILES MLAMotionOperation/MLAMotionOperation.h)
 SOURCE_GROUP("MLAMotionOperation\\Fichiers sources" FILES MLAMotionOperation/MLAMotionOperation.cpp)
+SOURCE_GROUP("MLAMotionOperation\\Fichiers d'en-tete" FILES MLAMotionOperation/MLASpeedData.h)
+SOURCE_GROUP("MLAMotionOperation\\Fichiers sources" FILES MLAMotionOperation/MLASpeedData.cpp)
+
+SOURCE_GROUP("MLAFilters\\Fichiers d'en-tete" FILES MLAFilters/MLAFilters.h)
+SOURCE_GROUP("MLAFilters\\Fichiers sources" FILES MLAFilters/MLAFilters.cpp)
 
 SOURCE_GROUP("MLADataExport\\Fichiers d'en-tete" FILES MLADataExport/CSVExport.h)
 SOURCE_GROUP("MLADataExport\\Fichiers sources" FILES MLADataExport/CSVExport.cpp)

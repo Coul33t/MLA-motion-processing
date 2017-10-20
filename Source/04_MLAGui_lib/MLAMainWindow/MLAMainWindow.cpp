@@ -2,12 +2,12 @@
 
 MainWindow::MainWindow() :
 m_windowTitle("Default name"), m_windowWidth(1600), m_windowHeight(900), m_window(), m_openGLContext(), m_input(), m_modelview(),
-m_projection(), m_camera(), m_frameRender(){
+m_projection(), m_camera() {
 }
 
 MainWindow::MainWindow(const std::string window_title, const int window_width, const int window_height) :
 m_windowTitle(window_title), m_windowWidth(window_width), m_windowHeight(window_height), m_window(), m_openGLContext(), m_input(),
-m_modelview(), m_projection(), m_camera(), m_frameRender() {
+m_modelview(), m_projection(), m_camera() {
 }
 
 MainWindow::~MainWindow() {
@@ -144,13 +144,6 @@ void MainWindow::MainLoop(Motion* motion) {
 			}
 		}
 
-		if (m_input.GetKey(SDL_SCANCODE_P)) {
-			if (neuron_connected) {
-				m_neuron.ToggleDisplay();
-				std::cout << "Neuron display toggle." << std::endl;
-			}
-		}
-
 		// Offset
 		if (m_input.GetKey(SDL_SCANCODE_E)) {
 			display_type = 0;
@@ -205,8 +198,7 @@ void MainWindow::MainLoop(Motion* motion) {
 		// If the neuron is not connected
 		if (!neuron_connected) {
 			if (display_type == 0)
-				m_frameRender.RenderFrame(motion->getFrame(1), m_projection, m_modelview, m_shader);
-
+				framerender::RenderFrame(motion->getFrame(1), m_projection, m_modelview, m_shader);
 			else {
 				mix_factor = (fmod(current_time / 1000.0, motion->getFrameTime())) / motion->getFrameTime();
 				
@@ -215,16 +207,10 @@ void MainWindow::MainLoop(Motion* motion) {
 				if (base_frame >= motion->getFrames().size() - 1)
 					base_frame = 0;
 
-				m_frameRender.RenderFrame(m_motionOp.interpolateFrame(motion->getFrame(base_frame), motion->getFrame(base_frame + 1), mix_factor), 
+				framerender::RenderFrame(motionoperation::interpolateFrame(motion->getFrame(base_frame), motion->getFrame(base_frame + 1), mix_factor),
 										  m_projection, 
 										  m_modelview, 
 										  m_shader);
-			}
-		}
-
-		else {
-			if(m_neuron.GetDisplay()) {
-				NeuronAnimate();
 			}
 		}
 		
@@ -249,81 +235,4 @@ void MainWindow::MainLoop(Motion* motion) {
 
 	}
 
-}
-
-void MainWindow::NeuronAnimate() {
-	BvhParser parser;
-	Motion* motion = parser.parseBvh("../../../Data/Bvh/", "display_tmp_bvh.bvh");
-	
-	double line_vertices[6];
-	double point_vertice[3];
-	double line_colour[6] = { 1, 1, 0, 1, 1, 0 };
-	double point_colour[3] = { 1, 0, 1 };
-
-
-	glm::dmat4 saved_modelview = m_modelview;
-
-	std::map<std::string, glm::dmat4> quaternions_to_mat_map;
-
-	int currentFrame = 1;
-	// For each graph node
-	for (unsigned int j = 0; j<motion->getFrame(currentFrame)->getJoints().size(); j++) {
-
-		// If it's the root
-		if (!motion->getFrame(1)->getJoints().at(j)->getParent()) {
-			
-			saved_modelview = glm::translate(saved_modelview, glm::dvec3(motion->getFrame(currentFrame)->getJoint(j)->getPositions()));
-			saved_modelview = saved_modelview*glm::mat4_cast(motion->getFrame(currentFrame)->getJoint(j)->getOrientations());
-
-			point_vertice[0] = motion->getFrame(currentFrame)->getJoint(j)->getPositions()[0];
-			point_vertice[1] = motion->getFrame(currentFrame)->getJoint(j)->getPositions()[1];
-			point_vertice[2] = motion->getFrame(currentFrame)->getJoint(j)->getPositions()[2];
-
-			m_frameRender.DisplayPoint(m_shader, m_projection, m_modelview, point_vertice, point_colour);
-
-			// We pair it with the joint name and we put it into the map
-			quaternions_to_mat_map.insert(std::make_pair(motion->getFrame(currentFrame)->getJoint(j)->getJointName(), saved_modelview));
-		}
-
-		// Not the root (other joints)
-		else {
-			// If we find the modelview matrix for the parent
-			if (quaternions_to_mat_map.find(motion->getFrame(currentFrame)->getJoint(j)->getParent()->getJointName()) != quaternions_to_mat_map.end()){
-				saved_modelview = quaternions_to_mat_map.find(motion->getFrame(currentFrame)->getJoint(j)->getParent()->getJointName())->second;
-			}
-
-			// Else, ABANDON SHIP
-			else {
-				std::cout << "Error : " << motion->getFrame(currentFrame)->getJoint(j)->getParent()->getJointName() << " not found in std::map<std::string, glm::mat4> quaternions_to_mat_map." << std::endl;
-				exit(EXIT_FAILURE);
-			}
-
-			// Origin (0,0,0) since the modelview is at the parent's origin
-			line_vertices[0] = 0;
-			line_vertices[1] = 0;
-			line_vertices[2] = 0;
-
-			line_vertices[3] = motion->getFrame(currentFrame)->getJoint(j)->getPositions()[0];
-			line_vertices[4] = motion->getFrame(currentFrame)->getJoint(j)->getPositions()[1];
-			line_vertices[5] = motion->getFrame(currentFrame)->getJoint(j)->getPositions()[2];
-
-			point_vertice[0] = line_vertices[3];
-			point_vertice[1] = line_vertices[4];
-			point_vertice[2] = line_vertices[5];
-
-			// We draw our line
-			m_frameRender.DisplayLine(m_shader, m_projection, saved_modelview, line_vertices, line_colour);
-
-			// We draw the point
-			m_frameRender.DisplayPoint(m_shader, m_projection, saved_modelview, point_vertice, point_colour);
-
-			//We translate to the next joint (the one we just draw)
-			saved_modelview = glm::translate(saved_modelview, glm::dvec3(point_vertice[0], point_vertice[1], point_vertice[2]));
-			saved_modelview = saved_modelview*glm::mat4_cast(motion->getFrame(currentFrame)->getJoint(j)->getOrientations());
-
-			// We pair it with the joint name and we put it into the map
-			quaternions_to_mat_map.insert(std::make_pair(motion->getFrame(currentFrame)->getJoint(j)->getJointName(), saved_modelview));
-
-		}
-	}
 }

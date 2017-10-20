@@ -4,7 +4,10 @@
 #include "MLACommonInclude.h"
 #include "MLAShader/MLAShader.h"
 #include "MLAMotionOperation/MLAMotionOperation.h"
+#include "MLAMotionOperation/MLASpeedData.h"
+#include "MLAFilters/MLAFilters.h"
 #include "MLADataExport/CSVExport.h"
 #include "MLADataExport/PipeExport.h"
+
 
 #endif //__MLA_TOOLS_LIB_INCLUDE_FILES__
