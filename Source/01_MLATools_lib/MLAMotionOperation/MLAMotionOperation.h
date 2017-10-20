@@ -12,11 +12,13 @@ MotionOperation.h
 #include "MLAMotion\MLAMotion.h"
 #include <numeric> // std::accumulate
 
+// Define an EPSILON value to compare to.
+// This is because floating point operations
+// are not accurate.
 #define EPSILON 0.00001
 
-class MotionOperation {
+namespace motionoperation{
 
-public:
 	Joint* interpolateJoint(Joint*, Joint*, double);
 
 	Frame* interpolateFrame(Frame*, Frame*, double);

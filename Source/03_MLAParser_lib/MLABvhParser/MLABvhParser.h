@@ -12,16 +12,8 @@ MLABvhParser.h
 
 #include "MLAMotion_lib.h"
 
-class BvhParser {
-
-public:
-	BvhParser();
+namespace bvhparser {
 	Motion* parseBvh(const std::string&, const std::string&);
-	bool searchForward(std::ifstream&, const std::string);
-	bool isDouble(const char* str);
-
-private:
-
 };
 
 #endif //__MLA_BVH_PARSER__
