@@ -54,8 +54,55 @@ namespace csvexport {
 
 	}
 
+	/** Export a vector to a csv file
+
+	@param data the data
+	@param name the name of the output file (default : "default")
+
+	@return bool success of file opening
+
+	*/
 	bool ExportData(std::vector<double> data, std::string motionName, std::string folder, std::string name) {
-		return false;
+		// 2 times, because the function can only create a directory, not the potential subdirectories.
+		if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + motionName).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
+
+			if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + motionName + "\\" + folder).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
+				std::ofstream outfile;
+
+				// Wipe any pre-existing file.
+				outfile.open("../../../Data/Speed/" + motionName + "/" + folder + "/" + name + ".csv", std::ios::out);
+				outfile.close();
+
+				outfile.open("../../../Data/Speed/" + motionName + "/" + folder + "/" + name + ".csv", std::ios::out | std::ios::app);
+
+				if (!outfile.fail()) {
+
+					for (std::vector<double>::iterator it = data.begin(); it != data.end(); ++it) {
+						outfile << *it << '\n';
+					}
+
+					outfile.close();
+					return true;
+				}
+
+				else {
+					std::cout << "Failed to open file " + name + ".csv" << std::endl;
+					return false;
+				}
+			}
+
+			else {
+				std::cout << "Failed to create the folder " + folder << std::endl;
+				return false;
+			}
+		}
+
+		else {
+			std::cout << "Failed to create the folder " + motionName << std::endl;
+			return false;
+		}
+
+
 	}
 
 	void EraseFolderContent(std::string pathname) {

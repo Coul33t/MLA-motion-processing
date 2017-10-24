@@ -1,6 +1,8 @@
 #include "MLAFilters.h"
 
-namespace mlafilters {
+namespace filters {
+
+	
 	// Inspired from
 	// https://stackoverflow.com/questions/30338671/i-tried-coding-my-own-simple-moving-average-in-c
 	std::vector<double> MeanShift(std::vector<double> data, unsigned int windowSize) {	

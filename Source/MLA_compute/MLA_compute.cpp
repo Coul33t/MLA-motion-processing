@@ -3,10 +3,12 @@
 unsigned int LinearSpeed();
 unsigned int ProcessCut();
 unsigned int ProcessClassic();
+unsigned int FilteringTest();
+unsigned int SavgolTest();
 unsigned int MemoryLeakChaser();
 
 int main(int argc, char *argv[]) {
-	LinearSpeed();
+	SavgolTest();
 	std::cout << std::endl << "Press any key to quit...";
 	std::cin.get();
 	return 0;
@@ -128,6 +130,56 @@ unsigned int ProcessClassic() {
 		delete motion;
 	}
 
+	return 0;
+}
+
+unsigned int FilteringTest() {
+	Motion* motion = nullptr;
+
+	motion = bvhparser::parseBvh(MLA_INPUT_BVH_PATH, "Damien_4_Char00.bvh");
+
+	motionoperation::motionFiltering(motion);
+
+	std::vector<std::map<std::string, double>> map_to_test;
+
+	for (unsigned int i = 1; i < motion->getFrames().size() - 1; i++)
+		map_to_test.push_back(motionoperation::jointsLinearSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()));
+
+	std::vector<double> values;
+
+	for (unsigned int i = 0; i < map_to_test.size(); ++i) {
+		std::map<std::string, double> slt = map_to_test[i];
+		values.push_back(slt.find("LeftHand")->second);
+	}
+
+
+	csvexport::ExportData(filters::MeanShift(values, 45), "Damien", "TEST_FILTRE", "test_filtre_45");
+
+	return 0;
+}
+
+unsigned int SavgolTest() {
+	Motion* motion = nullptr;
+
+	motion = bvhparser::parseBvh(MLA_INPUT_BVH_PATH, "Damien_4_Char00.bvh");
+
+	motionoperation::motionFiltering(motion);
+
+	std::vector<std::map<std::string, double>> map_to_test;
+
+	for (unsigned int i = 1; i < motion->getFrames().size() - 1; i++)
+		map_to_test.push_back(motionoperation::jointsLinearSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()));
+
+	std::vector<double> values;
+
+	for (unsigned int i = 0; i < map_to_test.size(); ++i) {
+		std::map<std::string, double> slt = map_to_test[i];
+		values.push_back(slt.find("LeftHand")->second);
+	}
+
+	std::vector<double> output = savgol::Savgol(values, 3, 21);
+	output.resize(values.size());
+	csvexport::ExportData(output, "Damien", "TEST_SAVGOL", "savgol_test");
 	return 0;
 }
 

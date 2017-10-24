@@ -22,6 +22,8 @@ ADD_LIBRARY(01_MLATools_lib STATIC
 
     MLAFilters/MLAFilters.h
     MLAFilters/MLAFilters.cpp
+    MLAFilters/MLASavgol.h
+    MLAFilters/MLASavgol.cpp
 
     MLADataExport/CSVExport.h
     MLADataExport/CSVExport.cpp
@@ -41,6 +43,8 @@ SOURCE_GROUP("MLAMotionOperation\\Fichiers sources" FILES MLAMotionOperation/MLA
 
 SOURCE_GROUP("MLAFilters\\Fichiers d'en-tete" FILES MLAFilters/MLAFilters.h)
 SOURCE_GROUP("MLAFilters\\Fichiers sources" FILES MLAFilters/MLAFilters.cpp)
+SOURCE_GROUP("MLAFilters\\Fichiers d'en-tete" FILES MLAFilters/MLASavgol.h)
+SOURCE_GROUP("MLAFilters\\Fichiers sources" FILES MLAFilters/MLASavgol.cpp)
 
 SOURCE_GROUP("MLADataExport\\Fichiers d'en-tete" FILES MLADataExport/CSVExport.h)
 SOURCE_GROUP("MLADataExport\\Fichiers sources" FILES MLADataExport/CSVExport.cpp)
