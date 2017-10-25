@@ -35,7 +35,7 @@ namespace motionoperation {
 
 		Frame* interpolatedFrame = new Frame();
 
-		for (unsigned int i = 0; i<f1->getJoints().size(); i++) {
+		for (unsigned int i = 0; i < f1->getJoints().size(); i++) {
 			Joint* newJoint = interpolateJoint(f1->getJoint(i), f2->getJoint(i), mixFactor);
 
 			newJoint->setJointName(f1->getJoint(i)->getJointName());
@@ -79,7 +79,7 @@ namespace motionoperation {
 
 			// dx / dt -> cm / s
 			// dx / (dt * 100) -> m / s
-			double linSpeed = vectorLength(v1, v2) / (frameTime * 100);
+			double linSpeed = utility::vectorLength(v1, v2) / (frameTime * 100);
 			linSpeedVector.insert(std::pair<std::string, double>(it->first, linSpeed));
 		}
 
@@ -140,60 +140,6 @@ namespace motionoperation {
 		return angularSpeedVector;
 	}
 
-	/** Compute the mean speed on a set of frames.
-
-	@param frames the set of frames
-
-	@return meanLinSpeed the mean speed for each joint on the frames
-	*/
-	std::map<std::string, double> MeanLinearSpeed(std::vector<Frame*> frames, double frameTime) {
-		std::map<std::string, double> meanLinSpeed;
-
-		std::vector<std::map<std::string, double>> linSpeed;
-		std::map<std::string, std::vector<double>> tmp;
-
-		for (std::vector<Frame*>::iterator it = frames.begin(); it != frames.end() - 1; ++it) {
-			linSpeed.push_back(jointsLinearSpeed(*it, *(it + 1), frameTime));
-		}
-
-		for (std::vector<std::map<std::string, double>>::iterator itVec = linSpeed.begin(); itVec != linSpeed.end(); ++itVec) {
-			for (std::map<std::string, double>::iterator itMap = (*itVec).begin(); itMap != (*itVec).end(); ++itMap) {
-				tmp[itMap->first].push_back(itMap->second);
-			}
-		}
-
-		for (std::map<std::string, std::vector<double>>::iterator it = tmp.begin(); it != tmp.end(); ++it) {
-			meanLinSpeed[it->first] = std::accumulate(it->second.begin(), it->second.end(), 0.0) / it->second.size();
-		}
-
-		return meanLinSpeed;
-	}
-
-	/** Compute the mean speed on given intervals for the full motion.
-
-	@param motion the motion
-	@param n the number of interval
-
-	@return meanLinSpeed A vector containing the mean speed for each joint on the frames, for each interval
-	*/
-	std::vector<std::map<std::string, double>> MeanLinearSpeedInterval(Motion* motion, unsigned int n) {
-		std::vector<std::map<std::string, double>> meanLinSpeedInter;
-
-		unsigned int motionLength = motion->getFrames().size();
-		double interval = static_cast<float>(motionLength) / static_cast<float>(n);
-
-		for (unsigned int i = 0; i < n; i++) {
-			if (i == n - 1) {
-				meanLinSpeedInter.push_back(MeanLinearSpeed(std::vector<Frame*>(motion->getFrames(static_cast<int>(floor(i * interval)), motionLength)), motion->getFrameTime()));
-			}
-			else {
-				meanLinSpeedInter.push_back(MeanLinearSpeed(std::vector<Frame*>(motion->getFrames(static_cast<int>(floor(i * interval)), static_cast<int>(floor((i * interval) + interval)))), motion->getFrameTime()));
-			}
-		}
-
-		return meanLinSpeedInter;
-	}
-
 	/** Compute the mean speed on given intervals for the full motion between two frames, with skeleton interpolation.
 
 	@param motion the motion
@@ -201,7 +147,7 @@ namespace motionoperation {
 
 	@return meanLinSpeed A vector containing the mean speed for each joint on the frames, for each interval
 	*/
-	std::vector<std::map<std::string, double>> MeanLinearSpeedIntervalFrame(Motion* motion, unsigned int n) {
+	std::vector<std::map<std::string, double>> MeanLinearSpeed(Motion* motion, unsigned int n) {
 		std::vector<std::map<std::string, double>> meanLinSpeedInter;
 
 		Frame* begFrame = nullptr;
@@ -210,8 +156,6 @@ namespace motionoperation {
 		double frameTime = motion->getFrameTime();
 
 		double  totalTime = motion->getFrames().size() * frameTime;
-
-		double mixFactor = 0;
 
 		double interval = totalTime / static_cast<float>(n);
 
@@ -291,6 +235,31 @@ namespace motionoperation {
 		}
 	}
 
+	/** Find the next local minimum from the max value, if and only if this value is inferior to a threshold.
+
+	@param data the data to process
+	@param interFrameTime the interframe time
+	@param direction the direction in which the local minimum is to be found (negative for left, positive for right)
+
+	@return time the time at which the local minimum is found
+	*/
+	double getLocalMinimumFromMaximum(std::vector<double> data, double interFrameTime, int direction) {
+		// We fix a threshold, to avoid minimums that are " too high ".
+		// This threshold is set to (max + min) / 2.
+		// UNUSED FOR THE MOMENT
+		double threshold = (utility::getMaxValue(data).first + utility::getMinValue(data).first) / 2.0;
+
+		double last_value = utility::getMaxValue(data).first + 1;
+		int idx = utility::getMaxValue(data).second;
+
+		while (last_value > data.at(idx)) {
+			last_value = data.at(idx);
+			idx += direction;
+		}
+			
+
+		return (idx - direction) * interFrameTime;
+	}
 	/** Filter a motion, by eliminating position variations.
 
 	@param motion the motion to be filtered
@@ -307,11 +276,4 @@ namespace motionoperation {
 		}
 	}
 
-	double vectorLength(glm::dvec3 p1, glm::dvec3 p2) {
-		return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2) + pow(p2.z - p1.z, 2));
-	}
-
-	double roundToDecimal(double number, unsigned int decimal) {
-		return (number * pow(10, decimal)) / pow(10, decimal);
-	}
 }
