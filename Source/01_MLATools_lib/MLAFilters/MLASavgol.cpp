@@ -14,7 +14,7 @@ namespace savgol {
 	**************************************************************/
 	void LUDCMP(MAT A, int N, int np, int *INDX, int *D, int *CODE) {
 
-	#define NMX  100
+		#define NMX  100
 
 		double AMAX, DUM, SUM, TINY;
 		double VV[NMX];
@@ -184,7 +184,7 @@ namespace savgol {
 		}
 
 		if (polynom_order >= window_size) {
-			std::cout << "ERROR: plonym order must be inferior than window size" << std::endl;
+			std::cout << "ERROR: polynom order must be inferior than window size" << std::endl;
 			return std::vector<double>();
 		}
 

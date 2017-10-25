@@ -6,9 +6,10 @@ unsigned int ProcessClassic();
 unsigned int FilteringTest();
 unsigned int SavgolTest();
 unsigned int MemoryLeakChaser();
+unsigned int MinimaTest();
 
 int main(int argc, char *argv[]) {
-	SavgolTest();
+	MinimaTest();
 	std::cout << std::endl << "Press any key to quit...";
 	std::cin.get();
 	return 0;
@@ -68,7 +69,7 @@ unsigned int ProcessCut() {
 
 		for (unsigned int cut = 2; cut < 21; cut++){
 			std::cout << "Processing cut " << cut << std::endl;
-			meanLinSpeedInter = motionoperation::MeanLinearSpeedIntervalFrame(motion, cut);
+			meanLinSpeedInter = motionoperation::MeanLinearSpeed(motion, cut);
 
 			for (unsigned int i = 0; i < meanLinSpeedInter.size(); i++) {
 				std::string Name = "lin_mean_" + std::to_string(i);
@@ -116,7 +117,7 @@ unsigned int ProcessClassic() {
 
 		for (unsigned int cut = 20; cut < 220; cut += 20) {
 			std::cout << "Processing cut " << cut << std::endl;
-			meanLinSpeedInter = motionoperation::MeanLinearSpeedIntervalFrame(motion, cut);
+			meanLinSpeedInter = motionoperation::MeanLinearSpeed(motion, cut);
 
 			for (unsigned int i = 0; i < meanLinSpeedInter.size(); i++) {
 				std::string Name = "lin_mean_" + std::to_string(i);
@@ -183,6 +184,45 @@ unsigned int SavgolTest() {
 	return 0;
 }
 
+unsigned int MinimaTest() {
+
+	Motion* motion = nullptr;
+
+	motion = bvhparser::parseBvh(MLA_INPUT_BVH_PATH, "Damien_4_Char00.bvh");
+
+	motionoperation::motionFiltering(motion);
+
+	// Import data into a map, to separate the hand data from the rest of the joints
+	std::vector<std::map<std::string, double>> map_to_test;
+
+	for (unsigned int i = 1; i < motion->getFrames().size() - 1; i++)
+		map_to_test.push_back(motionoperation::jointsLinearSpeed(motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime()));
+
+	std::vector<double> values;
+
+	for (unsigned int i = 0; i < map_to_test.size(); ++i) {
+		std::map<std::string, double> slt = map_to_test[i];
+		values.push_back(slt.find("LeftHand")->second);
+	}
+
+	// Savgol-ing the values
+	std::vector<double> output = savgol::Savgol(values, 3, 21);
+
+	// Finding the left time and right time for the minimums around the global maximumS
+	double left_min = motionoperation::getLocalMinimumFromMaximum(output, motion->getFrameTime(), -1);
+	double right_min = motionoperation::getLocalMinimumFromMaximum(output, motion->getFrameTime(), 1);
+
+	unsigned int beg = (int)(left_min / motion->getFrameTime());
+	unsigned int end = (int)(right_min / motion->getFrameTime());
+	
+	std::vector<double> to_export;
+	for (unsigned int i = beg; i < end + 1; i++)
+		to_export.push_back(output[i]);
+
+	csvexport::ExportData(to_export, "Damien", "VALUES", "values_extract");
+	
+	return 0;
+}
 unsigned int MemoryLeakChaser(){
 	Motion* motion = nullptr;
 	std::string name = "apur.bvh";
@@ -198,7 +238,7 @@ unsigned int MemoryLeakChaser(){
 			return 1;
 		}
 
-		motionoperation::MeanLinearSpeedIntervalFrame(motion, 10);
+		motionoperation::MeanLinearSpeed(motion, 10);
 		delete motion;
 
 	}	
