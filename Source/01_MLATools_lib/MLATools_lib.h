@@ -7,6 +7,7 @@
 #include "MLAMotionOperation/MLASpeedData.h"
 #include "MLAFilters/MLAFilters.h"
 #include "MLAFilters/MLASavgol.h"
+#include "MLAUtility/MLAUtility.h"
 #include "MLADataExport/CSVExport.h"
 #include "MLADataExport/PipeExport.h"
 
