@@ -3,8 +3,10 @@
 
 #include "MLAInput\MLAInput.h"
 
+#pragma warning(push, 0)
 #include "glm.hpp"
 #include "gtx/transform.hpp"
+#pragma warning(pop)
 
 class Camera {
 

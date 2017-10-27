@@ -12,8 +12,12 @@ MLABvhParser.h
 
 #include "MLAMotion_lib.h"
 
-namespace bvhparser {
-	Motion* parseBvh(const std::string&, const std::string&);
+namespace mla {
+	namespace bvhparser {
+
+		Motion* parseBvh(const std::string&, const std::string&);
+
+	};
 };
 
 #endif //__MLA_BVH_PARSER__

@@ -1,12 +1,15 @@
 // Voir si mettre un buffer
 
-#include "DataType.h"
-#include "NeuronDataReader.h"
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <map>
 #include <string>
+
+#pragma warning(push, 0)
+#include "DataType.h"
+#include "NeuronDataReader.h"
+#pragma warning(pop)
 
 class NeuronConnection {
 

@@ -198,7 +198,7 @@ void MainWindow::MainLoop(Motion* motion) {
 		// If the neuron is not connected
 		if (!neuron_connected) {
 			if (display_type == 0)
-				framerender::RenderFrame(motion->getFrame(1), m_projection, m_modelview, m_shader);
+				mla::framerender::RenderFrame(motion->getFrame(1), m_projection, m_modelview, m_shader);
 			else {
 				mix_factor = (fmod(current_time / 1000.0, motion->getFrameTime())) / motion->getFrameTime();
 				
@@ -207,10 +207,10 @@ void MainWindow::MainLoop(Motion* motion) {
 				if (base_frame >= motion->getFrames().size() - 1)
 					base_frame = 0;
 
-				framerender::RenderFrame(motionoperation::interpolateFrame(motion->getFrame(base_frame), motion->getFrame(base_frame + 1), mix_factor),
-										  m_projection, 
-										  m_modelview, 
-										  m_shader);
+				mla::framerender::RenderFrame(mla::motionoperation::interpolateFrame(motion->getFrame(base_frame), motion->getFrame(base_frame + 1), mix_factor),
+										      m_projection, 
+										      m_modelview, 
+										      m_shader);
 			}
 		}
 		

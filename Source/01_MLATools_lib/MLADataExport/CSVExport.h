@@ -6,11 +6,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+namespace mla {
+	namespace csvexport {
 
-namespace csvexport {
-	 bool ExportData(std::map<std::string, double>, std::string = "DEFAULT_MOTION_NAME", std::string = "", std::string = "default");
-	 bool ExportData(std::vector<double>, std::string = "DEFAULT_MOTION_NAME", std::string = "", std::string = "default");
-	 void EraseFolderContent(std::string);
+		bool ExportData(std::map<std::string, double>, std::string = "DEFAULT_MOTION_NAME", std::string = "", std::string = "default");
+		bool ExportData(std::vector<double>, std::string = "DEFAULT_MOTION_NAME", std::string = "", std::string = "default");
+		void EraseFolderContent(std::string);
+
+	};
 };
 
 #endif //__MLA_CSV_EXPORT__

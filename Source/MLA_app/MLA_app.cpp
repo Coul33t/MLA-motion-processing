@@ -1,6 +1,6 @@
 #include "MLA.h"
 
-int main(int argc, char *argv[]) {
+int main() {
 
 	Motion* motion = bvhparser::parseBvh(MLA_INPUT_BVH_PATH, "throw_5_gimbal_smooth_16.bvh");
 

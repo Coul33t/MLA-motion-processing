@@ -10,14 +10,17 @@
 #include <algorithm> // std::min
 #include <iostream>
 
-namespace savgol {
-	std::vector<double> Savgol(std::vector<double>&, unsigned int, unsigned int);
+namespace mla {
+	namespace filters {
 
-	const int NMAX = 2048;	//Maximum number of input data ordinates
-	const int NP = 50;		//Maximum number of filter coefficients
-	const int MMAX = 6;		//Maximum order of smoothing polynomial
+		void Savgol(std::vector<double>&, const std::vector<double>&, unsigned int, unsigned int);
 
-	typedef double MAT[MMAX + 2][MMAX + 2];
+		const int NMAX = 2048;	//Maximum number of input data ordinates
+		const int NP = 50;		//Maximum number of filter coefficients
+		const int MMAX = 6;		//Maximum order of smoothing polynomial
+
+		typedef double MAT[MMAX + 2][MMAX + 2];
+
+	};
 };
-
 #endif //MLA_SAVGOL_H

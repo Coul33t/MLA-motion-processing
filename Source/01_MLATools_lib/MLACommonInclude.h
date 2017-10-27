@@ -29,34 +29,37 @@
 // Common libraries
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//string
+// string
 #include <string>
 
 
-//stream
+// stream
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
 
-//stl
+// stl
 #include <vector>
 #include <string>
 #include <algorithm>
 #include <iterator>
 #include <map>
 
-//glew
+// glew
 #include "glew.h"
 
-//SDL
+// SDL
 #include "SDL.h"
 
-//glm
+// glm
+// Ignore warning related to glm
+#pragma warning(push, 0)
 #include "glm.hpp"
 #include "gtx/transform.hpp"
 #include "gtc/type_ptr.hpp"
 #include "gtc/quaternion.hpp"
+#pragma warning(pop)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // macro for math functions

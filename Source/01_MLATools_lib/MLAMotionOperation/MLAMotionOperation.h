@@ -19,7 +19,9 @@ MotionOperation.h
 // are not accurate.
 #define EPSILON 0.00001
 
-namespace motionoperation{
+namespace mla {
+	namespace motionoperation{
+
 		Joint* interpolateJoint(Joint*, Joint*, double);
 		Frame* interpolateFrame(Frame*, Frame*, double);
 
@@ -34,6 +36,7 @@ namespace motionoperation{
 		double getLocalMinimumFromMaximum(std::vector<double>, double, int);
 
 		void motionFiltering(Motion*);
-};
 
+	};
+};
 #endif //__MLA_MOTIONOPERATION_H__
