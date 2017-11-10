@@ -2,16 +2,21 @@
 #define __MLA_CSV_EXPORT__
 
 #include "MLACommonInclude.h"
+#include "MLAMotion_lib.h"
 #include "windows.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 
-namespace mla {
-	namespace csvexport {
+namespace Mla {
+	namespace CsvExport {
 
-		bool ExportData(std::map<std::string, double>, std::string = "DEFAULT_MOTION_NAME", std::string = "", std::string = "default");
-		bool ExportData(std::vector<double>, std::string = "DEFAULT_MOTION_NAME", std::string = "", std::string = "default");
-		void EraseFolderContent(std::string);
+		bool ExportData(std::map<std::string, double>&, const std::string& = "DEFAULT_MOTION_NAME", const std::string& = "", const std::string& = "default");
+		bool ExportData(std::vector<double>&, const std::string& = "DEFAULT_MOTION_NAME", const std::string& = "", const std::string& = "default");
+		bool ExportData(std::vector<std::pair<int, int>>&, const std::string& = "DEFAULT_MOTION_NAME", const std::string& = "", const std::string& = "default");
+		
+		bool ExportData(Frame*, const std::string& = "DEFAULT_MOTION_NAME", const std::string& = "", const std::string& = "default");
+
+		void EraseFolderContent(const std::string&);
 
 	};
 };
