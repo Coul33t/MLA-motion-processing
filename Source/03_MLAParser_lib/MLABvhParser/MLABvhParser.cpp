@@ -1,7 +1,7 @@
 #include "MLABvhParser.h"
 
-namespace mla {
-	namespace bvhparser {
+namespace Mla {
+	namespace BvhParser {
 		// Anonymous namespace, because these functions are never
 		// used outside the parseBvh function.
 		namespace {
@@ -198,34 +198,22 @@ namespace mla {
 
 			std::cout << "Copying frames ..." << std::endl;
 
-			// Why not : " Frame* copiedFrame = new Frame(*initialFrame); " ?
+			// Why not: " Frame* copiedFrame = new Frame(*initialFrame); " ?
 			// Because if we do so, the member std::vector<Joint*> m_joints
 			// will be copied as is, and the pointers inside will point to
 			// the same data as the initial frame. So if you modify one
 			// value, it will modify all the value (since the pointers all
 			// points to the same joint in the memory).
 
+			// UPDATE: the frame duplication code has been moved inside
+			// the Frame class, see duplicateFrame()
+
 			for (unsigned int i = 0; i < frameNumber; i++) {
 
 				percentage = 100 * i / frameNumber;
 				std::cout << percentage << " % (" << i << "/" << frameNumber << ")" << "\r";
 
-				Frame* copiedFrame = new Frame();
-
-				for (unsigned int i = 0; i < jointNumber; i++) {
-					Joint* new_joint = new Joint(*initialFrame->getJoints().at(i));
-
-					new_joint->setParent(0);
-
-					if (initialFrame->getJoints().at(i)->getParent()) {
-						std::string parentName = initialFrame->getJoints().at(i)->getParent()->getJointName();
-						new_joint->setParent(copiedFrame->getJoint(parentName));
-						new_joint->getParent()->addChild(new_joint);
-					}
-
-					copiedFrame->insertJoint(new_joint);
-
-				}
+				Frame* copiedFrame = initialFrame->duplicateFrame();
 
 				motion->addFrame(copiedFrame);
 			}
