@@ -2,8 +2,8 @@ PROJECT(04_MLAGui_lib)
 
 INCLUDE_DIRECTORIES(
     ${01_MLATools_lib_SOURCE_DIR}
-	${02_MLAMotion_lib_SOURCE_DIR}
-    ${03_MLAParser_lib_SOURCE_DIR}
+    ${02_MLAMotion_lib_SOURCE_DIR}
+    ${03_MLAParser_lib_SOURCE_DIR}  
     ${04_MLAGui_lib_SOURCE_DIR}
     ${05_MLANeuron_lib_SOURCE_DIR}
     ${06_MLARender_lib_SOURCE_DIR}

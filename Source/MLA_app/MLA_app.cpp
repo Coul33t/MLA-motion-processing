@@ -1,8 +1,8 @@
 #include "MLA.h"
 
-int main() {
+int main(int argc, char *argv[]) {
 
-	Motion* motion = bvhparser::parseBvh(MLA_INPUT_BVH_PATH, "throw_5_gimbal_smooth_16.bvh");
+	Motion* motion = Mla::BvhParser::parseBvh(MLA_INPUT_BVH_PATH, "Damien_1_Char00.bvh");
 
 	if(motion == false) {
 		std::cout << "Failed to parse bvh file (is the path/namefile correct ?)" << std::endl;
@@ -36,8 +36,12 @@ int main() {
 
 	}
 		
+	Mla::MotionOperation::motionFiltering(motion);
 
-	window.MainLoop(motion);
+	std::vector<Motion*> seg_motion;
+	Mla::MotionOperation::MotionSegmentation(motion, 2, 2, 51, 3, 20, seg_motion);
+
+	window.MainLoop(seg_motion[2]);
 
 	/*std::cout << "Press any key to quit...";
 	std::cin.get();*/

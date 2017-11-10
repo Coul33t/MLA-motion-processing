@@ -1,6 +1,3 @@
-
-
-
 project(MLA_app)
     INCLUDE_DIRECTORIES(
         ${MLA_SOURCE_DIR}/Source
@@ -37,7 +34,6 @@ project(MLA_app)
 
     IF(WIN_OS)
 
-    
         TARGET_LINK_LIBRARIES(MLA_app
             06_MLARender_lib.lib
             05_MLANeuron_lib.lib
@@ -54,8 +50,6 @@ project(MLA_app)
         #-------------------------------------
         # SDL
         #-------------------------------------
-
-    
         add_custom_command(TARGET MLA_app   POST_BUILD      # Adds a post-build event to MyTest
                     COMMAND ${CMAKE_COMMAND} -E copy_if_different   # which executes "cmake - E copy_if_different..."
                     ${SDL_DYNAMIC_LIB}              # <--this is in-file
