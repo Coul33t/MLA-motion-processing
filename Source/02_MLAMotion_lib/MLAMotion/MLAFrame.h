@@ -33,6 +33,8 @@ public:
 	void setNames(const std::map<std::string, unsigned int>&);
 	const std::map<std::string, unsigned int>& getNames() const;
 
+	Frame* duplicateFrame();
+
 private:
 	std::vector<Joint*> m_joints;
 	std::map<std::string, unsigned int> m_names;

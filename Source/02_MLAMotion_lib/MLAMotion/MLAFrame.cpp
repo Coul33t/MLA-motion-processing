@@ -60,3 +60,23 @@ void Frame::setNames(const std::map<std::string, unsigned int>& names) {
 const std::map<std::string, unsigned int>& Frame::getNames() const {
 	return m_names;
 }
+
+Frame* Frame::duplicateFrame() {
+	Frame* copied_frame = new Frame();
+
+	for (unsigned int i = 0; i < m_joints.size(); i++) {
+		Joint* new_joint = new Joint(*m_joints[i]);
+
+		new_joint->setParent(0);
+
+		if (this->getJoints().at(i)->getParent()) {
+			std::string parentName = m_joints[i]->getParent()->getJointName();
+			new_joint->setParent(copied_frame->getJoint(parentName));
+			new_joint->getParent()->addChild(new_joint);
+		}
+
+		copied_frame->insertJoint(new_joint);
+	}
+
+	return copied_frame;
+}
