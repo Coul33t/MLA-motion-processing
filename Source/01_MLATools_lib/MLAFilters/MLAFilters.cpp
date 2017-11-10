@@ -1,7 +1,7 @@
 #include "MLAFilters.h"
 
-namespace mla {
-	namespace filters {
+namespace Mla {
+	namespace Filters {
 
 		// Inspired from
 		// https://stackoverflow.com/questions/30338671/i-tried-coding-my-own-simple-moving-average-in-c

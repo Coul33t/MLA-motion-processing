@@ -50,6 +50,7 @@ int MainWindow::WindowInit() {
 		return -1;
 	}
 
+
 	return true;
 }
 
@@ -192,13 +193,15 @@ void MainWindow::MainLoop(Motion* motion) {
 		// Clean the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
+
 		// Orient camera
 		m_camera.LookAt(m_modelview);
 
 		// If the neuron is not connected
 		if (!neuron_connected) {
 			if (display_type == 0)
-				mla::framerender::RenderFrame(motion->getFrame(1), m_projection, m_modelview, m_shader);
+				Mla::FrameRender::RenderFrame(motion->getFrame(1), m_projection, m_modelview, m_shader);
 			else {
 				mix_factor = (fmod(current_time / 1000.0, motion->getFrameTime())) / motion->getFrameTime();
 				
@@ -207,7 +210,7 @@ void MainWindow::MainLoop(Motion* motion) {
 				if (base_frame >= motion->getFrames().size() - 1)
 					base_frame = 0;
 
-				mla::framerender::RenderFrame(mla::motionoperation::interpolateFrame(motion->getFrame(base_frame), motion->getFrame(base_frame + 1), mix_factor),
+				Mla::FrameRender::RenderFrame(Mla::MotionOperation::interpolateFrame(motion->getFrame(base_frame), motion->getFrame(base_frame + 1), mix_factor),
 										      m_projection, 
 										      m_modelview, 
 										      m_shader);

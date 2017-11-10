@@ -12,8 +12,8 @@ Utility.h
 #include "MLAMotion\MLAMotion.h"
 #include <numeric> // std::accumulate
 
-namespace mla {
-	namespace utility {
+namespace Mla {
+	namespace Utility {
 
 		double vectorLength(glm::dvec3, glm::dvec3);
 

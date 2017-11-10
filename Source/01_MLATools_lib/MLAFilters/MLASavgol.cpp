@@ -1,6 +1,6 @@
 #include "MLASavgol.h"
-namespace mla {
-	namespace filters {
+namespace Mla {
+	namespace Filters {
 
 		/**************************************************************
 		* Given an N x N matrix A, this routine replaces it by the LU *
@@ -212,9 +212,11 @@ namespace mla {
 			SavgolCoeffs(coefs, half_window, half_window, 0, polynom_order);
 
 			// Apply filter to input data.
-			for (unsigned int i = 0; i < data.size(); i++)
+			for (unsigned int i = 0; i < data.size(); i++) {
+				output_data.push_back(0.0);
 				for (unsigned int j = 0; j < coefs.size(); j++)
 					output_data.at(i) += coefs.at(j) * padded_data.at(j + i);
+			}
 		}
 	}
 }

@@ -13,8 +13,8 @@ MotionOperation.h
 #include <vector>
 #include <algorithm> // std::min
 
-namespace mla {
-	namespace filters {
+namespace Mla {
+	namespace Filters {
 		void MeanShift(std::vector<double>&, const std::vector<double>&, unsigned int);
 	};
 };

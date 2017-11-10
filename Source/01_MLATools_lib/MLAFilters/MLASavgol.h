@@ -10,8 +10,8 @@
 #include <algorithm> // std::min
 #include <iostream>
 
-namespace mla {
-	namespace filters {
+namespace Mla {
+	namespace Filters {
 
 		void Savgol(std::vector<double>&, const std::vector<double>&, unsigned int, unsigned int);
 

@@ -1,7 +1,7 @@
 #include "FrameRender.h"
 
-namespace mla {
-	namespace framerender {
+namespace Mla {
+	namespace FrameRender {
 
 		namespace {
 			// Conversion from dmat4 to mat4 : see
