@@ -1,7 +1,7 @@
 #include "MLAMotionOperation.h"
 
-namespace mla {
-	namespace motionoperation {
+namespace Mla {
+	namespace MotionOperation {
 
 		/** Interpolate a joint from 2 joints and a mix factor.
 
@@ -61,7 +61,7 @@ namespace mla {
 
 		@return speedVector the linear speed of joints
 		*/
-		std::map<std::string, double> jointsLinearSpeed(Frame* f1, Frame* f2, double frameTime) {
+		void jointsLinearSpeed(std::map<std::string, double>& linSpeedVector, Frame* f1, Frame* f2, double frameTime) {
 			std::map<std::string, glm::dvec3> globalCoord1;
 			std::map<std::string, glm::dvec3> globalCoord2;
 
@@ -73,19 +73,16 @@ namespace mla {
 			getGlobalCoordinates(f1->getJoint(0), globalCoord1, globalMat1);
 			getGlobalCoordinates(f2->getJoint(0), globalCoord2, globalMat2);
 
-			std::map<std::string, double> linSpeedVector;
-
 			for (std::map<std::string, glm::dvec3> ::iterator it = globalCoord1.begin(); it != globalCoord1.end(); ++it) {
 				glm::dvec3 v1 = globalCoord1.find(it->first)->second;
 				glm::dvec3 v2 = globalCoord2.find(it->first)->second;
 
 				// dx / dt -> cm / s
 				// dx / (dt * 100) -> m / s
-				double linSpeed = utility::vectorLength(v1, v2) / (frameTime * 100);
+				double linSpeed = Mla::Utility::vectorLength(v1, v2) / (frameTime * 100);
 				linSpeedVector.insert(std::pair<std::string, double>(it->first, linSpeed));
 			}
 
-			return linSpeedVector;
 		}
 
 		/** Compute the speed of the joints between 2 frames.
@@ -96,7 +93,7 @@ namespace mla {
 
 		@return speedVector the angular speed of joints
 		*/
-		std::map<std::string, double> jointsAngularSpeed(Frame* f1, Frame* f2, double frameTime) {
+		void jointsAngularSpeed(std::map<std::string, double>& angularSpeedVector, Frame* f1, Frame* f2, double frameTime) {
 			std::map<std::string, glm::dvec3> globalCoord1;
 			std::map<std::string, glm::dvec3> globalCoord2;
 
@@ -107,8 +104,6 @@ namespace mla {
 
 			getGlobalCoordinates(f1->getJoint(0), globalCoord1, globalMat1);
 			getGlobalCoordinates(f2->getJoint(0), globalCoord2, globalMat2);
-
-			std::map<std::string, double> angularSpeedVector;
 
 			for (std::map<std::string, glm::dvec3> ::iterator it = globalCoord1.begin(); it != globalCoord1.end(); ++it) {
 				glm::dvec3 p1 = globalCoord1.find(it->first)->second;
@@ -123,23 +118,7 @@ namespace mla {
 				else
 					angularSpeedVector.insert(std::pair<std::string, double>(it->first, 0));
 
-
-				/*double r = vectorLength(glm::dvec3(0, 0, 0), f1->getJoint(it->first)->getPositions());
-
-				if (r > 0) {
-				double alpha = acos(glm::radians(vectorLength(v1, v2) / pow(r, 2)));
-				if ((unsigned)(vectorLength(v1, v2) / pow(r, 2)) > 1)
-				std::cout << "ERROR: VALUE OUT OF RANGE " << vectorLength(v1, v2) << " / " << pow(r, 2) << " = " << vectorLength(v1, v2) / pow(r, 2) << std::endl;
-
-				double angSpeed = alpha / (frameTime * 100);
-				angularSpeedVector.insert(std::pair<std::string, double>(it->first, angSpeed));
-				}
-
-				else
-				angularSpeedVector.insert(std::pair<std::string, double>(it->first, 0));*/
 			}
-
-			return angularSpeedVector;
 		}
 
 		/** Compute the mean speed on given intervals for the full motion between two frames, with skeleton interpolation.
@@ -149,15 +128,14 @@ namespace mla {
 
 		@return meanLinSpeed A vector containing the mean speed for each joint on the frames, for each interval
 		*/
-		std::vector<std::map<std::string, double>> MeanLinearSpeed(Motion* motion, unsigned int n) {
-			std::vector<std::map<std::string, double>> meanLinSpeedInter;
+		void MeanLinearSpeed(std::vector<std::map<std::string, double>>& meanLinSpeedInter, Motion* motion, unsigned int n) {
 
 			Frame* begFrame = nullptr;
 			Frame* endFrame = nullptr;
 
 			double frameTime = motion->getFrameTime();
 
-			double  totalTime = motion->getFrames().size() * frameTime;
+			double totalTime = motion->getFrames().size() * frameTime;
 
 			double interval = totalTime / static_cast<float>(n);
 
@@ -168,7 +146,9 @@ namespace mla {
 				begFrame = getFrameFromTime(motion, firstFrameTime, frameTime);
 				endFrame = getFrameFromTime(motion, endFrameTime, frameTime);
 
-				meanLinSpeedInter.push_back(jointsLinearSpeed(begFrame, endFrame, motion->getFrameTime()));
+				std::map<std::string, double> linSpeedVector;
+				jointsLinearSpeed(linSpeedVector, begFrame, endFrame, motion->getFrameTime());
+				meanLinSpeedInter.push_back(linSpeedVector);
 
 				firstFrameTime = endFrameTime;
 				endFrameTime += interval;
@@ -176,28 +156,38 @@ namespace mla {
 				delete begFrame;
 				delete endFrame;
 			}
-
-			return meanLinSpeedInter;
 		}
 
-		Frame* getFrameFromTime(Motion* motion, double time, double frameTime) {
+		/** Return an interpolated frame from a motion, and a time
+
+		@param motion the motion from which the frame will be interpolated
+		@param time the time at which the frame will be interpolated
+		@param frame_time the interframe_time from the initial motion
+		
+		@return new_frame the interpolated frame
+		*/
+		Frame* getFrameFromTime(Motion* motion, double time, double frame_time) {
 			Frame* returnFrame = nullptr;
 
-			unsigned int frameBef = static_cast<unsigned int>(time / frameTime);
+			unsigned int frameBef = static_cast<unsigned int>(time / frame_time);
 
+			// ???
 			if (frameBef > 0)
 				frameBef -= 1;
 
 			unsigned int frameAft = frameBef + 1;
 
-			double tpsBef = frameBef * frameTime;
+			double tpsBef = frameBef * frame_time;
 
-			double mixFactor = ((time - tpsBef) / frameTime) - 1;
+			// -1 ???
+			double mixFactor = ((time - tpsBef) / frame_time) - 1;
 
 			if (mixFactor <= EPSILON)
 				return (returnFrame = interpolateFrame(motion->getFrame(frameBef), motion->getFrame(frameBef), 0));
+
 			else if (1 + EPSILON >= mixFactor && mixFactor >= 1 - EPSILON)
 				return (returnFrame = interpolateFrame(motion->getFrame(frameAft), motion->getFrame(frameAft), 1));
+
 			else
 				return (returnFrame = interpolateFrame(motion->getFrame(frameBef), motion->getFrame(frameAft), mixFactor));
 		}
@@ -240,19 +230,23 @@ namespace mla {
 		/** Find the next local minimum from the max value, if and only if this value is inferior to a threshold.
 
 		@param data the data to process
-		@param interFrameTime the interframe time
 		@param direction the direction in which the local minimum is to be found (negative for left, positive for right)
 
-		@return time the time at which the local minimum is found
+		@return idx the index at which the local minimum is found
 		*/
-		double getLocalMinimumFromMaximum(std::vector<double> data, double interFrameTime, int direction) {
+		int getLocalMinimumFromMaximum(std::vector<double>& data, int direction) {
 			// We fix a threshold, to avoid minimums that are " too high ".
 			// This threshold is set to (max + min) / 2.
 			// UNUSED FOR THE MOMENT
-			// double threshold = (utility::getMaxValue(data).first + utility::getMinValue(data).first) / 2.0;
+			// double threshold = (Mla::Utility::getMaxValue(data).first + Mla::Utility::getMinValue(data).first) / 2.0;
 
-			double last_value = utility::getMaxValue(data).first + 1;
-			unsigned int idx = utility::getMaxValue(data).second;
+			if (direction == 0) {
+				std::cout << "ERROR: direction must be != 0 (d < 0 for left search, d > 0 for right search)" << std::endl;
+				return -1;
+			}
+
+			double last_value = Mla::Utility::getMaxValue(data).first + 1;
+			unsigned int idx = Mla::Utility::getMaxValue(data).second;
 
 			while (idx > 0 && idx < data.size() && last_value > data.at(idx)) {
 				last_value = data.at(idx);
@@ -260,8 +254,252 @@ namespace mla {
 			}
 
 			// idx - direction because we add the value even if we're good
-			return (idx - direction) * interFrameTime;
+			return idx - direction;
 		}
+
+		/** Find the next local maximum in the data
+
+		@param data the data to process
+		@param direction the direction in which the local maximum is to be found (negative for left, positive for right)
+
+		@return idx the index at which the local minimum is found
+		*/
+		int getLocalMaximum (std::vector<double>& data, int direction) {
+			if (direction == 0) {
+				std::cout << "ERROR: direction must be != 0 (d < 0 for left search, d > 0 for right search)" << std::endl;
+				return -1;
+			}
+			
+			// Case right
+			double last_value = data[0];
+			// Case left
+			if (direction < 0)
+				last_value = data.back();
+
+			// - 1 because of the loop condition
+			last_value--;
+
+			// Case right
+			int idx = 0;
+			// Case left
+			if (direction < 0)
+				idx = data.size() - 1;
+
+			while (idx > -1 && idx < data.size() && last_value < data.at(idx)) {
+				last_value = data.at(idx);
+				idx += direction;
+			}
+
+			// idx - direction because we add the value even if we're good
+			return idx - direction;
+		}
+
+		/** Find the next local minmum in the data
+
+		@param data the data to process
+		@param direction the direction in which the local minimum is to be found (negative for left, positive for right)
+
+		@return idx the index at which the local minimum is found
+		*/
+		int getLocalMinimum (std::vector<double>& data, int direction) {
+			if (direction == 0) {
+				std::cout << "ERROR: direction must be != 0 (d < 0 for left search, d > 0 for right search)" << std::endl;
+				return -1;
+			}
+
+			// Case right
+			double last_value = data[0];
+			// Case left
+			if (direction < 0)
+				last_value = data.back();
+
+			// - 1 because of the loop condition
+			last_value++;
+
+			// Case right
+			int idx = 0;
+			// Case left
+			if (direction < 0)
+				idx = data.size() - 1;
+
+			while (idx > -1 && idx < data.size() && last_value > data.at(idx)) {
+				last_value = data.at(idx);
+				idx += direction;
+			}
+
+			// idx - direction because we add the value even if we're good
+			return idx - direction;
+		}
+		
+		/** Segment the motion into n segments, from one local minimum to another
+
+		@param data the data to process
+		@param left_cut the number of segment to the left
+		@param right_cut the number of segment to the right
+		@param interframe_time the interframe time
+		@param cut_times the output vector, with a pair of (begin, end) for each segment of the motion
+		*/
+		void FindIndexSeparation(std::vector<double>& data, unsigned int left_cut, unsigned int right_cut, std::vector<std::pair<int, int>>& cut_times) {
+			// Pair: idx begin, idx end
+			std::pair<unsigned int, unsigned int> cut_time;
+
+			// First, we segment the throw (" most useful " part of the motion)
+			cut_time.first = getLocalMinimumFromMaximum(data, -1);
+			cut_time.second = getLocalMinimumFromMaximum(data, 1);
+
+			cut_times.push_back(cut_time);
+
+			// Used to search the next local minimum from the local maximum
+			int local_max = -1;
+
+			// Used to get a subset of the data vector
+			std::vector<double> sub_vector;
+
+			// Then, we get the nth left cuts
+			for (unsigned int i = 0; i < left_cut ; i++) {
+				// The left of the last cut become the right of the new cut
+				cut_time.second = cut_time.first;
+
+				// We extract the data's part which have not been processed yet
+				sub_vector = std::vector<double>(data.begin(), data.begin() + cut_time.second);
+
+				local_max = getLocalMaximum(sub_vector, -1);
+
+				sub_vector = std::vector<double>(data.begin(), data.begin() + local_max);
+
+				cut_time.first = getLocalMinimum(sub_vector, -1);
+				// We insert it at the beginning
+				cut_times.insert(cut_times.begin(), cut_time);
+			}
+
+
+			// We take the initial cut (the throw) index back
+			cut_time.first = cut_times.back().first;
+			cut_time.second = cut_times.back().second;
+
+			// The, we get the nth right cuts
+			for (unsigned int i = 0; i < right_cut; i++) {
+				// The right of the last cut become the left of the new cut
+				cut_time.first = cut_time.second;
+
+				sub_vector = std::vector<double>(data.begin() + cut_time.first, data.end());
+
+				// + cut_time.first, because it doesn't start at the beginning
+				local_max = getLocalMaximum(sub_vector, +1) + cut_time.first;
+
+				sub_vector = std::vector<double>(data.begin() + local_max, data.end());
+
+
+				cut_time.second = getLocalMinimum(sub_vector, +1) + local_max;
+				cut_times.push_back(cut_time);
+			}
+		}
+
+		/** Rebuild a motion from an initial one, with a new count of frames.
+
+		@param original_motion the original motion
+		@param frames_number the new frames count
+
+		@return new_motion the new motion, constructed from the original one	
+		*/
+		void motionRebuilding (Motion* original_motion, Motion* new_motion, unsigned int frames_number) {
+			if (frames_number < 2) {
+				*new_motion = Motion();
+				return;
+			}
+				
+			Frame* frame_to_insert = new Frame();
+
+			// First, we copy the name and the offset frame
+			new_motion->setName(original_motion->getName());
+
+			frame_to_insert = original_motion->getOffsetFrame();
+			new_motion->setOffsetFrame(frame_to_insert);
+
+
+			// Then, we get the time at which we'll have to interpolate frames
+			// original_time / new_number_of_frames
+
+			// Used for the getFrameFromTime() function
+			double frame_time = original_motion->getFrameTime();
+
+			// frameNumber - 1 
+			double new_interval = (original_motion->getFrames().size() * frame_time) / static_cast<double>(frames_number - 1);
+			new_motion->setFrameTime(new_interval);
+
+			double current_time = 0.0;
+
+			for (unsigned int i = 0; i < frames_number; i++) {
+				frame_to_insert = getFrameFromTime(original_motion, current_time, frame_time);
+				new_motion->addFrame(frame_to_insert);
+				current_time += new_interval;
+			}
+				
+		}
+
+		/** Segment a motion into submotions.
+
+		@param initial_motion The motion to be segmented
+		@param left_cut The number of segment to the left of the global maximum
+		@param right_cut The number of segment to the right of the global maximum
+		@param savgol_window_size [SAVGOL] The window size for the savgol algorithm
+		@param savgol_polynom_order [SAVGOL] The polynom order for the savgol algorithm
+		@param frame_number_cut The final number of frame for each submotion
+		@param motion_segments The different segments returned
+
+		*/
+		void MotionSegmentation (Motion* initial_motion, int left_cut, int right_cut, int savgol_window_size, int savgol_polynom_order, int frame_number_cut, std::vector<Motion*>& motion_segments) {
+			Motion* sub_motion = nullptr;
+
+			std::map<std::string, double> lin_speed;
+			// Import data into a map, to separate the hand data from the rest of the joints
+			std::vector<std::map<std::string, double>> map_full;
+
+			for (unsigned int i = 0; i < initial_motion->getFrames().size() - 1; i++) {
+				lin_speed.clear();
+				Mla::MotionOperation::jointsLinearSpeed(lin_speed, initial_motion->getFrame(i), initial_motion->getFrame(i + 1), initial_motion->getFrameTime());
+				map_full.push_back(lin_speed);
+			}
+
+			std::vector<double> hand_lin_speed;
+
+			// Extracting hand values
+			for (unsigned int i = 0; i < map_full.size(); ++i) {
+				std::map<std::string, double> slt = map_full[i];
+				hand_lin_speed.push_back(slt.find("LeftHand")->second);
+			}
+
+			// Savgol-ing the values
+			std::vector<double> savgoled;
+
+			Mla::Filters::Savgol(savgoled, hand_lin_speed, savgol_polynom_order, savgol_window_size);
+
+			std::vector<std::pair<int, int>> separation_indexes;
+
+			Mla::MotionOperation::FindIndexSeparation(savgoled, left_cut, right_cut, separation_indexes);
+
+			for (unsigned int i = 0; i < separation_indexes.size(); i++) {
+				
+				sub_motion = new Motion();
+				sub_motion->setName(initial_motion->getName());
+				sub_motion->setFrameTime(initial_motion->getFrameTime());
+				sub_motion->setOffsetFrame(initial_motion->getOffsetFrame()->duplicateFrame());
+
+				for (int j = separation_indexes[i].first; j < separation_indexes[i].second + 1; j++) {
+					sub_motion->addFrame(initial_motion->getFrame(j)->duplicateFrame());
+				}
+
+				Motion* cut_motion = new Motion();
+				Mla::MotionOperation::motionRebuilding(sub_motion, cut_motion, 20);
+
+				delete sub_motion;
+
+				motion_segments.push_back(cut_motion);
+			}
+
+
+		}
+
 		/** Filter a motion, by eliminating position variations.
 
 		@param motion the motion to be filtered
