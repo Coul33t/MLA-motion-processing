@@ -365,6 +365,14 @@ namespace Mla {
 
 				local_max = getLocalMaximum(sub_vector, -1);
 
+				// If we're at the beginning of the signal, then there's nothing
+				// to the left, so there's no more left cut
+				if (local_max == 0) {
+					std::cout << "Warning: last left cut (" << i + 1 << "/" << left_cut << ") is halved (cause: beginning of signal)" << std::endl;
+					cut_time.first = local_max;
+					break;
+				}
+
 				sub_vector = std::vector<double>(data.begin(), data.begin() + local_max);
 
 				cut_time.first = getLocalMinimum(sub_vector, -1);
@@ -387,8 +395,15 @@ namespace Mla {
 				// + cut_time.first, because it doesn't start at the beginning
 				local_max = getLocalMaximum(sub_vector, +1) + cut_time.first;
 
-				sub_vector = std::vector<double>(data.begin() + local_max, data.end());
+				// If we're at the end of the signal, then there's nothing
+				// to the right, so there's no more right cut
+				if (local_max == sub_vector.size() + cut_time.first - 1) {
+					std::cout << "Warning: last right cut (" << i + 1 << "/" << right_cut << ") is halved (cause: end of signal)" << std::endl;
+					cut_time.second = local_max;
+					break;
+				}
 
+				sub_vector = std::vector<double>(data.begin() + local_max, data.end());
 
 				cut_time.second = getLocalMinimum(sub_vector, +1) + local_max;
 				cut_times.push_back(cut_time);
@@ -465,8 +480,8 @@ namespace Mla {
 
 			// Extracting hand values
 			for (unsigned int i = 0; i < map_full.size(); ++i) {
-				std::map<std::string, double> slt = map_full[i];
-				hand_lin_speed.push_back(slt.find("LeftHand")->second);
+				std::map<std::string, double> hand_map = map_full[i];
+				hand_lin_speed.push_back(hand_map.find("LeftHand")->second);
 			}
 
 			// Savgol-ing the values

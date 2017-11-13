@@ -11,7 +11,7 @@ MotionOperation.h
 
 #include "MLAMotion/MLAMotion.h"
 #include "MLAUtility/MLAUtility.h"
-#include "MLAFilters\MLASavgol.h"
+#include "MLAFilters/MLASavgol.h"
 #include <numeric> // std::accumulate
 #include <limits>
 
