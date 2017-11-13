@@ -17,8 +17,8 @@ unsigned int MemoryLeakChaser();
 
 int main(int argc, char *argv[]) {
 	SegmentTest();
-	//std::cout << std::endl << "Press any key to quit...";
-	//std::cin.get();
+	std::cout << std::endl << "Press any key to quit...";
+	std::cin.get();
 	return 0;
 }
 
@@ -329,13 +329,13 @@ unsigned int FindIndexSeparationTest() {
 unsigned int SegmentTest() {
 	Motion* motion = nullptr;
 
-	motion = Mla::BvhParser::parseBvh(MLA_INPUT_BVH_PATH, "Damien_1_Char00.bvh");
+	motion = Mla::BvhParser::parseBvh(MLA_INPUT_BVH_PATH, "Damien_2_Char00.bvh");
 
 	Mla::MotionOperation::motionFiltering(motion);
 
 	std::vector<Motion*> motion_vector;
 
-	Mla::MotionOperation::MotionSegmentation(motion, 2, 2, 51, 3, 20, motion_vector);
+	Mla::MotionOperation::MotionSegmentation(motion, 30, 30, 51, 3, 20, motion_vector);
 
 	for (unsigned int i = 0; i < motion_vector.size(); i++) {
 		for (unsigned int j = 0; j < motion_vector[i]->getFrames().size(); j++) {
