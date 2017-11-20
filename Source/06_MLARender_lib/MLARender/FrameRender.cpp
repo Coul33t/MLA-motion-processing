@@ -105,16 +105,16 @@ namespace Mla {
 
 				// Not the root (other joints)
 				else {
-					// If we find the modelview matrix for the parent
-					if (quaternions_to_mat_map.find(frame->getJoint(j)->getParent()->getJointName()) != quaternions_to_mat_map.end()){
-						saved_modelview = quaternions_to_mat_map.find(frame->getJoint(j)->getParent()->getJointName())->second;
-					}
 
-					// Else, ABANDON SHIP
-					else {
+					std::map<std::string, glm::dmat4>::iterator it_quat = quaternions_to_mat_map.find(frame->getJoint(j)->getParent()->getJointName());
+
+					// If we don't find the modelview matrix for the parent, ABANDON SHIP
+					if (it_quat == quaternions_to_mat_map.end()){
 						std::cout << "Error : " << frame->getJoint(j)->getParent()->getJointName() << " not found in std::map<std::string, glm::mat4> quaternions_to_mat_map." << std::endl;
 						exit(EXIT_FAILURE);
 					}
+					
+					saved_modelview = it_quat->second;
 
 					// Origin (0,0,0) since the modelview is at the parent's origin
 					line_vertices[0] = 0;
