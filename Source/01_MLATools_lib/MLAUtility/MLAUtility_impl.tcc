@@ -3,7 +3,7 @@ namespace Mla {
 
 		template <typename T>
 		std::pair<T, int> getMaxValue(std::vector<T>& data) {
-			T max_value = data.at(0);
+			T max_value = data[0];
 			unsigned int idx = 0;
 
 			for (std::vector<T>::iterator it = std::begin(data); it < std::end(data); ++it) {
@@ -18,7 +18,7 @@ namespace Mla {
 
 		template <typename T>
 		std::pair<T, int> getMinValue(std::vector<T>& data) {
-			T min_value = data.at(0);
+			T min_value = data[0];
 			unsigned int idx = 0;
 
 			for (std::vector<T>::iterator it = std::begin(data); it < std::end(data); ++it) {

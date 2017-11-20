@@ -70,7 +70,7 @@ unsigned int MotionCut(int n) {
 		std::string Folder = "lin_mean_" + std::to_string(n) + "_cut\\";
 
 		//CSVExport::EraseFolderContent(MLA_INPUT_BVH_PATH + motion->getName() + "/lin_mean/");
-		Mla::CsvExport::ExportData(lin_speed.at(i), "Damien", "TEST_CUT_MAX", Name);
+		Mla::CsvExport::ExportData(lin_speed[i], "Damien", "TEST_CUT_MAX", Name);
 
 	}
 	return 0;
@@ -100,10 +100,10 @@ unsigned int ProcessCut() {
 	}
 
 	for (unsigned int i = 0; i < names.size(); i++) {
-		std::cout << std::endl << std::endl << "Processing file " << names.at(i) << std::endl;
+		std::cout << std::endl << std::endl << "Processing file " << names[i] << std::endl;
 		std::string path = MLA_INPUT_BVH_PATH;
 		path += "cut/";
-		motion = Mla::BvhParser::parseBvh(path, names.at(i));
+		motion = Mla::BvhParser::parseBvh(path, names[i]);
 
 		if (motion == false) {
 			std::cout << "Failed to parse bvh file (is the path/namefile correct ?)" << std::endl;
@@ -125,7 +125,7 @@ unsigned int ProcessCut() {
 				std::string Folder = "lin_mean_" + std::to_string(cut) + "_cut\\";
 
 				//CSVExport::EraseFolderContent(MLA_INPUT_BVH_PATH + motion->getName() + "/lin_mean/");
-				Mla::CsvExport::ExportData(meanLinSpeedInter.at(i), motion->getName(), Folder, Name);
+				Mla::CsvExport::ExportData(meanLinSpeedInter[i], motion->getName(), Folder, Name);
 			}
 		}
 
@@ -152,8 +152,8 @@ unsigned int ProcessClassic() {
 	}
 
 	for (unsigned int i = 0; i < names.size(); i++) {
-		std::cout << std::endl << std::endl << "Processing file " << names.at(i) << std::endl;
-		motion = Mla::BvhParser::parseBvh(MLA_INPUT_BVH_PATH, names.at(i));
+		std::cout << std::endl << std::endl << "Processing file " << names[i] << std::endl;
+		motion = Mla::BvhParser::parseBvh(MLA_INPUT_BVH_PATH, names[i]);
 
 		if (motion == nullptr) {
 			std::cout << "Failed to parse bvh file (is the path/namefile correct ?)" << std::endl;
@@ -175,7 +175,7 @@ unsigned int ProcessClassic() {
 				std::string Folder = "lin_mean_" + std::to_string(cut) + "_cut\\";
 
 				//csvexport::EraseFolderContent(MLA_INPUT_BVH_PATH + motion->getName() + "/lin_mean/");
-				Mla::CsvExport::ExportData(meanLinSpeedInter.at(i), motion->getName(), Folder, Name);
+				Mla::CsvExport::ExportData(meanLinSpeedInter[i], motion->getName(), Folder, Name);
 			}
 		}
 
@@ -365,8 +365,8 @@ unsigned int GlobalTest() {
 
 	// Getting the useful part
 	for (unsigned int i = 0; i < names.size(); i++) {
-		std::cout << std::endl << std::endl << "Processing file " << names.at(i) << std::endl;
-		motion = Mla::BvhParser::parseBvh(MLA_INPUT_BVH_PATH, names.at(i));
+		std::cout << std::endl << std::endl << "Processing file " << names[i] << std::endl;
+		motion = Mla::BvhParser::parseBvh(MLA_INPUT_BVH_PATH, names[i]);
 
 		if (motion == nullptr) {
 			std::cout << "Failed to parse bvh file (is the path/namefile correct ?)" << std::endl;

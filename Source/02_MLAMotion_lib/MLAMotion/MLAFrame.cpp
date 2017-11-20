@@ -7,7 +7,7 @@ Frame::Frame() {
 Frame::~Frame() {
 	if (!m_joints.empty())
 		for (unsigned int i=0 ; i<m_joints.size() ; i++)
-			delete (m_joints.at(i));
+			delete (m_joints[i]);
 }
 
 Frame::Frame(const Frame& frame) {
@@ -36,8 +36,8 @@ void Frame::insertJoint(Joint* joint) {
 
 
 Joint* Frame::getJoint(const std::string& jointName) {
-	if (m_names.find(jointName) != m_names.end()) {
-		return m_joints.at(m_names[jointName]);
+	if (m_names.count(jointName) != 0) {
+		return m_joints[m_names[jointName]];
 	}
 	else {
 		return 0;
@@ -46,7 +46,7 @@ Joint* Frame::getJoint(const std::string& jointName) {
 
 Joint* Frame::getJoint(const unsigned int idx) {
 	if(idx < m_joints.size()) {
-		return m_joints.at(idx);
+		return m_joints[idx];
 	}
 	else {
 		return 0;
@@ -69,7 +69,7 @@ Frame* Frame::duplicateFrame() {
 
 		new_joint->setParent(0);
 
-		if (this->getJoints().at(i)->getParent()) {
+		if (this->getJoints()[i]->getParent()) {
 			std::string parentName = m_joints[i]->getParent()->getJointName();
 			new_joint->setParent(copied_frame->getJoint(parentName));
 			new_joint->getParent()->addChild(new_joint);

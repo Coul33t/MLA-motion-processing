@@ -223,7 +223,7 @@ namespace Mla {
 			}
 
 			for (unsigned int i = 0; i < currentJoint->getChilds().size(); i++) {
-				getGlobalCoordinates(currentJoint->getChilds().at(i), globalCoord, globalMat);
+				getGlobalCoordinates(currentJoint->getChilds()[i], globalCoord, globalMat);
 			}
 		}
 
@@ -248,8 +248,8 @@ namespace Mla {
 			double last_value = Mla::Utility::getMaxValue(data).first + 1;
 			unsigned int idx = Mla::Utility::getMaxValue(data).second;
 
-			while (idx > 0 && idx < data.size() && last_value > data.at(idx)) {
-				last_value = data.at(idx);
+			while (idx > 0 && idx < data.size() && last_value > data[idx]) {
+				last_value = data[idx];
 				idx += direction;
 			}
 
@@ -285,8 +285,8 @@ namespace Mla {
 			if (direction < 0)
 				idx = data.size() - 1;
 
-			while (idx > -1 && idx < data.size() && last_value < data.at(idx)) {
-				last_value = data.at(idx);
+			while (idx > -1 && idx < data.size() && last_value < data[idx]) {
+				last_value = data[idx];
 				idx += direction;
 			}
 
@@ -322,8 +322,8 @@ namespace Mla {
 			if (direction < 0)
 				idx = data.size() - 1;
 
-			while (idx > -1 && idx < data.size() && last_value > data.at(idx)) {
-				last_value = data.at(idx);
+			while (idx > -1 && idx < data.size() && last_value > data[idx]) {
+				last_value = data[idx];
 				idx += direction;
 			}
 
@@ -481,18 +481,21 @@ namespace Mla {
 			// Extracting hand values
 			for (unsigned int i = 0; i < map_full.size(); ++i) {
 				std::map<std::string, double> hand_map = map_full[i];
-				hand_lin_speed.push_back(hand_map.find("LeftHand")->second);
+				hand_lin_speed.push_back(hand_map.find(JOINT_OF_INTEREST)->second);
 			}
 
 			// Savgol-ing the values
 			std::vector<double> savgoled;
 
+			// hand_lin_speed -> accessor class
 			Mla::Filters::Savgol(savgoled, hand_lin_speed, savgol_polynom_order, savgol_window_size);
 
+			// Finding the separation indexes
 			std::vector<std::pair<int, int>> separation_indexes;
 
 			Mla::MotionOperation::FindIndexSeparation(savgoled, left_cut, right_cut, separation_indexes);
 
+			// Creating the new submotions
 			for (unsigned int i = 0; i < separation_indexes.size(); i++) {
 				
 				sub_motion = new Motion();
@@ -500,6 +503,7 @@ namespace Mla {
 				sub_motion->setFrameTime(initial_motion->getFrameTime());
 				sub_motion->setOffsetFrame(initial_motion->getOffsetFrame()->duplicateFrame());
 
+				
 				for (int j = separation_indexes[i].first; j < separation_indexes[i].second + 1; j++) {
 					sub_motion->addFrame(initial_motion->getFrame(j)->duplicateFrame());
 				}
@@ -521,7 +525,7 @@ namespace Mla {
 		*/
 		void motionFiltering(Motion* motion) {
 			// j = 1 because the first frame is the reference
-			for (unsigned int i = 1; i < motion->getFrames().size(); i++) {
+			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
 				// j = 1 because the root actually has position information
 				for (unsigned int j = 0; j < motion->getFrame(i)->getJoints().size(); j++) {
 					// if the joint has no parent = root

@@ -11,15 +11,15 @@ namespace Mla {
 
 			for (unsigned int i = 0; i < data.size(); i++) {
 
-				runningTotal += data.at(i);   // add
+				runningTotal += data[i];   // add
 
 				if (i >= windowSize)
-					runningTotal -= data.at(i - windowSize);   // subtract
+					runningTotal -= data[i - windowSize];   // subtract
 
 				if (i >= (windowSize - 1))  // output moving average
 					filteredData.push_back(runningTotal / (double)windowSize);
 				else
-					filteredData.push_back(data.at(i));
+					filteredData.push_back(data[i]);
 			}
 		}
 

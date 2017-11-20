@@ -198,8 +198,8 @@ namespace Mla {
 			//  - we can mirror the nth first values and the nth last values
 			// The last option is used there. It gives a pretty smooth beginning and ending, compared to the zero-padding
 			for (unsigned int i = 0; i < half_window; i++) {
-				padded_data.insert(padded_data.begin(), data.at(i));
-				padded_data.insert(padded_data.end(), data.at(data.size() - 1 - i));
+				padded_data.insert(padded_data.begin(), data[i]);
+				padded_data.insert(padded_data.end(), data[data.size() - 1 - i]);
 			}
 
 
@@ -215,7 +215,7 @@ namespace Mla {
 			for (unsigned int i = 0; i < data.size(); i++) {
 				output_data.push_back(0.0);
 				for (unsigned int j = 0; j < coefs.size(); j++)
-					output_data.at(i) += coefs.at(j) * padded_data.at(j + i);
+					output_data[i] += coefs[j] * padded_data[j + i];
 			}
 		}
 	}

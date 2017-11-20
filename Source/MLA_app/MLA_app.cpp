@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 	std::vector<Motion*> seg_motion;
 	Mla::MotionOperation::MotionSegmentation(motion, 2, 2, 51, 3, 20, seg_motion);
 
-	window.MainLoop(seg_motion[1]);
+	window.MainLoop(seg_motion[2]);
 
 	/*std::cout << "Press any key to quit...";
 	std::cin.get();*/

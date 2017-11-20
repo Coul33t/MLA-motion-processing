@@ -20,6 +20,8 @@ MotionOperation.h
 // are not accurate.
 #define EPSILON 0.00001
 
+#define JOINT_OF_INTEREST "LeftHand"
+
 namespace Mla {
 	namespace MotionOperation {
 

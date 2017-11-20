@@ -106,7 +106,7 @@ namespace Mla {
 
 				Joint* currentJoint = new Joint();
 				currentJoint->setJointName(jointList.back());
-				currentJoint->setPositions(glm::dvec3(tmpOffsets.at(0), tmpOffsets.at(1), tmpOffsets.at(2)));
+				currentJoint->setPositions(glm::dvec3(tmpOffsets[0], tmpOffsets[1], tmpOffsets[2]));
 				currentJoint->setOrientations(glm::quat());
 				currentJoint->setParent(0);
 
@@ -135,7 +135,7 @@ namespace Mla {
 
 					Joint* endJoint = new Joint();
 					endJoint->setJointName("End" + jointList.back());
-					endJoint->setPositions(glm::dvec3(tmpOffsets.at(0), tmpOffsets.at(1), tmpOffsets.at(2)));
+					endJoint->setPositions(glm::dvec3(tmpOffsets[0], tmpOffsets[1], tmpOffsets[2]));
 					endJoint->setOrientations(glm::quat());
 
 					parent = parentNames.back();
@@ -239,8 +239,8 @@ namespace Mla {
 
 					// Endsites do not have information for the animation,
 					// so we skip them
-					if (!(jointList.at(j).find("End") == 0)) {
-						currentChannels = channels[jointList.at(j)];
+					if (!(jointList[j].find("End") == 0)) {
+						currentChannels = channels[jointList[j]];
 						glm::dvec3 pos;
 						glm::quat ori;
 
@@ -252,35 +252,35 @@ namespace Mla {
 						// c = channel
 						for (unsigned int c = 0; c < currentChannels.size(); c++) {
 
-							if (currentChannels.at(c) == "Xposition") {
+							if (currentChannels[c] == "Xposition") {
 								pos.x = atof(currentWord.c_str());
 								posFlag = true;
 							}
 
-							else if (currentChannels.at(c) == "Yposition") {
+							else if (currentChannels[c] == "Yposition") {
 								pos.y = atof(currentWord.c_str());
 								posFlag = true;
 							}
 
-							else if (currentChannels.at(c) == "Zposition") {
+							else if (currentChannels[c] == "Zposition") {
 								pos.z = atof(currentWord.c_str());
 								posFlag = true;
 							}
 
-							else if (currentChannels.at(c) == "Xrotation")
+							else if (currentChannels[c] == "Xrotation")
 								ori = ori * glm::quat(glm::dvec3(glm::radians(atof(currentWord.c_str())), 0.0, 0.0));
-							else if (currentChannels.at(c) == "Yrotation")
+							else if (currentChannels[c] == "Yrotation")
 								ori = ori * glm::quat(glm::dvec3(0.0, glm::radians(atof(currentWord.c_str())), 0.0));
-							else if (currentChannels.at(c) == "Zrotation")
+							else if (currentChannels[c] == "Zrotation")
 								ori = ori * glm::quat(glm::dvec3(0.0, 0.0, glm::radians(atof(currentWord.c_str()))));
 
 							infile >> currentWord;
 						}
 
 						if (posFlag)
-							motion->getFrame(f)->getJoint(jointList.at(j))->setPositions(pos);
+							motion->getFrame(f)->getJoint(jointList[j])->setPositions(pos);
 
-						motion->getFrame(f)->getJoint(jointList.at(j))->setOrientations(ori);
+						motion->getFrame(f)->getJoint(jointList[j])->setOrientations(ori);
 					}
 				}
 			}

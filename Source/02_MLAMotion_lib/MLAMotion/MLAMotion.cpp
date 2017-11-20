@@ -9,7 +9,7 @@ Motion::~Motion() {
 
 	if(!m_frames.empty())
 		for(unsigned int i=0 ; i<m_frames.size() ; i++)
-			delete (m_frames.at(i));
+			delete (m_frames[i]);
 }
 
 Motion::Motion(const Motion& motion) {
@@ -64,6 +64,6 @@ void Motion::addFrame(Frame* frame) {
 
 Frame* Motion::getFrame(unsigned int idx) const {
 	if(idx < m_frames.size())
-		return m_frames.at(idx);
+		return m_frames[idx];
 	return 0;
 }
