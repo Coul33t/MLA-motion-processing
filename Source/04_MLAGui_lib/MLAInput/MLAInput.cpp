@@ -66,6 +66,7 @@ void Input::EventUpdate() {
 			m_y = m_events.motion.y;
 			m_x_rel = m_events.motion.xrel;
 			m_y_rel = m_events.motion.yrel;
+			
 			break;
 
 		default:
