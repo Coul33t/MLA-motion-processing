@@ -189,12 +189,16 @@ namespace Mla {
 
 			unsigned int percentage = 0;
 
+			// UPDATE: no more used 
+			// TODO: verify and delete
+
 			// using initialFrame->getNames().size() (to get the number  
 			// of joints) used up to 57% of this function's running time. 
 			// Using initialFrame->getJoints().size() is incredibly faster 
 			// (approximately 100 times faster), but why make a call to this 
 			// function each time, rather than doing it only 1 time ?
-			unsigned int jointNumber = initialFrame->getJoints().size();
+
+			// unsigned int jointNumber = initialFrame->getJoints().size();
 
 			std::cout << "Copying frames ..." << std::endl;
 
