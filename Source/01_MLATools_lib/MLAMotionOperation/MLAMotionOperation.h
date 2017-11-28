@@ -12,6 +12,7 @@ MotionOperation.h
 #include "MLAMotion/MLAMotion.h"
 #include "MLAUtility/MLAUtility.h"
 #include "MLAFilters/MLASavgol.h"
+#include "MLAMotionOperation/MLASpeedData.h"
 #include <numeric> // std::accumulate
 #include <limits>
 
@@ -34,7 +35,7 @@ namespace Mla {
 		void MeanLinearSpeed(std::vector<std::map<std::string, double>>&, Motion*, unsigned int);
 		Frame* getFrameFromTime(Motion*, double, double);
 
-		void getGlobalCoordinates(Joint*, std::map<std::string, glm::dvec3>&, std::map<std::string, glm::dmat4>&);
+		void getGlobalCoordinates(Frame*, Frame*, Joint*, glm::dmat4);
 
 		int getLocalMinimumFromMaximum(std::vector<double>&, int);
 		int getLocalMaximum(std::vector<double>&, int);

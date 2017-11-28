@@ -11,18 +11,18 @@ namespace Mla {
 
 		@return interpolatedJoint the interpolated joint
 		*/
-		Joint* interpolateJoint(Joint* j1, Joint* j2, double mixFactor) {
-			Joint* interpolatedJoint = new Joint();
+		Joint* interpolateJoint (Joint* j1, Joint* j2, double mix_factor) {
+			Joint* interpolated_joint = new Joint();
 
 			glm::dvec3 pos1 = j1->getPositions();
 			glm::dvec3 pos2 = j2->getPositions();
 
-			interpolatedJoint->setPositions(glm::dvec3(pos2.x + (pos1.x - pos2.x)*mixFactor,
-				pos2[1] + (pos1.y - pos2.y)*mixFactor,
-				pos2[2] + (pos1.z - pos2.z)*mixFactor));
+			interpolated_joint->setPositions(glm::dvec3(pos2.x + (pos1.x - pos2.x) * mix_factor,
+				pos2[1] + (pos1.y - pos2.y) * mix_factor,
+				pos2[2] + (pos1.z - pos2.z) * mix_factor));
 
-			interpolatedJoint->setOrientations(glm::slerp(j1->getOrientations(), j2->getOrientations(), mixFactor));
-			return interpolatedJoint;
+			interpolated_joint->setOrientations(glm::slerp(j1->getOrientations(), j2->getOrientations(), mix_factor));
+			return interpolated_joint;
 		}
 
 		/** Interpolate a frame from 2 frame and a mix factor.
@@ -33,24 +33,24 @@ namespace Mla {
 
 		@return interpolatedFrame the interpolated frame
 		*/
-		Frame* interpolateFrame(Frame* f1, Frame* f2, double mixFactor) {
+		Frame* interpolateFrame(Frame* f1, Frame* f2, double mix_factor) {
 
-			Frame* interpolatedFrame = new Frame();
+			Frame* interpolated_frame = new Frame();
 
 			for (unsigned int i = 0; i < f1->getJoints().size(); i++) {
-				Joint* newJoint = interpolateJoint(f1->getJoint(i), f2->getJoint(i), mixFactor);
+				Joint* new_joint = interpolateJoint(f1->getJoint(i), f2->getJoint(i), mix_factor);
 
-				newJoint->setJointName(f1->getJoint(i)->getJointName());
+				new_joint->setJointName(f1->getJoint(i)->getJointName());
 
 				if (f1->getJoint(i)->getParent() != nullptr) {
-					newJoint->setParent(interpolatedFrame->getJoint(f1->getJoint(i)->getParent()->getJointName()));
-					newJoint->getParent()->addChild(newJoint);
+					new_joint->setParent(interpolated_frame->getJoint(f1->getJoint(i)->getParent()->getJointName()));
+					new_joint->getParent()->addChild(new_joint);
 				}
 
-				interpolatedFrame->insertJoint(newJoint);
+				interpolated_frame->insertJoint(new_joint);
 			}
 
-			return interpolatedFrame;
+			return interpolated_frame;
 		}
 
 		/** Compute the speed of the joints between 2 frames.
@@ -61,27 +61,28 @@ namespace Mla {
 
 		@return speedVector the linear speed of joints
 		*/
-		void jointsLinearSpeed(std::map<std::string, double>& linSpeedVector, Frame* f1, Frame* f2, double frameTime) {
-			std::map<std::string, glm::dvec3> globalCoord1;
-			std::map<std::string, glm::dvec3> globalCoord2;
+		void jointsLinearSpeed (std::map<std::string, double>& lin_speed_vector, Frame* f1, Frame* f2, double frame_time) {
+			
+			Frame* global_frame_1 = f1->duplicateFrame();
+			Frame* global_frame_2 = f2->duplicateFrame();
 
-			// Only used in the recursive function
-			// (hey I made a working recursive function, yay !)
-			std::map<std::string, glm::dmat4> globalMat1;
-			std::map<std::string, glm::dmat4> globalMat2;
+			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
 
-			getGlobalCoordinates(f1->getJoint(0), globalCoord1, globalMat1);
-			getGlobalCoordinates(f2->getJoint(0), globalCoord2, globalMat2);
+			double linear_speed = 0;
 
-			for (std::map<std::string, glm::dvec3> ::iterator it = globalCoord1.begin(); it != globalCoord1.end(); ++it) {
-				glm::dvec3 v1 = globalCoord1.find(it->first)->second;
-				glm::dvec3 v2 = globalCoord2.find(it->first)->second;
+			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+				glm::dvec3 v1 = global_frame_1->getJoint(j)->getPositions();
+				glm::dvec3 v2 = global_frame_2->getJoint(j)->getPositions();
 
 				// dx / dt -> cm / s
 				// dx / (dt * 100) -> m / s
-				double linSpeed = Mla::Utility::vectorLength(v1, v2) / (frameTime * 100);
-				linSpeedVector.insert(std::pair<std::string, double>(it->first, linSpeed));
+				linear_speed = Mla::Utility::vectorLength(v1, v2) / (frame_time * 100);
+				lin_speed_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getJointName(), linear_speed));
 			}
+
+			delete global_frame_1;
+			delete global_frame_2;
 
 		}
 
@@ -93,30 +94,28 @@ namespace Mla {
 
 		@return speedVector the angular speed of joints
 		*/
-		void jointsAngularSpeed(std::map<std::string, double>& angularSpeedVector, Frame* f1, Frame* f2, double frameTime) {
-			std::map<std::string, glm::dvec3> globalCoord1;
-			std::map<std::string, glm::dvec3> globalCoord2;
+		void jointsAngularSpeed(std::map<std::string, double>& ang_speed_vector, Frame* f1, Frame* f2, double frame_time) {
+			
+			Frame* global_frame_1 = f1->duplicateFrame();
+			Frame* global_frame_2 = f2->duplicateFrame();
 
-			// Only used in the recursive function
-			// (hey I made a working recursive function, yay !)
-			std::map<std::string, glm::dmat4> globalMat1;
-			std::map<std::string, glm::dmat4> globalMat2;
+			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
 
-			getGlobalCoordinates(f1->getJoint(0), globalCoord1, globalMat1);
-			getGlobalCoordinates(f2->getJoint(0), globalCoord2, globalMat2);
+			double angular_speed = 0;
 
-			for (std::map<std::string, glm::dvec3> ::iterator it = globalCoord1.begin(); it != globalCoord1.end(); ++it) {
-				glm::dvec3 p1 = globalCoord1.find(it->first)->second;
-				glm::dvec3 p2 = globalCoord2.find(it->first)->second;
+			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+				glm::dvec3 p1 = global_frame_1->getJoint(j)->getPositions();
+				glm::dvec3 p2 = global_frame_2->getJoint(j)->getPositions();
 
 				if (glm::length(p1) * glm::length(p2) > 0) {
 					// rad / sec
-					double angSpeed = (acos(glm::dot(p1, p2) / (glm::length(p1) * glm::length(p2)))) / (frameTime * 1000);
-					angularSpeedVector.insert(std::pair<std::string, double>(it->first, angSpeed));
+					angular_speed = (acos(glm::dot(p1, p2) / (glm::length(p1) * glm::length(p2)))) / (frame_time * 1000);
+					ang_speed_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getJointName(), angular_speed));
 				}
 
 				else
-					angularSpeedVector.insert(std::pair<std::string, double>(it->first, 0));
+					ang_speed_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getJointName(), 0));
 
 			}
 		}
@@ -128,33 +127,33 @@ namespace Mla {
 
 		@return meanLinSpeed A vector containing the mean speed for each joint on the frames, for each interval
 		*/
-		void MeanLinearSpeed(std::vector<std::map<std::string, double>>& meanLinSpeedInter, Motion* motion, unsigned int n) {
+		void MeanLinearSpeed (std::vector<std::map<std::string, double>>& mean_lin_speed_inter, Motion* motion, unsigned int n) {
 
-			Frame* begFrame = nullptr;
-			Frame* endFrame = nullptr;
+			Frame* beg_frame = nullptr;
+			Frame* end_frame = nullptr;
 
-			double frameTime = motion->getFrameTime();
+			double frame_time = motion->getFrameTime();
 
-			double totalTime = motion->getFrames().size() * frameTime;
+			double total_time = motion->getFrames().size() * frame_time;
 
-			double interval = totalTime / static_cast<float>(n);
+			double interval = total_time / static_cast<float>(n);
 
-			double firstFrameTime = 0;
-			double endFrameTime = interval;
+			double first_frame_time = 0;
+			double end_frame_time = interval;
 
 			for (unsigned int i = 0; i < n; i++) {
-				begFrame = getFrameFromTime(motion, firstFrameTime, frameTime);
-				endFrame = getFrameFromTime(motion, endFrameTime, frameTime);
+				beg_frame = getFrameFromTime(motion, first_frame_time, frame_time);
+				end_frame = getFrameFromTime(motion, end_frame_time, frame_time);
 
-				std::map<std::string, double> linSpeedVector;
-				jointsLinearSpeed(linSpeedVector, begFrame, endFrame, motion->getFrameTime());
-				meanLinSpeedInter.push_back(linSpeedVector);
+				std::map<std::string, double> lin_speed_vector;
+				jointsLinearSpeed(lin_speed_vector, beg_frame, end_frame, motion->getFrameTime());
+				mean_lin_speed_inter.push_back(lin_speed_vector);
 
-				firstFrameTime = endFrameTime;
-				endFrameTime += interval;
+				first_frame_time = end_frame_time;
+				end_frame_time += interval;
 
-				delete begFrame;
-				delete endFrame;
+				delete beg_frame;
+				delete end_frame;
 			}
 		}
 
@@ -166,64 +165,58 @@ namespace Mla {
 		
 		@return new_frame the interpolated frame
 		*/
-		Frame* getFrameFromTime(Motion* motion, double time, double frame_time) {
+		Frame* getFrameFromTime (Motion* motion, double time, double frame_time) {
 			Frame* returnFrame = nullptr;
 
-			unsigned int frameBef = static_cast<unsigned int>(time / frame_time);
+			unsigned int frame_bef = static_cast<unsigned int>(time / frame_time);
 
 			// ???
-			if (frameBef > 0)
-				frameBef -= 1;
+			if (frame_bef > 0)
+				frame_bef -= 1;
 
-			unsigned int frameAft = frameBef + 1;
+			unsigned int frame_aft = frame_bef + 1;
 
-			double tpsBef = frameBef * frame_time;
+			double tpsBef = frame_bef * frame_time;
 
 			// -1 ???
 			double mixFactor = ((time - tpsBef) / frame_time) - 1;
 
 			if (mixFactor <= EPSILON)
-				return (returnFrame = interpolateFrame(motion->getFrame(frameBef), motion->getFrame(frameBef), 0));
+				return (returnFrame = interpolateFrame(motion->getFrame(frame_bef), motion->getFrame(frame_bef), 0));
 
 			else if (1 + EPSILON >= mixFactor && mixFactor >= 1 - EPSILON)
-				return (returnFrame = interpolateFrame(motion->getFrame(frameAft), motion->getFrame(frameAft), 1));
+				return (returnFrame = interpolateFrame(motion->getFrame(frame_aft), motion->getFrame(frame_aft), 1));
 
 			else
-				return (returnFrame = interpolateFrame(motion->getFrame(frameBef), motion->getFrame(frameAft), mixFactor));
+				return (returnFrame = interpolateFrame(motion->getFrame(frame_bef), motion->getFrame(frame_aft), mixFactor));
 		}
 
 		/** Recursively transforms initial joints (and its childs) local coordinates to global coordinates.
 
-		@param currentJoint the initial joint
-		@param globalCoord the global coordinates map
-		@param globalMat the matrix used to compute global coordinates
+		@param local_frame the initial frame (local coordinates)
+		@param global_frame the (intially full) frame containing global coordinates
+		@param current_joint the joint currently being processed (from the local_frame)
 		*/
-		void getGlobalCoordinates(Joint* currentJoint, std::map<std::string, glm::dvec3>& globalCoord, std::map<std::string, glm::dmat4>& globalMat) {
-			// If it's the root
-			if (!currentJoint->getParent()) {
-				glm::dmat4 mat = glm::dmat4(1.0);
-				mat = glm::translate(mat, currentJoint->getPositions());
-				mat *= glm::mat4_cast(currentJoint->getOrientations());
+		void getGlobalCoordinates(Frame* local_frame, Frame* global_frame, Joint* current_joint, glm::dmat4 global_mat) {
 
-				globalMat.insert(std::pair<std::string, glm::dmat4>(currentJoint->getJointName(), mat));
+			if(!current_joint->getParent()) {
+				global_mat = glm::translate(global_mat, current_joint->getPositions());
+				global_mat *= glm::mat4_cast(current_joint->getOrientations());
 
-				globalCoord.insert(std::pair<std::string, glm::dvec3>(currentJoint->getJointName(), glm::dvec3(mat[3][0], mat[3][1], mat[3][2])));
+				global_frame->getJoint(current_joint->getJointName())->setPositions(glm::dvec3(global_mat[3][0], global_mat[3][1], global_mat[3][2]));
+				global_frame->getJoint(current_joint->getJointName())->setOrientations(glm::dvec3(0,0,0));
 			}
 
 			else {
-				glm::dmat4 mat = globalMat.find(currentJoint->getParent()->getJointName())->second;
-				mat = glm::translate(mat, currentJoint->getPositions());
-				mat *= glm::mat4_cast(currentJoint->getOrientations());
+				global_mat = glm::translate(global_mat, current_joint->getPositions());
+				global_mat *= glm::mat4_cast(current_joint->getOrientations());
 
-				glm::dvec3 global = glm::dvec3(mat[3][0], mat[3][1], mat[3][2]);
-
-				globalMat.insert(std::pair<std::string, glm::dmat4>(currentJoint->getJointName(), mat));
-				globalCoord.insert(std::pair<std::string, glm::dvec3>(currentJoint->getJointName(), glm::dvec3(mat[3][0], mat[3][1], mat[3][2])));
-
+				global_frame->getJoint(current_joint->getJointName())->setPositions(glm::dvec3(global_mat[3][0], global_mat[3][1], global_mat[3][2]));
+				global_frame->getJoint(current_joint->getJointName())->setOrientations(glm::dvec3(0, 0, 0));
 			}
 
-			for (unsigned int i = 0; i < currentJoint->getChilds().size(); i++) {
-				getGlobalCoordinates(currentJoint->getChilds()[i], globalCoord, globalMat);
+			for (unsigned int i = 0; i < current_joint->getChilds().size(); i++) {
+				getGlobalCoordinates(local_frame, global_frame, current_joint->getChilds()[i], global_mat);
 			}
 		}
 
@@ -234,7 +227,7 @@ namespace Mla {
 
 		@return idx the index at which the local minimum is found
 		*/
-		int getLocalMinimumFromMaximum(std::vector<double>& data, int direction) {
+		int getLocalMinimumFromMaximum (std::vector<double>& data, int direction) {
 			// We fix a threshold, to avoid minimums that are " too high ".
 			// This threshold is set to (max + min) / 2.
 			// UNUSED FOR THE MOMENT
@@ -413,9 +406,8 @@ namespace Mla {
 		/** Rebuild a motion from an initial one, with a new count of frames.
 
 		@param original_motion the original motion
-		@param frames_number the new frames count
-
-		@return new_motion the new motion, constructed from the original one	
+		@param new_motion the new motion, constructed from the original one
+		@param frames_number the new frames count	
 		*/
 		void motionRebuilding (Motion* original_motion, Motion* new_motion, unsigned int frames_number) {
 			if (frames_number < 2) {
@@ -466,23 +458,16 @@ namespace Mla {
 		void MotionSegmentation (Motion* initial_motion, int left_cut, int right_cut, int savgol_window_size, int savgol_polynom_order, int frame_number_cut, std::vector<Motion*>& motion_segments) {
 			Motion* sub_motion = nullptr;
 
-			std::map<std::string, double> lin_speed;
-			// Import data into a map, to separate the hand data from the rest of the joints
-			std::vector<std::map<std::string, double>> map_full;
+			SpeedData speed_data(initial_motion->getFrames().size() - 1, 
+								 initial_motion->getFrameTime(), 
+								 initial_motion->getFrames().size(),
+								 initial_motion);
 
-			for (unsigned int i = 0; i < initial_motion->getFrames().size() - 1; i++) {
-				lin_speed.clear();
-				Mla::MotionOperation::jointsLinearSpeed(lin_speed, initial_motion->getFrame(i), initial_motion->getFrame(i + 1), initial_motion->getFrameTime());
-				map_full.push_back(lin_speed);
-			}
-
+			// Used to segment the motion, JOINT_OF_INTEREST = " LeftHand " is used atm
+			// because it's the hand used to throw the bottle, thus the joint with the
+			// highest speed.
 			std::vector<double> hand_lin_speed;
-
-			// Extracting hand values
-			for (unsigned int i = 0; i < map_full.size(); ++i) {
-				std::map<std::string, double> hand_map = map_full[i];
-				hand_lin_speed.push_back(hand_map.find(JOINT_OF_INTEREST)->second);
-			}
+			speed_data.getJointSpeedVector(JOINT_OF_INTEREST, hand_lin_speed);
 
 			// Savgol-ing the values
 			std::vector<double> savgoled;
@@ -509,14 +494,12 @@ namespace Mla {
 				}
 
 				Motion* cut_motion = new Motion();
-				Mla::MotionOperation::motionRebuilding(sub_motion, cut_motion, 20);
+				Mla::MotionOperation::motionRebuilding(sub_motion, cut_motion, frame_number_cut);
 
 				delete sub_motion;
 
 				motion_segments.push_back(cut_motion);
 			}
-
-
 		}
 
 		/** Filter a motion, by eliminating position variations.
@@ -535,5 +518,5 @@ namespace Mla {
 			}
 		}
 
-	}
-}
+	} // namespace MotionOperation
+} // namespace Mla
