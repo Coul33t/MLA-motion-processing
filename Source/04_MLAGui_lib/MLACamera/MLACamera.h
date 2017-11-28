@@ -2,11 +2,20 @@
 #define __MLA_CAMERA__
 
 #include "MLAInput\MLAInput.h"
+#include <iostream>
 
 #pragma warning(push, 0)
 #include "glm.hpp"
 #include "gtx/transform.hpp"
 #pragma warning(pop)
+
+#define CAMERA_POS_X -10
+#define CAMERA_POS_Y 90
+#define CAMERA_POS_Z 150
+
+#define CAMERA_ORI_X 0
+#define CAMERA_ORI_Y 50
+#define CAMERA_ORI_Z 0
 
 class Camera {
 
@@ -17,6 +26,8 @@ public:
 	void Orient(int xRel, int yRel);
 	void Move(Input const &input);
 	void LookAt(glm::dmat4 &modelview);
+
+	void PrintValues();
 
 
 private:

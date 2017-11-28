@@ -1,11 +1,11 @@
 #include "MLACamera.h"
 
-Camera::Camera() : m_phiAngle(0.0), m_thetaAngle(0.0), m_orientationVector(), m_verticalAxis(0, 1, 0),
-m_lateralShift(), m_eyePosition(), m_targetCenter() {
+Camera::Camera() : m_phiAngle(-10), m_thetaAngle(-180), m_orientationVector(), m_verticalAxis(0, 1, 0),
+m_lateralShift(), m_eyePosition(glm::dvec3(CAMERA_POS_X, CAMERA_POS_Y, CAMERA_POS_Z)), m_targetCenter(glm::dvec3(CAMERA_ORI_X, CAMERA_ORI_Y, CAMERA_ORI_Z)) {
 	//ctor
 }
 
-Camera::Camera(glm::dvec3 eye_position, glm::dvec3 target_center, glm::dvec3 vertical_axis) : m_phiAngle(-35.26), m_thetaAngle(-135),
+Camera::Camera(glm::dvec3 eye_position, glm::dvec3 target_center, glm::dvec3 vertical_axis) : m_phiAngle(-15.26), m_thetaAngle(-135),
 m_orientationVector(), m_verticalAxis(vertical_axis), m_lateralShift(), m_eyePosition(eye_position), m_targetCenter(target_center) {
 	//ctor
 }
@@ -15,7 +15,9 @@ Camera::~Camera() {
 }
 
 void Camera::Orient(int x_rel, int y_rel) {
-
+	
+	// - because of the clockwise/anti-clockwise direction
+	// *0.5 to attenuate fast movement
 	m_phiAngle += -y_rel * 0.5;
 	m_thetaAngle += -x_rel * 0.5;
 
@@ -84,4 +86,8 @@ void Camera::Move(Input const &input) {
 
 void Camera::LookAt(glm::dmat4 &modelview) {
 	modelview = glm::lookAt(m_eyePosition, m_targetCenter, m_verticalAxis);
+}
+
+void Camera::PrintValues() {
+	std::cout << "tC: " << m_targetCenter.x << " " << m_targetCenter.y << " " << m_targetCenter.z << "\r";
 }
