@@ -150,30 +150,37 @@ namespace Mla {
 
 		/** Draw a skeleton from global coordinates.
 
-		@param globalCoordinates the map containing the coordinates
+		@param frame the frame (global coordinates)
 		@param projection the projection matrix
 		@param modelview the modelview matrix
 		@param shader the shader
 		*/
-		void DrawFromGlobal(std::map<std::string, glm::dvec3>& globalCoordinates, glm::dmat4& projection, glm::dmat4& modelview, Shader& shader) {
+		void DrawFromGlobal(Frame* frame, glm::dmat4& projection, glm::dmat4& modelview, Shader& shader) {
+			double line_vertices[6];
+			double line_colour[6] = { 0, 1, 0, 1, 0, 1 };
 			double point_vertice[3];
 			double point_colour[3] = { 0, 1, 1 };
 
-			glm::dmat4 saved_modelview = modelview;
-
 			// j = joints
-			for (std::map<std::string, glm::dvec3> ::iterator it = globalCoordinates.begin(); it != globalCoordinates.end(); ++it) {
-				modelview = glm::translate(modelview, globalCoordinates.find(it->first)->second);
+			for (unsigned int j = 0; j < frame->getJoints().size(); j++) {
 
-				point_vertice[0] = globalCoordinates.find(it->first)->second.x;
-				point_vertice[1] = globalCoordinates.find(it->first)->second.y;
-				point_vertice[2] = globalCoordinates.find(it->first)->second.z;
+				point_vertice[0] = frame->getJoint(j)->getPositions().x;
+				point_vertice[1] = frame->getJoint(j)->getPositions().y;
+				point_vertice[2] = frame->getJoint(j)->getPositions().z;
 
 				DisplayPoint(shader, projection, modelview, point_vertice, point_colour);
 
-				modelview = saved_modelview;
+				if(frame->getJoint(j)->getParent()) {
+					line_vertices[0] = frame->getJoint(j)->getParent()->getPositions()[0];
+					line_vertices[1] = frame->getJoint(j)->getParent()->getPositions()[1];
+					line_vertices[2] = frame->getJoint(j)->getParent()->getPositions()[2];
+					line_vertices[3] = frame->getJoint(j)->getPositions()[0];
+					line_vertices[4] = frame->getJoint(j)->getPositions()[1];
+					line_vertices[5] = frame->getJoint(j)->getPositions()[2];
+
+					DisplayLine(shader, projection, modelview, line_vertices, line_colour);
+				}
 			}
 		}
-
 	}
 }
