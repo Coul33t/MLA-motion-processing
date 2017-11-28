@@ -13,10 +13,11 @@ unsigned int FindIndexSeparationTest();
 unsigned int ReconstructTest();
 unsigned int copyFrameTest();
 unsigned int SegmentTest();
+unsigned int SpeedDataTest();
 unsigned int MemoryLeakChaser();
 
 int main(int argc, char *argv[]) {
-	SegmentTest();
+	SpeedDataTest();
 	std::cout << std::endl << "Press any key to quit...";
 	std::cin.get();
 	return 0;
@@ -447,6 +448,42 @@ unsigned int copyFrameTest() {
 
 	Frame* copied_frame = motion->getFrame(2)->duplicateFrame();
 
+	return 0;
+}
+
+unsigned int SpeedDataTest() {
+	Motion* motion = nullptr;
+
+	motion = Mla::BvhParser::parseBvh(MLA_INPUT_BVH_PATH, "Damien_2_Char00.bvh");
+
+	Mla::MotionOperation::motionFiltering(motion);
+
+	std::vector<Motion*> motion_vector;
+
+	Mla::MotionOperation::MotionSegmentation(motion, 30, 30, 51, 3, 20, motion_vector);
+
+	std::string subfolder_name = "SUBFOLDER_NONE";
+	std::string filename = "FILENAME_NONE";
+	std::string folder_name = "DAMIEN_SEGMENTED";
+
+	for (unsigned int i = 0; i < motion_vector.size(); i++) {
+		SpeedData speed_data(motion_vector[i]->getFrames().size() - 1, 
+							 motion_vector[i]->getFrameTime(), 
+							 motion_vector[i]->getFrames().size(),
+							 motion_vector[i]);
+		
+		std::vector<std::map<std::string, double>> speed_set;
+
+		speed_data.getSpeedSetVector(speed_set);
+
+		subfolder_name = "SEGMENT_" + std::to_string(i);
+
+		for (unsigned int j = 0; j < speed_set.size(); j++) {
+			filename = "lin_speed_" + std::to_string(j);
+
+			Mla::CsvExport::ExportData(speed_set[i], folder_name, subfolder_name, filename);
+		}
+	}
 	return 0;
 }
 

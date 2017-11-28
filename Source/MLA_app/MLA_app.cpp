@@ -38,10 +38,11 @@ int main(int argc, char *argv[]) {
 		
 	Mla::MotionOperation::motionFiltering(motion);
 
-	std::vector<Motion*> seg_motion;
+	/*std::vector<Motion*> seg_motion;
 	Mla::MotionOperation::MotionSegmentation(motion, 2, 2, 51, 3, 20, seg_motion);
 
-	window.MainLoop(seg_motion[2]);
+	window.MainLoop(seg_motion[2]);*/
+	window.MainLoop(motion);
 
 	/*std::cout << "Press any key to quit...";
 	std::cin.get();*/
