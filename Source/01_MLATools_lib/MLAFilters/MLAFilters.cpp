@@ -5,21 +5,21 @@ namespace Mla {
 
 		// Inspired from
 		// https://stackoverflow.com/questions/30338671/i-tried-coding-my-own-simple-moving-average-in-c
-		void MeanShift(std::vector<double>& filteredData, const std::vector<double>& data, unsigned int windowSize) {
+		void MeanShift(std::vector<double>& filtered_data, const std::vector<double>& data, unsigned int window_size) {
 
-			double runningTotal = 0.0;
+			double running_total = 0.0;
 
 			for (unsigned int i = 0; i < data.size(); i++) {
 
-				runningTotal += data[i];   // add
+				running_total += data[i];   // add
 
-				if (i >= windowSize)
-					runningTotal -= data[i - windowSize];   // subtract
+				if (i >= window_size)
+					running_total -= data[i - window_size];   // subtract
 
-				if (i >= (windowSize - 1))  // output moving average
-					filteredData.push_back(runningTotal / (double)windowSize);
+				if (i >= (window_size - 1))  // output moving average
+					filtered_data.push_back(running_total / (double)window_size);
 				else
-					filteredData.push_back(data[i]);
+					filtered_data.push_back(data[i]);
 			}
 		}
 

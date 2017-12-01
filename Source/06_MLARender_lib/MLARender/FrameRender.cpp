@@ -100,17 +100,17 @@ namespace Mla {
 					DisplayPoint(shader, projection, modelview, point_vertice, point_colour);
 
 					// We pair it with the joint name and we put it into the map
-					quaternions_to_mat_map.insert(std::make_pair(frame->getJoint(j)->getJointName(), saved_modelview));
+					quaternions_to_mat_map.insert(std::make_pair(frame->getJoint(j)->getName(), saved_modelview));
 				}
 
 				// Not the root (other joints)
 				else {
 
-					std::map<std::string, glm::dmat4>::iterator it_quat = quaternions_to_mat_map.find(frame->getJoint(j)->getParent()->getJointName());
+					std::map<std::string, glm::dmat4>::iterator it_quat = quaternions_to_mat_map.find(frame->getJoint(j)->getParent()->getName());
 
 					// If we don't find the modelview matrix for the parent, ABANDON SHIP
 					if (it_quat == quaternions_to_mat_map.end()){
-						std::cout << "Error : " << frame->getJoint(j)->getParent()->getJointName() << " not found in std::map<std::string, glm::mat4> quaternions_to_mat_map." << std::endl;
+						std::cout << "Error : " << frame->getJoint(j)->getParent()->getName() << " not found in std::map<std::string, glm::mat4> quaternions_to_mat_map." << std::endl;
 						exit(EXIT_FAILURE);
 					}
 					
@@ -142,7 +142,7 @@ namespace Mla {
 					saved_modelview = saved_modelview*glm::mat4_cast(frame->getJoint(j)->getOrientations());
 
 					// We pair it with the joint name and we put it into the map
-					quaternions_to_mat_map.insert(std::make_pair(frame->getJoint(j)->getJointName(), saved_modelview));
+					quaternions_to_mat_map.insert(std::make_pair(frame->getJoint(j)->getName(), saved_modelview));
 
 				}
 			}

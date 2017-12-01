@@ -36,129 +36,129 @@ namespace Mla {
 		}
 
 		//TODO: use return value of searchForward()
-		Motion* parseBvh(const std::string& folder, const std::string& inputFile) {
+		Motion* parseBvh(const std::string& folder, const std::string& input_file) {
 
-			std::ifstream infile((folder + inputFile).c_str());
+			std::ifstream infile((folder + input_file).c_str());
 
 			if (infile.fail()) {
 				return nullptr;
 			}
 
-			std::string currentWord;
+			std::string current_word;
 
 			// Declarations for building the skeleton
-			std::vector<std::string> jointList;
+			std::vector<std::string> joint_list;
 
-			std::vector<double> tmpOffsets;
+			std::vector<double> tmp_offsets;
 
-			int channelNumber;
+			int channel_number;
 
-			std::vector<std::string> jointChannels;
-			std::vector<std::string> parentNames;
+			std::vector<std::string> joint_channels;
+			std::vector<std::string> parent_names;
 			std::string parent;
 
 			std::map<std::string, std::vector<std::string>> channels;
 
 			//creating the first frame, which will hold the offsets
-			Frame* initialFrame = new Frame();
+			Frame* initial_frame = new Frame();
 
 			// Declaration for the frames part
-			unsigned int frameNumber;
+			unsigned int frame_number;
 
 			// END
 			std::cout << "Building skeleton ..." << std::endl;
 
 			searchForward(infile, "ROOT");
-			infile >> currentWord;
+			infile >> current_word;
 
 			//offset part
-			while (currentWord != "MOTION") {
-				jointList.push_back(currentWord);
+			while (current_word != "MOTION") {
+				joint_list.push_back(current_word);
 				searchForward(infile, "OFFSET");
 
-				infile >> currentWord;
+				infile >> current_word;
 
-				while (isDouble(currentWord.c_str())) {
-					tmpOffsets.push_back(atof(currentWord.c_str()));
-					infile >> currentWord;
+				while (isDouble(current_word.c_str())) {
+					tmp_offsets.push_back(atof(current_word.c_str()));
+					infile >> current_word;
 				}
 
-				if (currentWord != "CHANNELS")
+				if (current_word != "CHANNELS")
 					searchForward(infile, "CHANNELS");
 
-				infile >> currentWord;
+				infile >> current_word;
 
-				jointChannels.clear();
-				channelNumber = atoi(currentWord.c_str());
+				joint_channels.clear();
+				channel_number = atoi(current_word.c_str());
 
-				for (int i = 0; i < channelNumber; i++) {
-					infile >> currentWord;
-					jointChannels.push_back(currentWord);
+				for (int i = 0; i < channel_number; i++) {
+					infile >> current_word;
+					joint_channels.push_back(current_word);
 				}
 
-				channels[jointList.back()] = jointChannels;
+				channels[joint_list.back()] = joint_channels;
 
 				parent = "NONE";
 
-				if (!parentNames.empty()) {
-					parent = parentNames.back();
+				if (!parent_names.empty()) {
+					parent = parent_names.back();
 				}
 
-				Joint* currentJoint = new Joint();
-				currentJoint->setJointName(jointList.back());
-				currentJoint->setPositions(glm::dvec3(tmpOffsets[0], tmpOffsets[1], tmpOffsets[2]));
-				currentJoint->setOrientations(glm::quat());
-				currentJoint->setParent(0);
+				Joint* current_joint = new Joint();
+				current_joint->setName(joint_list.back());
+				current_joint->setPositions(glm::dvec3(tmp_offsets[0], tmp_offsets[1], tmp_offsets[2]));
+				current_joint->setOrientations(glm::quat());
+				current_joint->setParent(0);
 
 				if (parent != "NONE") {
-					currentJoint->setParent(initialFrame->getJoint(parent));
-					initialFrame->getJoint(parent)->addChild(currentJoint);
+					current_joint->setParent(initial_frame->getJoint(parent));
+					initial_frame->getJoint(parent)->addChild(current_joint);
 				}
 
-				initialFrame->insertJoint(currentJoint);
+				initial_frame->insertJoint(current_joint);
 
-				tmpOffsets.clear();
+				tmp_offsets.clear();
 
-				parentNames.push_back(jointList.back());
+				parent_names.push_back(joint_list.back());
 
-				infile >> currentWord;
+				infile >> current_word;
 
-				if (currentWord == "End") {
+				if (current_word == "End") {
 					searchForward(infile, "OFFSET");
 
-					infile >> currentWord;
+					infile >> current_word;
 
-					while (isDouble(currentWord.c_str())) {
-						tmpOffsets.push_back(atof(currentWord.c_str()));
-						infile >> currentWord;
+					while (isDouble(current_word.c_str())) {
+						tmp_offsets.push_back(atof(current_word.c_str()));
+						infile >> current_word;
 					}
 
-					Joint* endJoint = new Joint();
-					endJoint->setJointName("End" + jointList.back());
-					endJoint->setPositions(glm::dvec3(tmpOffsets[0], tmpOffsets[1], tmpOffsets[2]));
-					endJoint->setOrientations(glm::quat());
+					Joint* end_joint = new Joint();
+					end_joint->setName("End" + joint_list.back());
+					end_joint->setPositions(glm::dvec3(tmp_offsets[0], tmp_offsets[1], tmp_offsets[2]));
+					end_joint->setOrientations(glm::quat());
 
-					parent = parentNames.back();
+					parent = parent_names.back();
 
-					endJoint->setParent(initialFrame->getJoint(jointList.back()));
-					initialFrame->getJoint(parent)->addChild(endJoint);
+					end_joint->setParent(initial_frame->getJoint(joint_list.back()));
+					initial_frame->getJoint(parent)->addChild(end_joint);
 
-					initialFrame->insertJoint(endJoint);
-					jointList.push_back("End" + jointList.back());
-					tmpOffsets.clear();
+					initial_frame->insertJoint(end_joint);
+					joint_list.push_back("End" + joint_list.back());
+					tmp_offsets.clear();
 				}
 
-				if (currentWord == "}") {
-					infile >> currentWord;
-					while (currentWord == "}"){
-						if (!parentNames.empty())
-							parentNames.pop_back();
-						infile >> currentWord;
+				if (current_word == "}") {
+					infile >> current_word;
+					while (current_word == "}"){
+						if (!parent_names.empty())
+							parent_names.pop_back();
+						infile >> current_word;
 					}
 				}
 
-				if (currentWord == "JOINT") {
-					infile >> currentWord;
+				if (current_word == "JOINT") {
+					infile >> current_word;
 				}
 
 			}
@@ -173,36 +173,36 @@ namespace Mla {
 			Motion* motion = new Motion();
 
 			// Ugly way to remove .bvh at the end of the string
-			motion->setName(inputFile.substr(0, inputFile.size() - 4));
+			motion->setName(input_file.substr(0, input_file.size() - 4));
 
 			// Frame number
 			searchForward(infile, "Frames:");
-			infile >> currentWord;
-			frameNumber = atoi(currentWord.c_str());
+			infile >> current_word;
+			frame_number = atoi(current_word.c_str());
 
 			// Interframe time
 			searchForward(infile, "Time:");
-			infile >> currentWord;
-			motion->setFrameTime(atof(currentWord.c_str()));
+			infile >> current_word;
+			motion->setFrameTime(atof(current_word.c_str()));
 
-			motion->setOffsetFrame(initialFrame);
+			motion->setOffsetFrame(initial_frame);
 
 			unsigned int percentage = 0;
 
 			// UPDATE: no more used 
 			// TODO: verify and delete
 
-			// using initialFrame->getNames().size() (to get the number  
+			// using initial_frame->getNames().size() (to get the number  
 			// of joints) used up to 57% of this function's running time. 
-			// Using initialFrame->getJoints().size() is incredibly faster 
+			// Using initial_frame->getJoints().size() is incredibly faster 
 			// (approximately 100 times faster), but why make a call to this 
 			// function each time, rather than doing it only 1 time ?
 
-			// unsigned int jointNumber = initialFrame->getJoints().size();
+			// unsigned int jointNumber = initial_frame->getJoints().size();
 
 			std::cout << "Copying frames ..." << std::endl;
 
-			// Why not: " Frame* copiedFrame = new Frame(*initialFrame); " ?
+			// Why not: " Frame* copied_frame = new Frame(*initial_frame); " ?
 			// Because if we do so, the member std::vector<Joint*> m_joints
 			// will be copied as is, and the pointers inside will point to
 			// the same data as the initial frame. So if you modify one
@@ -212,39 +212,39 @@ namespace Mla {
 			// UPDATE: the frame duplication code has been moved inside
 			// the Frame class, see duplicateFrame()
 
-			for (unsigned int i = 0; i < frameNumber; i++) {
+			for (unsigned int i = 0; i < frame_number; i++) {
 
-				percentage = 100 * i / frameNumber;
-				std::cout << percentage << " % (" << i << "/" << frameNumber << ")" << "\r";
+				percentage = 100 * i / frame_number;
+				std::cout << percentage << " % (" << i << "/" << frame_number << ")" << "\r";
 
-				Frame* copiedFrame = initialFrame->duplicateFrame();
+				Frame* copied_frame = initial_frame->duplicateFrame();
 
-				motion->addFrame(copiedFrame);
+				motion->addFrame(copied_frame);
 			}
 
 			std::cout << "Frames copied." << std::endl;
-			infile >> currentWord;
+			infile >> current_word;
 
 			percentage = 0;
 			std::cout << "Motion data gathering ..." << std::endl;
 
-			std::vector<std::string> currentChannels;
+			std::vector<std::string> current_channels;
 
 			// f = frame number
 			// = 1, since the first frame is already inserted
-			// frameNumber+1, since the first frame is inserted
-			for (unsigned int f = 0; f < frameNumber; f++) {
+			// frame_number+1, since the first frame is inserted
+			for (unsigned int f = 0; f < frame_number; f++) {
 
-				percentage = 100 * f / frameNumber;
-				std::cout << percentage << " % (" << f << "/" << frameNumber << ")" << "\r";
+				percentage = 100 * f / frame_number;
+				std::cout << percentage << " % (" << f << "/" << frame_number << ")" << "\r";
 
 				// j = joint
-				for (unsigned int j = 0; j < jointList.size(); j++) {
+				for (unsigned int j = 0; j < joint_list.size(); j++) {
 
 					// Endsites do not have information for the animation,
 					// so we skip them
-					if (!(jointList[j].find("End") == 0)) {
-						currentChannels = channels[jointList[j]];
+					if (!(joint_list[j].find("End") == 0)) {
+						current_channels = channels[joint_list[j]];
 						glm::dvec3 pos;
 						glm::quat ori;
 
@@ -254,37 +254,37 @@ namespace Mla {
 						bool posFlag = false;
 
 						// c = channel
-						for (unsigned int c = 0; c < currentChannels.size(); c++) {
+						for (unsigned int c = 0; c < current_channels.size(); c++) {
 
-							if (currentChannels[c] == "Xposition") {
-								pos.x = atof(currentWord.c_str());
+							if (current_channels[c] == "Xposition") {
+								pos.x = atof(current_word.c_str());
 								posFlag = true;
 							}
 
-							else if (currentChannels[c] == "Yposition") {
-								pos.y = atof(currentWord.c_str());
+							else if (current_channels[c] == "Yposition") {
+								pos.y = atof(current_word.c_str());
 								posFlag = true;
 							}
 
-							else if (currentChannels[c] == "Zposition") {
-								pos.z = atof(currentWord.c_str());
+							else if (current_channels[c] == "Zposition") {
+								pos.z = atof(current_word.c_str());
 								posFlag = true;
 							}
 
-							else if (currentChannels[c] == "Xrotation")
-								ori = ori * glm::quat(glm::dvec3(glm::radians(atof(currentWord.c_str())), 0.0, 0.0));
-							else if (currentChannels[c] == "Yrotation")
-								ori = ori * glm::quat(glm::dvec3(0.0, glm::radians(atof(currentWord.c_str())), 0.0));
-							else if (currentChannels[c] == "Zrotation")
-								ori = ori * glm::quat(glm::dvec3(0.0, 0.0, glm::radians(atof(currentWord.c_str()))));
+							else if (current_channels[c] == "Xrotation")
+								ori = ori * glm::quat(glm::dvec3(glm::radians(atof(current_word.c_str())), 0.0, 0.0));
+							else if (current_channels[c] == "Yrotation")
+								ori = ori * glm::quat(glm::dvec3(0.0, glm::radians(atof(current_word.c_str())), 0.0));
+							else if (current_channels[c] == "Zrotation")
+								ori = ori * glm::quat(glm::dvec3(0.0, 0.0, glm::radians(atof(current_word.c_str()))));
 
-							infile >> currentWord;
+							infile >> current_word;
 						}
 
 						if (posFlag)
-							motion->getFrame(f)->getJoint(jointList[j])->setPositions(pos);
+							motion->getFrame(f)->getJoint(joint_list[j])->setPositions(pos);
 
-						motion->getFrame(f)->getJoint(jointList[j])->setOrientations(ori);
+						motion->getFrame(f)->getJoint(joint_list[j])->setOrientations(ori);
 					}
 				}
 			}

@@ -5,51 +5,52 @@ Motion::Motion() {
 }
 
 Motion::~Motion() {
-	delete m_offsetFrame;
+	delete m_offset_frame;
 
 	if(!m_frames.empty())
-		for(unsigned int i=0 ; i<m_frames.size() ; i++)
+		for(unsigned int i = 0; i < m_frames.size(); i++)
 			delete (m_frames[i]);
 }
 
 Motion::Motion(const Motion& motion) {
-	m_frameTime = motion.m_frameTime;
+	m_frame_time = motion.m_frame_time;
 	m_frames = motion.m_frames;
 }
 
 Motion& Motion::operator=(const Motion& motion) {
-	m_frameTime = motion.m_frameTime;
+	m_frame_time = motion.m_frame_time;
 	m_frames = motion.m_frames;
 	return *this;
 }
 
 void Motion::setName(const std::string& name) {
-	m_motionName = name;
+	m_motion_name = name;
 }
 
-void Motion::setFrameTime(const double frameTime) {
-	m_frameTime = frameTime;
+void Motion::setFrameTime(const double frame_time) {
+	m_frame_time = frame_time;
 }
 
 void Motion::setOffsetFrame(Frame* frame) {
-	m_offsetFrame = frame;
+	m_offset_frame = frame;
 }
 
-void Motion::setFrames(const std::vector<Frame*> frames) {
-	m_frames = frames;
+void Motion::setFrames(const std::vector<Frame*> frames_vector) {
+	m_frames = frames_vector;
 }
 
 const std::string& Motion::getName() const {
-	return m_motionName;
+	return m_motion_name;
 }
 
 const double& Motion::getFrameTime() const {
-	return m_frameTime;
+	return m_frame_time;
 }
 
 Frame* Motion::getOffsetFrame() const {
-	return m_offsetFrame;
+	return m_offset_frame;
 }
+
 const std::vector<Frame*>& Motion::getFrames() const {
 	return m_frames;
 }

@@ -40,10 +40,10 @@ namespace Mla {
 			for (unsigned int i = 0; i < f1->getJoints().size(); i++) {
 				Joint* new_joint = interpolateJoint(f1->getJoint(i), f2->getJoint(i), mix_factor);
 
-				new_joint->setJointName(f1->getJoint(i)->getJointName());
+				new_joint->setName(f1->getJoint(i)->getName());
 
 				if (f1->getJoint(i)->getParent() != nullptr) {
-					new_joint->setParent(interpolated_frame->getJoint(f1->getJoint(i)->getParent()->getJointName()));
+					new_joint->setParent(interpolated_frame->getJoint(f1->getJoint(i)->getParent()->getName()));
 					new_joint->getParent()->addChild(new_joint);
 				}
 
@@ -78,7 +78,7 @@ namespace Mla {
 				// dx / dt -> cm / s
 				// dx / (dt * 100) -> m / s
 				linear_speed = Mla::Utility::vectorLength(v1, v2) / (frame_time * 100);
-				lin_speed_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getJointName(), linear_speed));
+				lin_speed_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), linear_speed));
 			}
 
 			delete global_frame_1;
@@ -111,11 +111,11 @@ namespace Mla {
 				if (glm::length(p1) * glm::length(p2) > 0) {
 					// rad / sec
 					angular_speed = (acos(glm::dot(p1, p2) / (glm::length(p1) * glm::length(p2)))) / (frame_time * 1000);
-					ang_speed_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getJointName(), angular_speed));
+					ang_speed_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), angular_speed));
 				}
 
 				else
-					ang_speed_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getJointName(), 0));
+					ang_speed_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), 0));
 
 			}
 		}
@@ -203,16 +203,16 @@ namespace Mla {
 				global_mat = glm::translate(global_mat, current_joint->getPositions());
 				global_mat *= glm::mat4_cast(current_joint->getOrientations());
 
-				global_frame->getJoint(current_joint->getJointName())->setPositions(glm::dvec3(global_mat[3][0], global_mat[3][1], global_mat[3][2]));
-				global_frame->getJoint(current_joint->getJointName())->setOrientations(glm::dvec3(0,0,0));
+				global_frame->getJoint(current_joint->getName())->setPositions(glm::dvec3(global_mat[3][0], global_mat[3][1], global_mat[3][2]));
+				global_frame->getJoint(current_joint->getName())->setOrientations(glm::dvec3(0,0,0));
 			}
 
 			else {
 				global_mat = glm::translate(global_mat, current_joint->getPositions());
 				global_mat *= glm::mat4_cast(current_joint->getOrientations());
 
-				global_frame->getJoint(current_joint->getJointName())->setPositions(glm::dvec3(global_mat[3][0], global_mat[3][1], global_mat[3][2]));
-				global_frame->getJoint(current_joint->getJointName())->setOrientations(glm::dvec3(0, 0, 0));
+				global_frame->getJoint(current_joint->getName())->setPositions(glm::dvec3(global_mat[3][0], global_mat[3][1], global_mat[3][2]));
+				global_frame->getJoint(current_joint->getName())->setOrientations(glm::dvec3(0, 0, 0));
 			}
 
 			for (unsigned int i = 0; i < current_joint->getChilds().size(); i++) {

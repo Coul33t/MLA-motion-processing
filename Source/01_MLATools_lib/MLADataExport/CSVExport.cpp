@@ -155,7 +155,7 @@ namespace Mla {
 					if (!outfile.fail()) {
 
 						for (unsigned int i = 0; i < frame->getJoints().size(); i++) {
-							outfile << frame->getJoint(i)->getJointName() << ","
+							outfile << frame->getJoint(i)->getName() << ","
 									<< frame->getJoint(i)->getPositions().x << ","
 									<< frame->getJoint(i)->getPositions().y << ","
 									<< frame->getJoint(i)->getPositions().z << ","

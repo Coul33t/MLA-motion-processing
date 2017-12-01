@@ -11,27 +11,27 @@ class Shader {
 
 public:
 	Shader();
-	Shader(Shader const &shaderACopier);
-	Shader(std::string vertexSource, std::string fragmentSource);
+	Shader(Shader const &shader_to_copy);
+	Shader(std::string vertexSource, std::string source_fragment);
 	~Shader();
 
-	Shader& operator=(Shader const &shaderACopier);
+	Shader& operator=(Shader const &shader_to_copy);
 
-	void setVertexSource(const std::string&);
-	void setFragmentSource(const std::string&);
+	void setSourceVertex(const std::string&);
+	void setSourceFragment(const std::string&);
 
 	bool Load();
-	bool CompileShader(GLuint &shader, GLenum type, std::string const &fichierSource);
+	bool CompileShader(GLuint &shader, GLenum type, std::string const &source_file);
 	const GLuint& getProgramID() const;
 
 
 private:
-	GLuint m_vertexID;
-	GLuint m_fragmentID;
-	GLuint m_programID;
+	GLuint m_vertex_ID;
+	GLuint m_fragment_ID;
+	GLuint m_program_ID;
 
-	std::string m_vertexSource;
-	std::string m_fragmentSource;
+	std::string m_source_vertex;
+	std::string m_source_fragment;
 };
 
 #endif //__DEF_SHADER__

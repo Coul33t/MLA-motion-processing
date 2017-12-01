@@ -6,7 +6,7 @@ MotionOperation.h
 
 */
 
-#ifndef __MLA_MOTIONOPERATION_H__
+#ifndef __MLA_MOTIONOPERATION_H__ 
 #define __MLA_MOTIONOPERATION_H__
 
 #include "MLAMotion/MLAMotion.h"

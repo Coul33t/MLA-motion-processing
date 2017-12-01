@@ -22,11 +22,11 @@ public:
 
 	Joint& operator=(const Joint& joint);
 
-	void setJointName(const std::string& jointName);
+	void setName(const std::string& jointName);
 	void setPositions(const glm::dvec3& positions);
 	void setOrientations(const glm::dquat& orientations);
 
-	const std::string& getJointName() const;
+	const std::string& getName() const;
 	const glm::dvec3& getPositions() const;
 	const glm::dquat& getOrientations() const;
 
@@ -37,7 +37,7 @@ public:
 	Joint* getParent() const;
 
 private:
-	std::string m_jointName;
+	std::string m_joint_name;
 
 	// a vector with the initial offset
 	glm::dvec3 m_positions;

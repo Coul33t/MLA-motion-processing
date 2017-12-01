@@ -33,12 +33,12 @@ public:
 	
 
 private:
-	std::string m_windowTitle;
-	int m_windowWidth;
-	int m_windowHeight;
+	std::string m_window_title;
+	int m_window_width;
+	int m_window_height;
 
 	SDL_Window* m_window;
-	SDL_GLContext m_openGLContext;
+	SDL_GLContext m_openGL_context;
 	SDL_Event m_events;
 	Input m_input;
 

@@ -8,20 +8,20 @@ Joint::~Joint() {
 }
 
 Joint::Joint(const Joint& joint) {
-	m_jointName = joint.m_jointName;
+	m_joint_name = joint.m_joint_name;
 	m_positions = joint.m_positions;
 	m_orientations = joint.m_orientations;
 }
 
 Joint& Joint::operator=(const Joint& joint) {
-	m_jointName = joint.m_jointName;
+	m_joint_name = joint.m_joint_name;
 	m_positions = joint.m_positions;
 	m_orientations = joint.m_orientations;
 	return *this;
 }
 
-void Joint::setJointName(const std::string& jointName) {
-	m_jointName = jointName;
+void Joint::setName(const std::string& joint_name) {
+	m_joint_name = joint_name;
 }
 
 void Joint::setPositions(const glm::dvec3& positions) {
@@ -32,8 +32,8 @@ void Joint::setOrientations(const glm::dquat& orientations) {
 	m_orientations = orientations;
 }
 
-const std::string& Joint::getJointName() const {
-	return m_jointName;
+const std::string& Joint::getName() const {
+	return m_joint_name;
 }
 
 const glm::dvec3& Joint::getPositions() const {

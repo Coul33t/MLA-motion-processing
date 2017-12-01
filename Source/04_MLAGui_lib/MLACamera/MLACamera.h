@@ -21,9 +21,9 @@ class Camera {
 
 public:
 	Camera();
-	Camera(glm::dvec3 eyePositon, glm::dvec3 targetCenter, glm::dvec3 verticalAxis);
+	Camera(glm::dvec3 eye_positon, glm::dvec3 target_center, glm::dvec3 vertical_axis);
 	virtual ~Camera();
-	void Orient(int xRel, int yRel);
+	void Orient(int x_rel, int y_rel);
 	void Move(Input const &input);
 	void LookAt(glm::dmat4 &modelview);
 
@@ -31,16 +31,16 @@ public:
 
 
 private:
-	double m_phiAngle;
-	double m_thetaAngle;
+	double m_phi_angle;
+	double m_theta_angle;
 
-	glm::dvec3 m_orientationVector;
+	glm::dvec3 m_orientation_vector;
 
-	glm::dvec3 m_verticalAxis;
-	glm::dvec3 m_lateralShift;
+	glm::dvec3 m_vertical_axis;
+	glm::dvec3 m_lateral_shift;
 
-	glm::dvec3 m_eyePosition;
-	glm::dvec3 m_targetCenter;
+	glm::dvec3 m_eye_position;
+	glm::dvec3 m_target_center;
 
 };
 #endif //__MLA_CAMERA__

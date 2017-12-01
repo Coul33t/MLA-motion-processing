@@ -207,7 +207,7 @@ namespace Mla {
 			// Compute the Savitzky-Golay filter coefficients.
 			// Window_size, left-window size, right window-size, derivate order (0 = smooth), smoothing polynom order
 			// I've yet to see a shifting-window algorithm using different values for left and right, so it'll stay like this.
-			// Furthermore, the Python implementation explicitely states that the window_size MUST be odd, for this exact reason.
+			// Furthermore, the Python implementation explicitly states that the window_size MUST be odd, for this exact reason.
 			std::vector<double> coefs;
 			SavgolCoeffs(coefs, half_window, half_window, 0, polynom_order);
 

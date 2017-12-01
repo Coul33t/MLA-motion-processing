@@ -1,17 +1,17 @@
 #include "MLAMainWindow.h"
 
 MainWindow::MainWindow() :
-m_windowTitle("Default name"), m_windowWidth(1600), m_windowHeight(900), m_window(), m_openGLContext(), m_input(), m_modelview(),
+m_window_title("Default name"), m_window_width(1600), m_window_height(900), m_window(), m_openGL_context(), m_input(), m_modelview(),
 m_projection(), m_camera() {
 }
 
 MainWindow::MainWindow(const std::string window_title, const int window_width, const int window_height) :
-m_windowTitle(window_title), m_windowWidth(window_width), m_windowHeight(window_height), m_window(), m_openGLContext(), m_input(),
+m_window_title(window_title), m_window_width(window_width), m_window_height(window_height), m_window(), m_openGL_context(), m_input(),
 m_modelview(), m_projection(), m_camera() {
 }
 
 MainWindow::~MainWindow() {
-	SDL_GL_DeleteContext(m_openGLContext);
+	SDL_GL_DeleteContext(m_openGL_context);
 	SDL_DestroyWindow(m_window);
 	SDL_Quit();
 }
@@ -32,17 +32,17 @@ int MainWindow::WindowInit() {
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-	m_window = SDL_CreateWindow(m_windowTitle.c_str(), SDL_WINDOWPOS_CENTERED,
-		SDL_WINDOWPOS_CENTERED, m_windowWidth, m_windowHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+	m_window = SDL_CreateWindow(m_window_title.c_str(), SDL_WINDOWPOS_CENTERED,
+		SDL_WINDOWPOS_CENTERED, m_window_width, m_window_height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
 
 	if (!m_window) {
 		std::cout << "SDL Error : " << SDL_GetError() << std::endl;
 		return false;
 	}
 
-	m_openGLContext = SDL_GL_CreateContext(m_window);
+	m_openGL_context = SDL_GL_CreateContext(m_window);
 
-	if (m_openGLContext == 0) {
+	if (m_openGL_context == 0) {
 		std::cout << SDL_GetError() << std::endl;
 		SDL_DestroyWindow(m_window);
 		SDL_Quit();
@@ -60,7 +60,7 @@ bool MainWindow::GLinit() {
 	if (GLEW_initialization != GLEW_OK) {
 		std::cout << "GLEW initialization error : " << glewGetErrorString(GLEW_initialization) << std::endl;
 
-		SDL_GL_DeleteContext(m_openGLContext);
+		SDL_GL_DeleteContext(m_openGL_context);
 		SDL_DestroyWindow(m_window);
 		SDL_Quit();
 
@@ -72,10 +72,10 @@ bool MainWindow::GLinit() {
 	return true;
 }
 
-bool MainWindow::LoadShader(const std::string vertexShader, const std::string fragmentShader) {
+bool MainWindow::LoadShader(const std::string vertex_shader, const std::string fragment_shader) {
 	
-	m_shader.setVertexSource(vertexShader);
-	m_shader.setFragmentSource(fragmentShader);
+	m_shader.setSourceVertex(vertex_shader);
+	m_shader.setSourceFragment(fragment_shader);
 
 	if (!m_shader.Load()){
 		std::cout << "Shader couldn't load." << std::endl;

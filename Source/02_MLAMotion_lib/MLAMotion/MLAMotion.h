@@ -24,8 +24,8 @@ public:
 	Motion& operator=(const Motion& motion);
 
 	void setName(const std::string& name);
-	void setFrameTime(const double frameTime);
-	void setFrames(const std::vector<Frame*> Frames);
+	void setFrameTime(const double frame_time);
+	void setFrames(const std::vector<Frame*> frames_vector);
 	void setOffsetFrame(Frame* frame);
 
 	const std::string& getName() const;
@@ -38,9 +38,9 @@ public:
 	void addFrame(Frame* frame);
 
 private:
-	std::string m_motionName;
-	double m_frameTime;
-	Frame* m_offsetFrame;
+	std::string m_motion_name;
+	double m_frame_time;
+	Frame* m_offset_frame;
 	std::vector<Frame*> m_frames;
 };
 

@@ -18,8 +18,8 @@ unsigned int MemoryLeakChaser();
 
 int main(int argc, char *argv[]) {
 	SpeedDataTest();
-	std::cout << std::endl << "Press any key to quit...";
-	std::cin.get();
+	/*std::cout << std::endl << "Press any key to quit...";
+	std::cin.get();*/
 	return 0;
 }
 
