@@ -14,10 +14,12 @@ unsigned int ReconstructTest();
 unsigned int copyFrameTest();
 unsigned int SegmentTest();
 unsigned int SpeedDataTest();
+unsigned int OneMotionExportTest(std::string, std::string);
+unsigned int MultipleMotionExportTest();
 unsigned int MemoryLeakChaser();
 
 int main(int argc, char *argv[]) {
-	SpeedDataTest();
+	MultipleMotionExportTest();
 	/*std::cout << std::endl << "Press any key to quit...";
 	std::cin.get();*/
 	return 0;
@@ -336,7 +338,15 @@ unsigned int SegmentTest() {
 
 	std::vector<Motion*> motion_vector;
 
-	Mla::MotionOperation::MotionSegmentation(motion, 30, 30, 51, 3, 20, motion_vector);
+	SegmentationInformation seg_info = {
+		30,	// left cut
+		30, // right cut
+		51, // window size
+		3,  // polynom order
+		20, // final frame number
+	};
+
+	Mla::MotionOperation::MotionSegmentation(motion, seg_info, motion_vector);
 
 	for (unsigned int i = 0; i < motion_vector.size(); i++) {
 		for (unsigned int j = 0; j < motion_vector[i]->getFrames().size(); j++) {
@@ -460,13 +470,23 @@ unsigned int SpeedDataTest() {
 
 	std::vector<Motion*> motion_vector;
 
-	Mla::MotionOperation::MotionSegmentation(motion, 30, 30, 51, 3, 20, motion_vector);
+	SegmentationInformation seg_info = {
+		30,	// left cut
+		30, // right cut
+		51, // window size
+		3,  // polynom order
+		20, // final frame number
+	};
 
+	Mla::MotionOperation::MotionSegmentation(motion, seg_info, motion_vector);
+
+	// To macro
 	std::string subfolder_name = "SUBFOLDER_NONE";
 	std::string filename = "FILENAME_NONE";
 	std::string folder_name = "DAMIEN_SEGMENTED";
 
-	for (unsigned int i = 0; i < motion_vector.size(); i++) {
+	// Code has changed, not working anymore
+	/*for (unsigned int i = 0; i < motion_vector.size(); i++) {
 		SpeedData speed_data(motion_vector[i]->getFrames().size() - 1, 
 							 motion_vector[i]->getFrameTime(), 
 							 motion_vector[i]->getFrames().size(),
@@ -483,7 +503,67 @@ unsigned int SpeedDataTest() {
 
 			Mla::CsvExport::ExportData(speed_set[i], folder_name, subfolder_name, filename);
 		}
+	}*/
+	return 0;
+}
+
+unsigned int OneMotionExportTest(std::string motion_folder_name, std::string motion_name) {
+	Motion* motion = nullptr;
+
+	motion = Mla::BvhParser::parseBvh(motion_folder_name, motion_name);
+
+	if (motion == nullptr) {
+		std::cout << "Error reading motion (make sure the name and folder are correct)." << std::endl;
+		std::cout << "File name: " << motion_name << std::endl;
+		std::cout << "Folder name: " << motion_folder_name << std::endl;
+		return 1;
 	}
+
+	Mla::MotionOperation::motionFiltering(motion);
+
+	std::vector<Motion*> motion_vector;
+
+	SegmentationInformation seg_info = {
+		2,	// left cut
+		2,  // right cut
+		51, // window size
+		3,  // polynom order
+		20, // final frame number
+	};
+
+	Mla::MotionOperation::MotionSegmentation(motion, seg_info, motion_vector);	
+
+	std::vector<SpeedData> speed_data_set;
+
+	Mla::MotionOperation::ComputeSpeedData(motion_vector, speed_data_set);
+
+	// Name of the motion (Damien_2_Char00_SEGMENTED)
+	std::string folder_name = motion_name.std::string::substr(0, motion_name.size() - 4) + "_SEGMENTED_TEEEEEEEEEST";
+	// Name of the segmentation (NB_SEG_X)
+	std::string subfolder_name = "NB_SEG_";
+	// Name of the lin_speed file (lin_speed_x)
+	std::string file_name = "lin_speed_";
+	
+	Mla::CsvExport::ExportData(speed_data_set, motion->getMotionInformation(), seg_info, folder_name, subfolder_name, file_name);
+	
+	for (unsigned int i = 0; i < motion_vector.size(); i++)
+		delete motion_vector[i];
+
+	delete motion;
+
+	return 0;
+}
+
+unsigned int MultipleMotionExportTest() {
+	std::vector<std::string> file_names;
+	std::string folder_name = "C:\\Users\\quentin\\Documents\\Programmation\\C++\\MLA\\Data\\Bvh\\Tetetest\\";
+	Mla::Utility::readDirectory(folder_name, file_names);
+
+	for (std::vector<std::string>::iterator it = file_names.begin(); it != file_names.end(); it++) {
+		std::cout << "Processing " << *it << std::endl;
+		OneMotionExportTest(folder_name, *it);
+	}
+		
 	return 0;
 }
 
