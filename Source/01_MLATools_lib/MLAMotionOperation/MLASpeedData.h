@@ -16,16 +16,15 @@ MLASpeedData.h
 #include <string>
 
 #include "MLAMotion/MLAMotion.h"
-#include "MLAMotionOperation/MLAMotionOperation.h"
 
 class SpeedData {
 
 	private:
-		struct MLABodySpeed {
+		struct BodySpeed {
 			// Time at which the values are computed
 			double m_time;
 			// Set of speed values for each joint at time m_time
-			std::map<std::string, double> m_speedSet;
+			std::map<std::string, double> m_speed_set;
 		};
 
 	public:
@@ -38,8 +37,6 @@ class SpeedData {
 
 		bool getJointSpeedVector(const std::string& joint_name, std::vector<double>& speed_vector) const;
 		bool getSpeedSetVector(std::vector<std::map<std::string, double>>& speed_set) const;
-		
-		void motionSpeedComputing(Motion* motion);
 
 		const unsigned int getNbInterval() const;
 		const double getIntervalTime() const;
@@ -49,7 +46,7 @@ class SpeedData {
 
 	private:
 		// Set of speed and corresponding time, for each joint for the whole motion
-		std::vector<MLABodySpeed> m_speed_data; 
+		std::vector<BodySpeed> m_speed_data;
 		
 		// Number of interval desired (??? The motion should dictate the number of interval)
 		unsigned int m_interval_number;
