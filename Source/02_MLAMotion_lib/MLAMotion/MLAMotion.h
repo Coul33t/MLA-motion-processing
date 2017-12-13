@@ -14,9 +14,18 @@ Character.h
 
 #include "MLAFrame.h"
 
+struct MotionInformation {
+	std::string motion_name;
+	double frame_time;
+	int frame_number;
+	std::string root_name;
+
+};
+
 class Motion {
 
 public:
+
 	Motion();
 	~Motion();
 	Motion(const Motion& motion);
@@ -35,6 +44,8 @@ public:
 	const std::vector<Frame*> getFrames(unsigned int beg, unsigned int end);
 	Frame* getFrame(unsigned int idx) const;
 
+	MotionInformation getMotionInformation();
+
 	void addFrame(Frame* frame);
 
 private:
@@ -42,6 +53,7 @@ private:
 	double m_frame_time;
 	Frame* m_offset_frame;
 	std::vector<Frame*> m_frames;
+
 };
 
 #endif //__MLA_MOTION_H__

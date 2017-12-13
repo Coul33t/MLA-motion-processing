@@ -68,3 +68,12 @@ Frame* Motion::getFrame(unsigned int idx) const {
 		return m_frames[idx];
 	return 0;
 }
+
+MotionInformation Motion::getMotionInformation() {
+	MotionInformation motion_info;
+	motion_info.motion_name = m_motion_name;
+	motion_info.frame_number = m_frames.size();
+	motion_info.frame_time = m_frame_time;
+	motion_info.root_name = m_frames[0]->getRoot()->getName();
+	return motion_info;
+}
