@@ -33,7 +33,7 @@ namespace Mla {
 
 		@return interpolatedFrame the interpolated frame
 		*/
-		Frame* interpolateFrame(Frame* f1, Frame* f2, double mix_factor) {
+		Frame* interpolateFrame (Frame* f1, Frame* f2, double mix_factor) {
 
 			Frame* interpolated_frame = new Frame();
 
@@ -45,6 +45,10 @@ namespace Mla {
 				if (f1->getJoint(i)->getParent() != nullptr) {
 					new_joint->setParent(interpolated_frame->getJoint(f1->getJoint(i)->getParent()->getName()));
 					new_joint->getParent()->addChild(new_joint);
+				}
+
+				else {
+					interpolated_frame->setRoot(new_joint);
 				}
 
 				interpolated_frame->insertJoint(new_joint);
@@ -94,7 +98,7 @@ namespace Mla {
 
 		@return speedVector the angular speed of joints
 		*/
-		void jointsAngularSpeed(std::map<std::string, double>& ang_speed_vector, Frame* f1, Frame* f2, double frame_time) {
+		void jointsAngularSpeed (std::map<std::string, double>& ang_speed_vector, Frame* f1, Frame* f2, double frame_time) {
 			
 			Frame* global_frame_1 = f1->duplicateFrame();
 			Frame* global_frame_2 = f2->duplicateFrame();
@@ -194,26 +198,17 @@ namespace Mla {
 		/** Recursively transforms initial joints (and its childs) local coordinates to global coordinates.
 
 		@param local_frame the initial frame (local coordinates)
-		@param global_frame the (intially full) frame containing global coordinates
+		@param global_frame the (intially a copy of the local frame) frame containing global coordinates
 		@param current_joint the joint currently being processed (from the local_frame)
+		@param global_mat the modelview matrix (first call: identity matrix)
 		*/
-		void getGlobalCoordinates(Frame* local_frame, Frame* global_frame, Joint* current_joint, glm::dmat4 global_mat) {
+		void getGlobalCoordinates (Frame* local_frame, Frame* global_frame, Joint* current_joint, glm::dmat4 global_mat) {
 
-			if(!current_joint->getParent()) {
-				global_mat = glm::translate(global_mat, current_joint->getPositions());
-				global_mat *= glm::mat4_cast(current_joint->getOrientations());
+			global_mat = glm::translate(global_mat, current_joint->getPositions());
+			global_mat *= glm::mat4_cast(current_joint->getOrientations());
 
-				global_frame->getJoint(current_joint->getName())->setPositions(glm::dvec3(global_mat[3][0], global_mat[3][1], global_mat[3][2]));
-				global_frame->getJoint(current_joint->getName())->setOrientations(glm::dvec3(0,0,0));
-			}
-
-			else {
-				global_mat = glm::translate(global_mat, current_joint->getPositions());
-				global_mat *= glm::mat4_cast(current_joint->getOrientations());
-
-				global_frame->getJoint(current_joint->getName())->setPositions(glm::dvec3(global_mat[3][0], global_mat[3][1], global_mat[3][2]));
-				global_frame->getJoint(current_joint->getName())->setOrientations(glm::dvec3(0, 0, 0));
-			}
+			global_frame->getJoint(current_joint->getName())->setPositions(glm::dvec3(global_mat[3][0], global_mat[3][1], global_mat[3][2]));
+			global_frame->getJoint(current_joint->getName())->setOrientations(glm::dvec3(0, 0, 0));
 
 			for (unsigned int i = 0; i < current_joint->getChilds().size(); i++) {
 				getGlobalCoordinates(local_frame, global_frame, current_joint->getChilds()[i], global_mat);
@@ -278,7 +273,11 @@ namespace Mla {
 			if (direction < 0)
 				idx = data.size() - 1;
 
-			while (idx > -1 && idx < data.size() && last_value < data[idx]) {
+			// Why static_cast<int>(data.size())?
+			// unsigned int i = 1;
+			// int j = -1;
+			// (i < j) -> false	(see https://stackoverflow.com/questions/5416414/signed-unsigned-comparisons)
+			while (idx > -1 && idx < static_cast<int>(data.size()) && last_value < data[idx]) {
 				last_value = data[idx];
 				idx += direction;
 			}
@@ -315,7 +314,7 @@ namespace Mla {
 			if (direction < 0)
 				idx = data.size() - 1;
 
-			while (idx > -1 && idx < data.size() && last_value > data[idx]) {
+			while (idx > -1 && idx < static_cast<int>(data.size()) && last_value > data[idx]) {
 				last_value = data[idx];
 				idx += direction;
 			}
@@ -332,7 +331,7 @@ namespace Mla {
 		@param interframe_time the interframe time
 		@param cut_times the output vector, with a pair of (begin, end) for each segment of the motion
 		*/
-		void FindIndexSeparation(std::vector<double>& data, unsigned int left_cut, unsigned int right_cut, std::vector<std::pair<int, int>>& cut_times) {
+		void FindIndexSeparation (std::vector<double>& data, unsigned int left_cut, unsigned int right_cut, std::vector<std::pair<int, int>>& cut_times) {
 			// Pair: idx begin, idx end
 			std::pair<unsigned int, unsigned int> cut_time;
 
@@ -363,14 +362,20 @@ namespace Mla {
 				if (local_max == 0) {
 					std::cout << "Warning: last left cut (" << i + 1 << "/" << left_cut << ") is halved (cause: beginning of signal)" << std::endl;
 					cut_time.first = local_max;
+					cut_times.insert(cut_times.begin(), cut_time);
 					break;
 				}
-
+				
 				sub_vector = std::vector<double>(data.begin(), data.begin() + local_max);
 
 				cut_time.first = getLocalMinimum(sub_vector, -1);
 				// We insert it at the beginning
 				cut_times.insert(cut_times.begin(), cut_time);
+
+				if (cut_time.first == 0) {
+					std::cout << "Warning: last left cut at " << i + 1 << "/" << left_cut << " (cause: beginning of signal)" << std::endl;
+					break;
+				}
 			}
 
 
@@ -390,9 +395,10 @@ namespace Mla {
 
 				// If we're at the end of the signal, then there's nothing
 				// to the right, so there's no more right cut
-				if (local_max == sub_vector.size() + cut_time.first - 1) {
+				if (local_max == static_cast<int>(sub_vector.size() + cut_time.first - 1)) {
 					std::cout << "Warning: last right cut (" << i + 1 << "/" << right_cut << ") is halved (cause: end of signal)" << std::endl;
 					cut_time.second = local_max;
+					cut_times.push_back(cut_time);
 					break;
 				}
 
@@ -400,6 +406,12 @@ namespace Mla {
 
 				cut_time.second = getLocalMinimum(sub_vector, +1) + local_max;
 				cut_times.push_back(cut_time);
+
+				if (cut_time.second == static_cast<int>(sub_vector.size() + cut_time.first - 1)) {
+					std::cout << "Warning: last right cut at " << i + 1 << "/" << left_cut << " (cause: end of signal)" << std::endl;
+					break;
+				}
+
 			}
 		}
 
@@ -420,7 +432,7 @@ namespace Mla {
 			// First, we copy the name and the offset frame
 			new_motion->setName(original_motion->getName());
 
-			frame_to_insert = original_motion->getOffsetFrame();
+			frame_to_insert = original_motion->getOffsetFrame()->duplicateFrame();
 			new_motion->setOffsetFrame(frame_to_insert);
 
 
@@ -455,13 +467,14 @@ namespace Mla {
 		@param motion_segments The different segments returned
 
 		*/
-		void MotionSegmentation (Motion* initial_motion, int left_cut, int right_cut, int savgol_window_size, int savgol_polynom_order, int frame_number_cut, std::vector<Motion*>& motion_segments) {
+		void MotionSegmentation(Motion* initial_motion, SegmentationInformation& seg_info, std::vector<Motion*>& motion_segments) {
 			Motion* sub_motion = nullptr;
 
 			SpeedData speed_data(initial_motion->getFrames().size() - 1, 
 								 initial_motion->getFrameTime(), 
-								 initial_motion->getFrames().size(),
-								 initial_motion);
+								 initial_motion->getFrames().size());
+
+			motionSpeedComputing(initial_motion, speed_data);
 
 			// Used to segment the motion, JOINT_OF_INTEREST = " LeftHand " is used atm
 			// because it's the hand used to throw the bottle, thus the joint with the
@@ -473,12 +486,12 @@ namespace Mla {
 			std::vector<double> savgoled;
 
 			// hand_lin_speed -> accessor class
-			Mla::Filters::Savgol(savgoled, hand_lin_speed, savgol_polynom_order, savgol_window_size);
+			Mla::Filters::Savgol(savgoled, hand_lin_speed, seg_info.savgol_polynom_order, seg_info.savgol_window_size);
 
 			// Finding the separation indexes
 			std::vector<std::pair<int, int>> separation_indexes;
 
-			Mla::MotionOperation::FindIndexSeparation(savgoled, left_cut, right_cut, separation_indexes);
+			Mla::MotionOperation::FindIndexSeparation(savgoled, seg_info.left_cut, seg_info.right_cut, separation_indexes);
 
 			// Creating the new submotions
 			for (unsigned int i = 0; i < separation_indexes.size(); i++) {
@@ -494,11 +507,48 @@ namespace Mla {
 				}
 
 				Motion* cut_motion = new Motion();
-				Mla::MotionOperation::motionRebuilding(sub_motion, cut_motion, frame_number_cut);
+				// reconstruct the motion
+				Mla::MotionOperation::motionRebuilding(sub_motion, cut_motion, seg_info.final_frame_number);
 
 				delete sub_motion;
 
 				motion_segments.push_back(cut_motion);
+			}
+
+		}
+
+		/** Compute the speed of the joints for a whole motion.
+
+		@param motion the motion
+		*/
+		void motionSpeedComputing(Motion* motion, SpeedData& speed_data) {
+			std::map<std::string, double> lin_speed;
+
+			for (unsigned int i = 0; i < motion->getFrames().size() - 1; i++) {
+				lin_speed.clear();
+				Mla::MotionOperation::jointsLinearSpeed(lin_speed, motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime());
+				speed_data.addFrameSpeed(lin_speed, i * speed_data.getIntervalTime());
+			}
+		}
+
+		/** Compute the speed data for all segments of a motion.
+
+		@param motion_segments The segmented motion
+		@param speed_data_vector The returned speed data corresponding to the motion's segments
+		
+		*/
+		void ComputeSpeedData(std::vector<Motion*>& motion_segments, std::vector<SpeedData>& speed_data_vector) {
+			
+			speed_data_vector.clear();
+
+			for (std::vector<Motion*>::iterator it = motion_segments.begin(); it != motion_segments.end(); it++) {
+				SpeedData speed_data((*it)->getFrames().size() - 1,
+									 (*it)->getFrameTime(),
+									 (*it)->getFrames().size());
+
+				motionSpeedComputing((*it), speed_data);
+
+				speed_data_vector.push_back(speed_data);
 			}
 		}
 

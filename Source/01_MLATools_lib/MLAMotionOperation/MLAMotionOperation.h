@@ -23,6 +23,14 @@ MotionOperation.h
 
 #define JOINT_OF_INTEREST "LeftHand"
 
+struct SegmentationInformation {
+	int left_cut;
+	int right_cut;
+	int savgol_window_size;
+	int savgol_polynom_order;
+	int final_frame_number;
+};
+
 namespace Mla {
 	namespace MotionOperation {
 
@@ -43,7 +51,11 @@ namespace Mla {
 
 		void FindIndexSeparation(std::vector<double>&, unsigned int, unsigned int, std::vector<std::pair<int, int>>&);
 
-		void MotionSegmentation(Motion*, int, int, int, int, int, std::vector<Motion*>&);
+		void MotionSegmentation(Motion*, SegmentationInformation&, std::vector<Motion*>&);
+
+		void motionSpeedComputing(Motion*, SpeedData&);
+
+		void ComputeSpeedData(std::vector<Motion*>&, std::vector<SpeedData>&);
 
 		void motionRebuilding(Motion*, Motion*, unsigned int);
 
