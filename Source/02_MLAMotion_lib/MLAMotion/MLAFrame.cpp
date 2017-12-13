@@ -34,13 +34,20 @@ void Frame::insertJoint(Joint* joint) {
 	m_names[joint->getName()] = m_joints.size()-1; 
 }
 
+Joint* Frame::getRoot() const {
+	return m_root;
+}
+
+void Frame::setRoot(Joint* root) {
+	m_root = root;
+}
 
 Joint* Frame::getJoint(const std::string& joint_name) {
 	if (m_names.count(joint_name) != 0) {
 		return m_joints[m_names[joint_name]];
 	}
 	else {
-		return 0;
+		return nullptr;
 	}
 }
 
@@ -49,7 +56,7 @@ Joint* Frame::getJoint(const unsigned int idx) {
 		return m_joints[idx];
 	}
 	else {
-		return 0;
+		return nullptr;
 	}
 }
 
@@ -67,12 +74,18 @@ Frame* Frame::duplicateFrame() {
 	for (unsigned int i = 0; i < m_joints.size(); i++) {
 		Joint* new_joint = new Joint(*m_joints[i]);
 
-		new_joint->setParent(0);
+		new_joint->setParent(nullptr);
 
+		// If the original joint has at least a parent
 		if (this->getJoints()[i]->getParent()) {
 			std::string parentName = m_joints[i]->getParent()->getName();
 			new_joint->setParent(copied_frame->getJoint(parentName));
 			new_joint->getParent()->addChild(new_joint);
+		}
+
+		// else, it's the root
+		else {
+			copied_frame->setRoot(new_joint);
 		}
 
 		copied_frame->insertJoint(new_joint);
