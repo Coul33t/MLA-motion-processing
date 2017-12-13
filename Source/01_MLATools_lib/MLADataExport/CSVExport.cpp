@@ -12,18 +12,18 @@ namespace Mla {
 		@return bool success of file opening
 
 		*/
-		bool ExportData(const std::map<std::string, double>& data, const std::string& motion_name, const std::string& folder, const std::string& name) {
+		bool ExportData(const std::map<std::string, double>& data, const std::string& folder_name, const std::string& subfolder_name, const std::string& file_name) {
 			// 2 times, because the function can only create a directory, not the potential subdirectories.
-			if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + motion_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
+			if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + folder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
 
-				if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + motion_name + "\\" + folder).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
+				if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + folder_name + "\\" + subfolder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
 					std::ofstream outfile;
 
 					// Wipe any pre-existing file.
-					outfile.open("../../../Data/Speed/" + motion_name + "/" + folder + "/" + name + ".csv", std::ios::out);
+					outfile.open("../../../Data/Speed/" + folder_name + "/" + subfolder_name + "/" + file_name + ".csv", std::ios::out);
 					outfile.close();
 
-					outfile.open("../../../Data/Speed/" + motion_name + "/" + folder + "/" + name + ".csv", std::ios::out | std::ios::app);
+					outfile.open("../../../Data/Speed/" + folder_name + "/" + subfolder_name + "/" + file_name + ".csv", std::ios::out | std::ios::app);
 
 					if (!outfile.fail()) {
 
@@ -36,37 +36,37 @@ namespace Mla {
 					}
 
 					else {
-						std::cout << "Failed to open file " + name + ".csv" << std::endl;
+						std::cout << "Failed to open file " + file_name + ".csv" << std::endl;
 						return false;
 					}
 				}
 
 				else {
-					std::cout << "Failed to create the folder " + folder << std::endl;
+					std::cout << "Failed to create the subfolder_name " + subfolder_name << std::endl;
 					return false;
 				}
 			}
 
 			else {
-				std::cout << "Failed to create the folder " + motion_name << std::endl;
+				std::cout << "Failed to create the subfolder_name " + folder_name << std::endl;
 				return false;
 			}
 
 
 		}
 
-		bool ExportData(const std::vector<double>& data, const std::string& motion_name, const std::string& folder, const std::string& name) {
+		bool ExportData(const std::vector<double>& data, const std::string& folder_name, const std::string& subfolder_name, const std::string& file_name) {
 			// 2 times, because the function can only create a directory, not the potential subdirectories.
-			if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + motion_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
+			if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + folder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
 
-				if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + motion_name + "\\" + folder).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
+				if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + folder_name + "\\" + subfolder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
 					std::ofstream outfile;
 
 					// Wipe any pre-existing file.
-					outfile.open("../../../Data/Speed/" + motion_name + "/" + folder + "/" + name + ".csv", std::ios::out);
+					outfile.open("../../../Data/Speed/" + folder_name + "/" + subfolder_name + "/" + file_name + ".csv", std::ios::out);
 					outfile.close();
 
-					outfile.open("../../../Data/Speed/" + motion_name + "/" + folder + "/" + name + ".csv", std::ios::out | std::ios::app);
+					outfile.open("../../../Data/Speed/" + folder_name + "/" + subfolder_name + "/" + file_name + ".csv", std::ios::out | std::ios::app);
 
 					if (!outfile.fail()) {
 
@@ -79,37 +79,37 @@ namespace Mla {
 					}
 
 					else {
-						std::cout << "Failed to open file " + name + ".csv" << std::endl;
+						std::cout << "Failed to open file " + file_name + ".csv" << std::endl;
 						return false;
 					}
 				}
 
 				else {
-					std::cout << "Failed to create the folder " + folder << std::endl;
+					std::cout << "Failed to create the subfolder_name " + subfolder_name << std::endl;
 					return false;
 				}
 			}
 
 			else {
-				std::cout << "Failed to create the folder " + motion_name << std::endl;
+				std::cout << "Failed to create the subfolder_name " + folder_name << std::endl;
 				return false;
 			}
 
 
 		}
 
-		bool ExportData(const std::vector<std::pair<int, int>>& data, const std::string& motion_name, const std::string& folder, const std::string& name) {
+		bool ExportData(const std::vector<std::pair<int, int>>& data, const std::string& folder_name, const std::string& subfolder_name, const std::string& file_name) {
 			// 2 times, because the function can only create a directory, not the potential subdirectories.
-			if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + motion_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
+			if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + folder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
 
-				if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + motion_name + "\\" + folder).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
+				if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + folder_name + "\\" + subfolder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
 					std::ofstream outfile;
 
 					// Wipe any pre-existing file.
-					outfile.open("../../../Data/Speed/" + motion_name + "/" + folder + "/" + name + ".csv", std::ios::out);
+					outfile.open("../../../Data/Speed/" + folder_name + "/" + subfolder_name + "/" + file_name + ".csv", std::ios::out);
 					outfile.close();
 
-					outfile.open("../../../Data/Speed/" + motion_name + "/" + folder + "/" + name + ".csv", std::ios::out | std::ios::app);
+					outfile.open("../../../Data/Speed/" + folder_name + "/" + subfolder_name + "/" + file_name + ".csv", std::ios::out | std::ios::app);
 
 					if (!outfile.fail()) {
 
@@ -122,35 +122,35 @@ namespace Mla {
 					}
 
 					else {
-						std::cout << "Failed to open file " + name + ".csv" << std::endl;
+						std::cout << "Failed to open file " + file_name + ".csv" << std::endl;
 						return false;
 					}
 				}
 
 				else {
-					std::cout << "Failed to create the folder " + folder << std::endl;
+					std::cout << "Failed to create the subfolder_name " + subfolder_name << std::endl;
 					return false;
 				}
 			}
 
 			else {
-				std::cout << "Failed to create the folder " + motion_name << std::endl;
+				std::cout << "Failed to create the folder name " + folder_name << std::endl;
 				return false;
 			}
 		}
 
-		bool ExportData(Frame* const frame, const std::string& motion_name, const std::string& folder, const std::string& name) {
+		bool ExportData(Frame* const frame, const std::string& folder_name, const std::string& subfolder_name, const std::string& file_name) {
 			// 2 times, because the function can only create a directory, not the potential subdirectories.
-			if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + motion_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
+			if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + folder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
 
-				if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + motion_name + "\\" + folder).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
+				if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + folder_name + "\\" + subfolder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
 					std::ofstream outfile;
 
 					// Wipe any pre-existing file.
-					outfile.open("../../../Data/Speed/" + motion_name + "/" + folder + "/" + name + ".csv", std::ios::out);
+					outfile.open("../../../Data/Speed/" + folder_name + "/" + subfolder_name + "/" + file_name + ".csv", std::ios::out);
 					outfile.close();
 
-					outfile.open("../../../Data/Speed/" + motion_name + "/" + folder + "/" + name + ".csv", std::ios::out | std::ios::app);
+					outfile.open("../../../Data/Speed/" + folder_name + "/" + subfolder_name + "/" + file_name + ".csv", std::ios::out | std::ios::app);
 
 					if (!outfile.fail()) {
 
@@ -169,19 +169,114 @@ namespace Mla {
 					}
 
 					else {
-						std::cout << "Failed to open file " + name + ".csv" << std::endl;
+						std::cout << "Failed to open file " + file_name + ".csv" << std::endl;
 						return false;
 					}
 				}
 
 				else {
-					std::cout << "Failed to create the folder " + folder << std::endl;
+					std::cout << "Failed to create the subfolder_name " + subfolder_name << std::endl;
 					return false;
 				}
 			}
 
 			else {
-				std::cout << "Failed to create the folder " + motion_name << std::endl;
+				std::cout << "Failed to create the subfolder_name " + folder_name << std::endl;
+				return false;
+			}
+		}
+
+		bool ExportData(const SpeedData& data, const std::string& folder_name, const std::string& subfolder_name, const std::string& file_name) {
+			
+			std::vector<std::map<std::string, double>> speed_set;
+			
+			data.getSpeedSetVector(speed_set);
+			
+			for (unsigned int i = 0; i < speed_set.size(); i++) {
+				ExportData(speed_set[i], folder_name, subfolder_name, file_name + std::to_string(i));
+			}
+
+			return true;
+		}
+
+		bool ExportData(const std::vector<SpeedData>& data, const MotionInformation& motion_info, const SegmentationInformation& seg_info, const std::string& folder_name, const std::string& subfolder_name, const std::string& file_name) {
+			
+			ExportMotionInformations(motion_info, folder_name, "motion_information");
+			ExportMotionSegmentationInformations(seg_info, folder_name, "segmentation_information");
+
+			for (unsigned int i = 0; i < data.size(); i++) {
+				ExportData(data[i], folder_name, subfolder_name + std::to_string(i), file_name);
+			}
+
+			return true;
+		}
+
+		bool ExportMotionSegmentationInformations(const SegmentationInformation& seg_motion_info, const std::string& folder_name, const std::string& file_name) {
+			if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + folder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
+
+				std::ofstream outfile;
+
+				// Wipe any pre-existing file.
+				outfile.open("../../../Data/Speed/" + folder_name + "/" + file_name + ".json", std::ios::out);
+				outfile.close();
+
+				outfile.open("../../../Data/Speed/" + folder_name + "/" + file_name + ".json", std::ios::out | std::ios::app);
+
+				if (!outfile.fail()) {
+					outfile << "{\n";
+					outfile << "\t\"desired left cut number\": " << seg_motion_info.left_cut << ",\n";
+					outfile << "\t\"desired right cut number\": " << seg_motion_info.right_cut << ",\n";
+					outfile << "\t\"final frame number\": " << seg_motion_info.final_frame_number << ",\n";
+					outfile << "\t\"savgol\": {\n";
+					outfile << "\t\t\"window size\": " << seg_motion_info.savgol_window_size << ",\n";
+					outfile << "\t\t\"polynom order\": " << seg_motion_info.savgol_polynom_order << "\n";
+					outfile << "\t}\n";
+					outfile << "}";
+					outfile.close();
+					return true;
+				}
+
+				else {
+					std::cout << "Failed to open file " + file_name + ".json" << std::endl;
+					return false;
+				}
+			}
+
+			else {
+				std::cout << "Failed to create the folder " + folder_name << std::endl;
+				return false;
+			}
+		}
+
+		bool ExportMotionInformations(const MotionInformation& motion_info, const std::string& folder_name, const std::string& file_name) {
+			if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + folder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
+				std::ofstream outfile;
+
+				// Wipe any pre-existing file.
+				outfile.open("../../../Data/Speed/" + folder_name + "/" + file_name + ".json", std::ios::out);
+				outfile.close();
+
+				outfile.open("../../../Data/Speed/" + folder_name + "/" + file_name + ".json", std::ios::out | std::ios::app);
+
+				if (!outfile.fail()) {
+					outfile << "{\n";
+					outfile << "\t\"motion name\": \"" << motion_info.motion_name << "\",\n";
+					outfile << "\t\"frame number\": " << motion_info.frame_number << ",\n";
+					outfile << "\t\"interframe time\": " << motion_info.frame_time << ",\n";
+					outfile << "\t\"root name\": \"" << motion_info.root_name << "\"\n";
+					outfile << "}";
+					outfile.close();
+					return true;
+				}
+
+				else {
+					std::cout << "Failed to open file " + file_name + ".json" << std::endl;
+					return false;
+				}
+			}
+
+			else {
+				std::cout << "Failed to create the folder " + folder_name << std::endl;
 				return false;
 			}
 		}
