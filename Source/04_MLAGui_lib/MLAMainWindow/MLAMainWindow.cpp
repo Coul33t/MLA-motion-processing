@@ -201,6 +201,14 @@ void MainWindow::MainLoop(Motion* motion) {
 		// If the neuron is not connected
 		if (!neuron_connected) {
 			if (display_type == 0) {
+				// GLOBAL CODE -------------------------------------
+				/*Frame* global_frame = new Frame();
+				global_frame = motion->getFrame(1)->duplicateFrame();
+				glm::dmat4 mat = glm::mat4(1.0);
+				Mla::MotionOperation::getGlobalCoordinates(motion->getFrame(1), global_frame, motion->getFrame(1)->getJoint("Hips"), mat);			
+				Mla::FrameRender::DrawFromGlobal(global_frame, m_projection, m_modelview, m_shader);*/
+				// --------------------------------------------------
+
 				Mla::FrameRender::RenderFrame(motion->getFrame(1), m_projection, m_modelview, m_shader);
 			}
 
@@ -214,6 +222,13 @@ void MainWindow::MainLoop(Motion* motion) {
 
 				Frame* interpolated_frame = nullptr;
 				interpolated_frame = Mla::MotionOperation::interpolateFrame(motion->getFrame(base_frame), motion->getFrame(base_frame + 1), mix_factor);
+				// GLOBAL CODE -------------------------------------
+				/*Frame* global_frame = new Frame();
+				global_frame = interpolated_frame->duplicateFrame();
+				glm::dmat4 mat = glm::mat4(1.0);
+				Mla::MotionOperation::getGlobalCoordinates(interpolated_frame, global_frame, interpolated_frame->getJoint("Hips"), mat);
+				Mla::FrameRender::DrawFromGlobal(global_frame, m_projection, m_modelview, m_shader);*/
+				// --------------------------------------------------
 				Mla::FrameRender::RenderFrame(interpolated_frame,
 										      m_projection, 
 										      m_modelview, 
@@ -221,6 +236,7 @@ void MainWindow::MainLoop(Motion* motion) {
 
 				
 				delete interpolated_frame;
+				//delete global_frame;
 			}
 		}
 		

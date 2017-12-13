@@ -108,11 +108,17 @@ namespace Mla {
 				current_joint->setName(joint_list.back());
 				current_joint->setPositions(glm::dvec3(tmp_offsets[0], tmp_offsets[1], tmp_offsets[2]));
 				current_joint->setOrientations(glm::quat());
-				current_joint->setParent(0);
+				current_joint->setParent(nullptr);
 
+				// If it has parents, we add them
 				if (parent != "NONE") {
 					current_joint->setParent(initial_frame->getJoint(parent));
 					initial_frame->getJoint(parent)->addChild(current_joint);
+				}
+
+				// Else, it's the root
+				else {
+					initial_frame->setRoot(current_joint);
 				}
 
 				initial_frame->insertJoint(current_joint);

@@ -87,7 +87,7 @@ namespace Mla {
 			for (unsigned int j = 0; j < frame->getJoints().size(); j++) {
 
 				// If it's the root
-				if (!frame->getJoint(j)->getParent()) {
+				if (frame->getJoint(j) == frame->getRoot()) {
 					saved_modelview = glm::translate(saved_modelview, frame->getJoint(j)->getPositions());
 
 					// We slerp them, transform into a matrix and we do the rotation
