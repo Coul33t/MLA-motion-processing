@@ -12,6 +12,8 @@ Utility.h
 #include "MLAMotion\MLAMotion.h"
 #include <numeric> // std::accumulate
 
+#include <Windows.h> //readDirectory
+
 namespace Mla {
 	namespace Utility {
 
@@ -24,6 +26,8 @@ namespace Mla {
 
 		template <typename T>
 		std::pair<T, int> getMinValue(std::vector<T>&);
+
+		void readDirectory(const std::string&, std::vector<std::string>&);
 
 	};
 };
