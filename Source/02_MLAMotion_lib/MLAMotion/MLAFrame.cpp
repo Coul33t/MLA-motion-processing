@@ -12,12 +12,10 @@ Frame::~Frame() {
 
 Frame::Frame(const Frame& frame) {
 	m_joints = frame.m_joints;
-	m_names = frame.m_names;
 }
 
 Frame& Frame::operator=(const Frame& frame) {
 	m_joints = frame.m_joints;
-	m_names = frame.m_names;
 	return *this;
 }
 
@@ -31,7 +29,6 @@ const std::vector<Joint*>& Frame::getJoints() const {
 
 void Frame::insertJoint(Joint* joint) {
 	m_joints.push_back(joint);
-	m_names[joint->getName()] = m_joints.size()-1; 
 }
 
 Joint* Frame::getRoot() const {
@@ -43,8 +40,9 @@ void Frame::setRoot(Joint* root) {
 }
 
 Joint* Frame::getJoint(const std::string& joint_name) {
-	if (m_names.count(joint_name) != 0) {
-		return m_joints[m_names[joint_name]];
+	auto it = find_if(m_joints.begin(), m_joints.end(), [&joint_name](const Joint* obj) {return obj->getName() == joint_name; });
+	if (it != m_joints.end()) {
+		return *it;
 	}
 	else {
 		return nullptr;
@@ -58,14 +56,6 @@ Joint* Frame::getJoint(const unsigned int idx) {
 	else {
 		return nullptr;
 	}
-}
-
-void Frame::setNames(const std::map<std::string, unsigned int>& names) {
-	m_names = names;
-}
-
-const std::map<std::string, unsigned int>& Frame::getNames() const {
-	return m_names;
 }
 
 Frame* Frame::duplicateFrame() {

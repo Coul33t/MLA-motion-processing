@@ -33,16 +33,12 @@ public:
 	Joint* getRoot() const;
 	void setRoot(Joint*);
 
-	void setNames(const std::map<std::string, unsigned int>&);
-	const std::map<std::string, unsigned int>& getNames() const;
-
 	Frame* duplicateFrame();
 
 private:
 	std::vector<Joint*> m_joints;
 	// A pointer poiting to the root (in m_joints)
 	Joint* m_root;
-	std::map<std::string, unsigned int> m_names;
 };
 
 #endif //__MLA_FRAME_H__
