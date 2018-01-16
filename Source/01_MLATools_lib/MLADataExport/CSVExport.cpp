@@ -210,7 +210,7 @@ namespace Mla {
 
 			return true;
 		}
-
+		//TODO: move to json
 		bool ExportMotionSegmentationInformations(const SegmentationInformation& seg_motion_info, const std::string& folder_name, const std::string& file_name) {
 			if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + folder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
 
@@ -227,6 +227,7 @@ namespace Mla {
 					outfile << "\t\"desired left cut number\": " << seg_motion_info.left_cut << ",\n";
 					outfile << "\t\"desired right cut number\": " << seg_motion_info.right_cut << ",\n";
 					outfile << "\t\"final frame number\": " << seg_motion_info.final_frame_number << ",\n";
+					outfile << "\t\"final interframe time\": " << seg_motion_info.final_interframe_time << ",\n";
 					outfile << "\t\"savgol\": {\n";
 					outfile << "\t\t\"window size\": " << seg_motion_info.savgol_window_size << ",\n";
 					outfile << "\t\t\"polynom order\": " << seg_motion_info.savgol_polynom_order << "\n";
@@ -248,6 +249,7 @@ namespace Mla {
 			}
 		}
 
+		//TODO: move to json
 		bool ExportMotionInformations(const MotionInformation& motion_info, const std::string& folder_name, const std::string& file_name) {
 			if (CreateDirectory(("..\\..\\..\\Data\\Speed\\" + folder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS) {
 				std::ofstream outfile;
@@ -286,11 +288,11 @@ namespace Mla {
 			struct stat info;
 
 			if (stat(pathname.c_str(), &info) != 0)
-				printf("cannot access %s\n", pathname);
+				std::cout << "cannot access " << pathname << std::endl;
 			else if (info.st_mode & S_IFDIR)  // S_ISDIR() doesn't exist on my windows 
-				printf("%s is a directory\n", pathname);
+				std::cout << pathname << " is a directory" << std::endl;
 			else
-				printf("%s is no directory\n", pathname);
+				std::cout << pathname << " is no directory" << std::endl;
 		}
 
 	}

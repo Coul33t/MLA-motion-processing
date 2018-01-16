@@ -9,7 +9,7 @@ Utility.h
 #ifndef __MLA_UTILITY_H__
 #define __MLA_UTILITY_H__
 
-#include "MLAMotion\MLAMotion.h"
+#include "MLAMotion/MLAMotion.h"
 #include <numeric> // std::accumulate
 
 #include <Windows.h> //readDirectory

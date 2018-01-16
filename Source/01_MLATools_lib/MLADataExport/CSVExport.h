@@ -1,5 +1,5 @@
-#ifndef __MLA_CSV_EXPORT__
-#define __MLA_CSV_EXPORT__
+#ifndef __MLA_CSV_EXPORT_H__
+#define __MLA_CSV_EXPORT_H__
 
 #include "MLACommonInclude.h"
 #include "MLAMotion_lib.h"
@@ -28,4 +28,4 @@ namespace Mla {
 	};
 };
 
-#endif //__MLA_CSV_EXPORT__
+#endif //__MLA_CSV_EXPORT_H__
