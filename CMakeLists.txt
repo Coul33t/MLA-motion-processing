@@ -13,7 +13,7 @@
 
 
 # define minimum cmake version
-cmake_minimum_required(VERSION 2.8.0)
+cmake_minimum_required(VERSION 3.6.2)
 
 # Our project is called 'MLA' this is how it will be called in
 # visual studio, and in our makefiles. 
@@ -22,6 +22,9 @@ PROJECT(MLA)
 
 # Create verbose makefiles if on.
 SET(CMAKE_VERBOSE_MAKEFILE False)
+
+# Set the target for generating (MSVC12 -> VS2013, MSVC15 -> VS2017)
+SET(MSVC_VERSION 15)
 
 ##---------------------------------------------------------------------------
 # Set build type
@@ -140,15 +143,19 @@ endif((LINUX_OS) OR (APPLE_OS))
 
 IF(WIN_OS)
 
-    if (NOT(MSVC12))
-        message(FATAL_ERROR "Error: project valid only for Visual studio 2013 version, please reconfigure CmakeLists.txt" )
-    endif(NOT(MSVC12))
+    # TODO: find how to do it now
+    # IF (NOT(MSVC12) OR NOT(MSVC15))
+    #     message(FATAL_ERROR "Error: project valid only for Visual studio 2013 or 2017 version, please reconfigure CmakeLists.txt" )
+    # endif(NOT(MSVC12) OR NOT(MSVC15))
     
 
-    IF (MSVC12)
+    IF (MSVC_VERSION EQUAL 12)
         SET(CMAKE_VERSION_VISUAL_STUDIO_NAME "Visual Studio 12 2013")
-    ENDIF (MSVC12)
+    ENDIF (MSVC_VERSION EQUAL 12)
 
+    IF (MSVC_VERSION EQUAL 15)
+        SET(CMAKE_VERSION_VISUAL_STUDIO_NAME "Visual Studio 15 2017")
+    ENDIF (MSVC_VERSION EQUAL 15) 
     
 
     SET(WIN_IDE_ARCH 0)
@@ -169,9 +176,13 @@ IF(WIN_OS)
         message(FATAL_ERROR "Error: the following Visual Studio architecture is unknown: ${CMAKE_GENERATOR}")
 
     ELSE(NOT (WIN_IDE_ARCH))    
-        IF(MSVC12)
+        IF(MSVC_VERSION EQUAL 12)
             MESSAGE(STATUS "Configuration: Visual Studio 2013")
-        ENDIF(MSVC12)
+        ENDIF(MSVC_VERSION EQUAL 12)
+
+        IF(MSVC_VERSION EQUAL 15)
+            MESSAGE(STATUS "Configuration: Visual Studio 2017")
+        ENDIF(MSVC_VERSION EQUAL 15)
 
     ENDIF(NOT (WIN_IDE_ARCH))
 
@@ -180,7 +191,7 @@ ENDIF(WIN_OS)
 
 
 # Manually specifies the build architecture: 32 (please type "x86") or 64 (please type "x64") bits.
-#SET(CMAKE_ARCHITECTURE_TYPE x86)
+SET(CMAKE_ARCHITECTURE_TYPE x86)
 
 
 ##---------------------------------------------------------------------------
@@ -243,7 +254,6 @@ IF(WIN_OS)
     #-------------------------------------
     # GLEW
     #-------------------------------------  
-
     SET(GLEW_INCLUDE_DIR        ${MLA_SOURCE_DIR}/ThirdParty/Windows/Glew/include)
     SET(GLEW_LIBRARIES_DIR      ${MLA_SOURCE_DIR}/ThirdParty/Windows/Glew/lib)
 
@@ -269,6 +279,12 @@ IF(WIN_OS)
 
 
     #-------------------------------------
+    # JSON
+    #-------------------------------------
+    SET(JSON_INCLUDE_DIR         ${MLA_SOURCE_DIR}/ThirdParty/CrossPlatform/json)
+
+
+    #-------------------------------------
     # LIBS
     #-------------------------------------  
     
@@ -287,10 +303,8 @@ IF(WIN_OS)
         SET(NEURON_DYNAMIC_LIB      ${MLA_SOURCE_DIR}/ThirdParty/Windows/NeuronDataReaderSDK/lib/x86/NeuronDataReader.dll)
 
 
-        IF(MSVC12)
-            ADD_DEFINITIONS(-D_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH)
-            ADD_DEFINITIONS(/W4)
-        ENDIF(MSVC12)       
+        ADD_DEFINITIONS(-D_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH)
+        ADD_DEFINITIONS(/W4)       
     
     ENDIF(CMAKE_ARCHITECTURE_TYPE STREQUAL "x86" )
 
