@@ -10,6 +10,14 @@ SpeedData::~SpeedData() {
 }
 
 
+std::vector<std::map<std::string, double>> SpeedData::getAllValues() {
+	std::vector<std::map<std::string, double>> to_return = std::vector<std::map<std::string, double>>();
+
+	for (std::vector<BodySpeed>::const_iterator it = m_speed_data.begin(); it != m_speed_data.end(); ++it)
+		to_return.push_back(it->m_speed_set);
+
+	return to_return;
+}
 /** Returns a couple of speed and time, at a designated index.
 
 	@param jointName the name of the joint

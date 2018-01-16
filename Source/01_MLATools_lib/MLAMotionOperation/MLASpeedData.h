@@ -2,7 +2,7 @@
 Class for the speed data.
 MLASpeedData.h
 
-@author Quentin Couland
+@author Ludovic Hamon & Quentin Couland
 @version 0.1
 
 */
@@ -31,6 +31,8 @@ class SpeedData {
 		SpeedData(const unsigned int interval_number, const double interframe_time, const unsigned int nb_frame);
 		SpeedData(const unsigned int interval_number, const double interframe_time, const unsigned int nb_frame, Motion* motion);
 		~SpeedData();
+
+		std::vector<std::map<std::string, double>> getAllValues();
 
 		bool getJointSpeedAndTime(const std::string& joint_name, const unsigned int index, std::pair<double, double>& speed_time) const;
 		bool getJointSpeedAndTimeVector(const std::string& joint_name, std::vector<std::pair<double, double>>& speed_time_vector) const;
