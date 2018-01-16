@@ -14,12 +14,19 @@ unsigned int ReconstructTest();
 unsigned int copyFrameTest();
 unsigned int SegmentTest();
 unsigned int SpeedDataTest();
-unsigned int OneMotionExportTest(std::string, std::string);
+unsigned int OneMotionExportTest(std::string&, std::string&);
 unsigned int MultipleMotionExportTest();
+unsigned int DataClassTest(std::string&, std::string&);
+unsigned int FullDataTest();
+
 unsigned int MemoryLeakChaser();
 
 int main(int argc, char *argv[]) {
-	MultipleMotionExportTest();
+	//MultipleMotionExportTest();
+	//std::string folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/";
+	//std::string file = "Guillaume_1_Char00.bvh";
+	//DataClassTest(folder, file);
+	FullDataTest();
 	/*std::cout << std::endl << "Press any key to quit...";
 	std::cin.get();*/
 	return 0;
@@ -123,12 +130,12 @@ unsigned int ProcessCut() {
 			meanLinSpeedInter.clear();
 			Mla::MotionOperation::MeanLinearSpeed(meanLinSpeedInter, motion, cut);
 
-			for (unsigned int i = 0; i < meanLinSpeedInter.size(); i++) {
-				std::string Name = "lin_mean_" + std::to_string(i);
+			for (unsigned int j = 0; j < meanLinSpeedInter.size(); j++) {
+				std::string Name = "lin_mean_" + std::to_string(j);
 				std::string Folder = "lin_mean_" + std::to_string(cut) + "_cut\\";
 
 				//CSVExport::EraseFolderContent(MLA_INPUT_BVH_PATH + motion->getName() + "/lin_mean/");
-				Mla::CsvExport::ExportData(meanLinSpeedInter[i], motion->getName(), Folder, Name);
+				Mla::CsvExport::ExportData(meanLinSpeedInter[j], motion->getName(), Folder, Name);
 			}
 		}
 
@@ -173,12 +180,12 @@ unsigned int ProcessClassic() {
 			meanLinSpeedInter.clear();
 			Mla::MotionOperation::MeanLinearSpeed(meanLinSpeedInter, motion, cut);
 
-			for (unsigned int i = 0; i < meanLinSpeedInter.size(); i++) {
-				std::string Name = "lin_mean_" + std::to_string(i);
+			for (unsigned int j = 0; j < meanLinSpeedInter.size(); j++) {
+				std::string Name = "lin_mean_" + std::to_string(j);
 				std::string Folder = "lin_mean_" + std::to_string(cut) + "_cut\\";
 
 				//csvexport::EraseFolderContent(MLA_INPUT_BVH_PATH + motion->getName() + "/lin_mean/");
-				Mla::CsvExport::ExportData(meanLinSpeedInter[i], motion->getName(), Folder, Name);
+				Mla::CsvExport::ExportData(meanLinSpeedInter[j], motion->getName(), Folder, Name);
 			}
 		}
 
@@ -458,6 +465,8 @@ unsigned int copyFrameTest() {
 
 	Frame* copied_frame = motion->getFrame(2)->duplicateFrame();
 
+	delete copied_frame;
+
 	return 0;
 }
 
@@ -507,7 +516,7 @@ unsigned int SpeedDataTest() {
 	return 0;
 }
 
-unsigned int OneMotionExportTest(std::string motion_folder_name, std::string motion_name) {
+unsigned int OneMotionExportTest(std::string& motion_folder_name, std::string& motion_name) {
 	Motion* motion = nullptr;
 
 	motion = Mla::BvhParser::parseBvh(motion_folder_name, motion_name);
@@ -524,12 +533,14 @@ unsigned int OneMotionExportTest(std::string motion_folder_name, std::string mot
 	std::vector<Motion*> motion_vector;
 
 	SegmentationInformation seg_info = {
-		2,	// left cut
-		2,  // right cut
+		0,	// left cut
+		0,  // right cut
 		51, // window size
 		3,  // polynom order
 		20, // final frame number
 	};
+
+	seg_info.final_interframe_time = motion->getFrames().size() * motion->getFrameTime() / static_cast<double>(seg_info.final_frame_number - 1);
 
 	Mla::MotionOperation::MotionSegmentation(motion, seg_info, motion_vector);	
 
@@ -538,7 +549,7 @@ unsigned int OneMotionExportTest(std::string motion_folder_name, std::string mot
 	Mla::MotionOperation::ComputeSpeedData(motion_vector, speed_data_set);
 
 	// Name of the motion (Damien_2_Char00_SEGMENTED)
-	std::string folder_name = motion_name.std::string::substr(0, motion_name.size() - 4) + "_SEGMENTED_TEEEEEEEEEST";
+	std::string folder_name = motion_name.std::string::substr(0, motion_name.size() - 4) + "_BATCH_TEST";
 	// Name of the segmentation (NB_SEG_X)
 	std::string subfolder_name = "NB_SEG_";
 	// Name of the lin_speed file (lin_speed_x)
@@ -556,7 +567,7 @@ unsigned int OneMotionExportTest(std::string motion_folder_name, std::string mot
 
 unsigned int MultipleMotionExportTest() {
 	std::vector<std::string> file_names;
-	std::string folder_name = "C:\\Users\\quentin\\Documents\\Programmation\\C++\\MLA\\Data\\Bvh\\Tetetest\\";
+	std::string folder_name = "C:\\Users\\quentin\\Documents\\Programmation\\C++\\MLA\\Data\\Bvh\\batch_test_Guillaume\\";
 	Mla::Utility::readDirectory(folder_name, file_names);
 
 	for (std::vector<std::string>::iterator it = file_names.begin(); it != file_names.end(); it++) {
@@ -564,6 +575,85 @@ unsigned int MultipleMotionExportTest() {
 		OneMotionExportTest(folder_name, *it);
 	}
 		
+	return 0;
+}
+
+// Be careful: 0 cut is hardcoded here
+unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_name) {
+	Motion* motion = nullptr;
+
+	motion = Mla::BvhParser::parseBvh(motion_folder_name, motion_name);
+
+	if (motion == nullptr) {
+		std::cout << "Error reading motion (make sure the name and folder are correct)." << std::endl;
+		std::cout << "File name: " << motion_name << std::endl;
+		std::cout << "Folder name: " << motion_folder_name << std::endl;
+		return 1;
+	}
+
+	Mla::MotionOperation::motionFiltering(motion);
+
+	std::vector<Motion*> motion_vector;
+
+	SegmentationInformation seg_info = {
+		0,	// left cut
+		0,  // right cut
+		51, // window size
+		3,  // polynom order
+		20, // final frame number
+	};
+
+	seg_info.final_interframe_time = motion->getFrames().size() * motion->getFrameTime() / static_cast<double>(seg_info.final_frame_number - 1);
+
+	Mla::MotionOperation::MotionSegmentation(motion, seg_info, motion_vector);
+
+	std::vector<SpeedData> speed_data_set;
+
+	Mla::MotionOperation::ComputeSpeedData(motion_vector, speed_data_set);
+
+	// Name of the motion (Damien_2_Char00_SEGMENTED)
+	std::string folder_name = motion_name.std::string::substr(0, motion_name.size() - 4) + "_JSON_BATCH_TEST";
+	// Name of the segmentation (NB_SEG_X)
+	std::string subfolder_name = "NB_SEG_";
+	// Name of the lin_speed file (lin_speed_x)
+	std::string file_name = "data";
+
+	Mla::CsvExport::ExportMotionInformations(motion->getMotionInformation(), folder_name, "motion_information");
+	Mla::CsvExport::ExportMotionSegmentationInformations(seg_info, folder_name, "segmentation_information");
+
+	Data data;
+	data.insertNewData("Speed", speed_data_set[0].getAllValues());
+
+	speed_data_set.clear();
+	Mla::MotionOperation::ComputeSpeedAxis(motion_vector, speed_data_set, std::string("x"));
+	data.insertNewData("Speedx", speed_data_set[0].getAllValues());
+	speed_data_set.clear();
+	Mla::MotionOperation::ComputeSpeedAxis(motion_vector, speed_data_set, std::string("y"));
+	data.insertNewData("Speedy", speed_data_set[0].getAllValues());
+	speed_data_set.clear();
+	Mla::MotionOperation::ComputeSpeedAxis(motion_vector, speed_data_set, std::string("z"));
+	data.insertNewData("Speedz", speed_data_set[0].getAllValues());
+	
+	Mla::JsonExport::ExportData(data, folder_name, subfolder_name, file_name);
+
+	for (unsigned int i = 0; i < motion_vector.size(); i++)
+		delete motion_vector[i];
+
+	delete motion;
+
+	return 0;
+}
+
+unsigned int FullDataTest() {
+	std::vector<std::string> file_names;
+	std::string folder_name = "C:\\Users\\quentin\\Documents\\Programmation\\C++\\MLA\\Data\\Bvh\\batch_test_Guillaume\\";
+	Mla::Utility::readDirectory(folder_name, file_names);
+
+	for (std::vector<std::string>::iterator it = file_names.begin(); it != file_names.end(); it++) {
+		std::cout << "Processing " << *it << std::endl;
+		DataClassTest(folder_name, *it);
+	}
+
 	return 0;
 }
 

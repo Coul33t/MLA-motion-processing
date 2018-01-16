@@ -39,9 +39,16 @@ int main(int argc, char *argv[]) {
 	Mla::MotionOperation::motionFiltering(motion);
 
 	/*std::vector<Motion*> seg_motion;
-	Mla::MotionOperation::MotionSegmentation(motion, 2, 2, 51, 3, 20, seg_motion);
+	SegmentationInformation seg_info = {
+		2,	// left cut
+		2,  // right cut
+		51, // window size
+		3,  // polynom order
+		20, // final frame number
+	};
+	Mla::MotionOperation::MotionSegmentation(motion, seg_info, seg_motion);
 
-	window.MainLoop(seg_motion[2]);*/
+	window.MainLoop(seg_motion[0]);*/
 	window.MainLoop(motion);
 
 	/*std::cout << "Press any key to quit...";
