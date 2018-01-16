@@ -21,7 +21,9 @@ MotionOperation.h
 // are not accurate.
 #define EPSILON 0.00001
 
-#define JOINT_OF_INTEREST "LeftHand"
+// TODO: automatically find the joint
+//       with the highest speed
+#define JOINT_OF_INTEREST "RightHand"
 
 struct SegmentationInformation {
 	int left_cut;
@@ -29,6 +31,7 @@ struct SegmentationInformation {
 	int savgol_window_size;
 	int savgol_polynom_order;
 	int final_frame_number;
+	double final_interframe_time;
 };
 
 namespace Mla {
@@ -38,9 +41,11 @@ namespace Mla {
 		Frame* interpolateFrame(Frame*, Frame*, double);
 
 		void jointsLinearSpeed(std::map<std::string, double>&, Frame*, Frame*, double);
-		void jointAngularSpeed(std::map<std::string, double>&, Frame*, Frame*, double);
+		void jointsLinearSpeedAxis(std::map<std::string, double>&, Frame*, Frame*, double, std::string&);
+		void jointsAngularSpeed(std::map<std::string, double>&, Frame*, Frame*, double);
 
 		void MeanLinearSpeed(std::vector<std::map<std::string, double>>&, Motion*, unsigned int);
+		void MeanLinearSpeedAxis(std::vector<std::map<std::string, double>>&, Motion*, unsigned int, std::string&);
 		Frame* getFrameFromTime(Motion*, double, double);
 
 		void getGlobalCoordinates(Frame*, Frame*, Joint*, glm::dmat4);
@@ -54,8 +59,10 @@ namespace Mla {
 		void MotionSegmentation(Motion*, SegmentationInformation&, std::vector<Motion*>&);
 
 		void motionSpeedComputing(Motion*, SpeedData&);
+		void motionSpeedAxisComputing(Motion*, SpeedData&, std::string&);
 
 		void ComputeSpeedData(std::vector<Motion*>&, std::vector<SpeedData>&);
+		void ComputeSpeedAxis(std::vector<Motion*>&, std::vector<SpeedData>&, std::string&);
 
 		void motionRebuilding(Motion*, Motion*, unsigned int);
 

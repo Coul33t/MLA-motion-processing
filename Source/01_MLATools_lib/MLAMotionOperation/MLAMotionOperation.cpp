@@ -90,6 +90,45 @@ namespace Mla {
 
 		}
 
+		/** Compute the speed (along an axis) of the joints between 2 frames.
+
+		@param f1 the first frame
+		@param f2 the second frame
+		@param framTime the interframe time
+
+		@return speedVector the linear speed of joints
+		*/
+		void jointsLinearSpeedAxis (std::map<std::string, double>& lin_speed_vector, Frame* f1, Frame* f2, double frame_time, std::string& axis) {
+
+			Frame* global_frame_1 = f1->duplicateFrame();
+			Frame* global_frame_2 = f2->duplicateFrame();
+
+			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
+
+			double linear_speed;
+
+			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+				glm::dvec3 v1 = global_frame_1->getJoint(j)->getPositions();
+				glm::dvec3 v2 = global_frame_2->getJoint(j)->getPositions();
+
+				// dx / dt -> cm / s
+				// dx / (dt * 100) -> m / s
+				if (axis == "x")
+					linear_speed = (v2.x - v1.x) / (frame_time * 100);
+				else if (axis == "y")
+					linear_speed = (v2.y - v1.y) / (frame_time * 100);
+				else if (axis == "z")
+					linear_speed = (v2.z - v1.z) / (frame_time * 100);
+
+				lin_speed_vector.insert(std::pair<std::string,double>(global_frame_1->getJoint(j)->getName(), linear_speed));
+			}
+
+			delete global_frame_1;
+			delete global_frame_2;
+
+		}
+
 		/** Compute the speed of the joints between 2 frames.
 
 		@param f1 the first frame
@@ -161,6 +200,43 @@ namespace Mla {
 			}
 		}
 
+		/** Compute the mean speed (on the 3 axis) on given intervals for the full motion between two frames, with skeleton interpolation.
+
+		@param motion the motion
+		@param n the number of interval
+
+		@return meanLinSpeed A vector containing the mean speed (on the 3 axis) for each joint on the frames, for each interval
+		*/
+		void MeanLinearSpeedAxis (std::vector<std::map<std::string, double>>& mean_lin_speed_inter, Motion* motion, unsigned int n, std::string& axis) {
+
+			Frame* beg_frame = nullptr;
+			Frame* end_frame = nullptr;
+
+			double frame_time = motion->getFrameTime();
+
+			double total_time = motion->getFrames().size() * frame_time;
+
+			double interval = total_time / static_cast<float>(n);
+
+			double first_frame_time = 0;
+			double end_frame_time = interval;
+
+			for (unsigned int i = 0; i < n; i++) {
+				beg_frame = getFrameFromTime(motion, first_frame_time, frame_time);
+				end_frame = getFrameFromTime(motion, end_frame_time, frame_time);
+
+				std::map<std::string, double> lin_speed_vector;
+				jointsLinearSpeedAxis(lin_speed_vector, beg_frame, end_frame, motion->getFrameTime(), axis);
+				mean_lin_speed_inter.push_back(lin_speed_vector);
+
+				first_frame_time = end_frame_time;
+				end_frame_time += interval;
+
+				delete beg_frame;
+				delete end_frame;
+			}
+		}
+		
 		/** Return an interpolated frame from a motion, and a time
 
 		@param motion the motion from which the frame will be interpolated
@@ -467,7 +543,7 @@ namespace Mla {
 		@param motion_segments The different segments returned
 
 		*/
-		void MotionSegmentation(Motion* initial_motion, SegmentationInformation& seg_info, std::vector<Motion*>& motion_segments) {
+		void MotionSegmentation (Motion* initial_motion, SegmentationInformation& seg_info, std::vector<Motion*>& motion_segments) {
 			Motion* sub_motion = nullptr;
 
 			SpeedData speed_data(initial_motion->getFrames().size() - 1, 
@@ -521,12 +597,27 @@ namespace Mla {
 
 		@param motion the motion
 		*/
-		void motionSpeedComputing(Motion* motion, SpeedData& speed_data) {
+		void motionSpeedComputing (Motion* motion, SpeedData& speed_data) {
 			std::map<std::string, double> lin_speed;
 
 			for (unsigned int i = 0; i < motion->getFrames().size() - 1; i++) {
 				lin_speed.clear();
 				Mla::MotionOperation::jointsLinearSpeed(lin_speed, motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime());
+				speed_data.addFrameSpeed(lin_speed, i * speed_data.getIntervalTime());
+			}
+		}
+		
+		/** Compute the speed of the joints (on 1 axis) for a whole motion.
+
+		@param motion the motion
+		@param axis The axis on which to compute the speed
+		*/
+		void motionSpeedComputingAxis (Motion* motion, SpeedData& speed_data, std::string& axis) {
+			std::map<std::string, double> lin_speed;
+
+			for (unsigned int i = 0; i < motion->getFrames().size() - 1; i++) {
+				lin_speed.clear();
+				Mla::MotionOperation::jointsLinearSpeedAxis(lin_speed, motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime(), axis);
 				speed_data.addFrameSpeed(lin_speed, i * speed_data.getIntervalTime());
 			}
 		}
@@ -537,7 +628,7 @@ namespace Mla {
 		@param speed_data_vector The returned speed data corresponding to the motion's segments
 		
 		*/
-		void ComputeSpeedData(std::vector<Motion*>& motion_segments, std::vector<SpeedData>& speed_data_vector) {
+		void ComputeSpeedData (std::vector<Motion*>& motion_segments, std::vector<SpeedData>& speed_data_vector) {
 			
 			speed_data_vector.clear();
 
@@ -552,11 +643,33 @@ namespace Mla {
 			}
 		}
 
+		/** Compute the speed data (on 1 axis) for all segments of a motion.
+
+		@param motion_segments The segmented motion
+		@param speed_data_vector The returned speed data corresponding to the motion's segments
+		@param axis The axis on which to compute the speed
+
+		*/
+		void ComputeSpeedAxis (std::vector<Motion*>& motion_segments, std::vector<SpeedData>& speed_data_vector, std::string& axis) {
+			
+			speed_data_vector.clear();
+
+			for (std::vector<Motion*>::iterator it = motion_segments.begin(); it != motion_segments.end(); it++) {
+				SpeedData speed_data((*it)->getFrames().size() - 1,
+					(*it)->getFrameTime(),
+					(*it)->getFrames().size());
+
+				motionSpeedComputingAxis((*it), speed_data, axis);
+
+				speed_data_vector.push_back(speed_data);
+			}
+		}
+
 		/** Filter a motion, by eliminating position variations.
 
 		@param motion the motion to be filtered
 		*/
-		void motionFiltering(Motion* motion) {
+		void motionFiltering (Motion* motion) {
 			// j = 1 because the first frame is the reference
 			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
 				// j = 1 because the root actually has position information
