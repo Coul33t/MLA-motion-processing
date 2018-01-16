@@ -11,6 +11,7 @@ project(MLA_app)
         ${GLEW_INCLUDE_DIR}
         ${GLM_INCLUDE_DIR}
         ${NEURON_INCLUDE_DIR}
+        ${JSON_INCLUDE_DIR}
     )
 
     LINK_DIRECTORIES(

@@ -14,6 +14,7 @@ project(MLA_compute)
         ${GLEW_INCLUDE_DIR}
         ${GLM_INCLUDE_DIR}
         ${NEURON_INCLUDE_DIR}
+        ${JSON_INCLUDE_DIR}
     )
 
     LINK_DIRECTORIES(
