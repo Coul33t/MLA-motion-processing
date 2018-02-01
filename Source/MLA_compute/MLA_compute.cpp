@@ -1,6 +1,10 @@
 #include "MLA.h"
 #include <algorithm>
 
+// TODO: automatically find the joint
+//       with the highest speed
+#define JOINT_OF_INTEREST "RightHand"
+
 unsigned int LinearSpeed();
 unsigned int MotionCut(int n);
 unsigned int ProcessCut();
@@ -17,6 +21,8 @@ unsigned int SpeedDataTest();
 unsigned int OneMotionExportTest(std::string&, std::string&);
 unsigned int MultipleMotionExportTest();
 unsigned int DataClassTest(std::string&, std::string&);
+unsigned int JESAISPASQUOITEST();
+unsigned int GlmFunctionsTest();
 unsigned int FullDataTest();
 
 unsigned int MemoryLeakChaser();
@@ -26,7 +32,10 @@ int main(int argc, char *argv[]) {
 	//std::string folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/";
 	//std::string file = "Guillaume_1_Char00.bvh";
 	//DataClassTest(folder, file);
+
 	FullDataTest();
+
+	//GlmFunctionsTest();
 	/*std::cout << std::endl << "Press any key to quit...";
 	std::cin.get();*/
 	return 0;
@@ -353,7 +362,7 @@ unsigned int SegmentTest() {
 		20, // final frame number
 	};
 
-	Mla::MotionOperation::MotionSegmentation(motion, seg_info, motion_vector);
+	Mla::MotionOperation::MotionSegmentation(motion, seg_info, motion_vector, JOINT_OF_INTEREST);
 
 	for (unsigned int i = 0; i < motion_vector.size(); i++) {
 		for (unsigned int j = 0; j < motion_vector[i]->getFrames().size(); j++) {
@@ -487,7 +496,7 @@ unsigned int SpeedDataTest() {
 		20, // final frame number
 	};
 
-	Mla::MotionOperation::MotionSegmentation(motion, seg_info, motion_vector);
+	Mla::MotionOperation::MotionSegmentation(motion, seg_info, motion_vector, JOINT_OF_INTEREST);
 
 	// To macro
 	std::string subfolder_name = "SUBFOLDER_NONE";
@@ -542,7 +551,7 @@ unsigned int OneMotionExportTest(std::string& motion_folder_name, std::string& m
 
 	seg_info.final_interframe_time = motion->getFrames().size() * motion->getFrameTime() / static_cast<double>(seg_info.final_frame_number - 1);
 
-	Mla::MotionOperation::MotionSegmentation(motion, seg_info, motion_vector);	
+	Mla::MotionOperation::MotionSegmentation(motion, seg_info, motion_vector, JOINT_OF_INTEREST);
 
 	std::vector<SpeedData> speed_data_set;
 
@@ -578,7 +587,8 @@ unsigned int MultipleMotionExportTest() {
 	return 0;
 }
 
-// Be careful: 0 cut is hardcoded here
+// Be careful: 0 cut is hardcoded here (data.insertNewData("Speedx", speed_data_set[0].getAllValues());)
+//                                                                         here
 unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_name) {
 	Motion* motion = nullptr;
 
@@ -605,18 +615,18 @@ unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_
 
 	seg_info.final_interframe_time = motion->getFrames().size() * motion->getFrameTime() / static_cast<double>(seg_info.final_frame_number - 1);
 
-	Mla::MotionOperation::MotionSegmentation(motion, seg_info, motion_vector);
+	Mla::MotionOperation::MotionSegmentation(motion, seg_info, motion_vector, JOINT_OF_INTEREST);
 
 	std::vector<SpeedData> speed_data_set;
 
 	Mla::MotionOperation::ComputeSpeedData(motion_vector, speed_data_set);
 
-	// Name of the motion (Damien_2_Char00_SEGMENTED)
+	// Name of the motion (-4, so that '.bvh' is erased)
 	std::string folder_name = motion_name.std::string::substr(0, motion_name.size() - 4) + "_JSON_BATCH_TEST";
-	// Name of the segmentation (NB_SEG_X)
-	std::string subfolder_name = "NB_SEG_";
-	// Name of the lin_speed file (lin_speed_x)
-	std::string file_name = "data";
+	// Name of the segmentation (NB_SEG_X) HARDCODED FOR THE MOMENT
+	std::string subfolder_name = "NB_SEG_0";
+	// Name of the lin_speed file (-4, so that '.bvh' is erased)
+	std::string file_name = motion_name.std::string::substr(0, motion_name.size() - 4);
 
 	Mla::CsvExport::ExportMotionInformations(motion->getMotionInformation(), folder_name, "motion_information");
 	Mla::CsvExport::ExportMotionSegmentationInformations(seg_info, folder_name, "segmentation_information");
@@ -625,15 +635,19 @@ unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_
 	data.insertNewData("Speed", speed_data_set[0].getAllValues());
 
 	speed_data_set.clear();
-	Mla::MotionOperation::ComputeSpeedAxis(motion_vector, speed_data_set, std::string("x"));
+	Mla::MotionOperation::ComputeSpeedAxis(motion_vector, speed_data_set, "x", true);
 	data.insertNewData("Speedx", speed_data_set[0].getAllValues());
 	speed_data_set.clear();
-	Mla::MotionOperation::ComputeSpeedAxis(motion_vector, speed_data_set, std::string("y"));
+	Mla::MotionOperation::ComputeSpeedAxis(motion_vector, speed_data_set, "y", true);
 	data.insertNewData("Speedy", speed_data_set[0].getAllValues());
 	speed_data_set.clear();
-	Mla::MotionOperation::ComputeSpeedAxis(motion_vector, speed_data_set, std::string("z"));
+	Mla::MotionOperation::ComputeSpeedAxis(motion_vector, speed_data_set, "z", true);
 	data.insertNewData("Speedz", speed_data_set[0].getAllValues());
 	
+	std::vector<std::map<std::string, double>> values;
+	Mla::MotionOperation::JESAISPASQUOI(motion, seg_info, JOINT_OF_INTEREST, values);
+	data.insertNewData("DiffSpeed", values);
+
 	Mla::JsonExport::ExportData(data, folder_name, subfolder_name, file_name);
 
 	for (unsigned int i = 0; i < motion_vector.size(); i++)
@@ -653,6 +667,51 @@ unsigned int FullDataTest() {
 		std::cout << "Processing " << *it << std::endl;
 		DataClassTest(folder_name, *it);
 	}
+
+	return 0;
+}
+
+unsigned int JESAISPASQUOITEST() {
+	
+	Motion* motion = nullptr;
+
+	std::string motion_name = "Guillaume_1_Char00.bvh";
+	std::string motion_folder_name = "C:\\Users\\quentin\\Documents\\Programmation\\C++\\MLA\\Data\\Bvh\\batch_test_Guillaume\\";
+
+	motion = Mla::BvhParser::parseBvh(motion_folder_name, motion_name);
+
+	if (motion == nullptr) {
+		std::cout << "Error reading motion (make sure the name and folder are correct)." << std::endl;
+		std::cout << "File name: " << motion_name << std::endl;
+		std::cout << "Folder name: " << motion_folder_name << std::endl;
+		return 1;
+	}
+
+	Mla::MotionOperation::motionFiltering(motion);
+
+	std::vector<Motion*> motion_vector;
+
+	SegmentationInformation seg_info = {
+		0,	// left cut
+		0,  // right cut
+		51, // window size
+		3,  // polynom order
+		20, // final frame number
+	};
+
+	seg_info.final_interframe_time = motion->getFrames().size() * motion->getFrameTime() / static_cast<double>(seg_info.final_frame_number - 1);
+
+	std::vector<std::map<std::string, double>> values;
+
+	Mla::MotionOperation::JESAISPASQUOI(motion, seg_info, JOINT_OF_INTEREST, values);
+}
+
+unsigned int GlmFunctionsTest() {
+	glm::dvec3 vec(10, 5, 2);
+	glm::dvec3 normalised = glm::normalize(vec);
+	std::cout << "Distance: " << glm::distance(glm::dvec3(0, 0, 0), vec) << std::endl;
+	std::cout << "Original vec\nx: " << vec.x << "\ny: " << vec.y << "\nz: " << vec.z << std::endl;
+	std::cout << "Normalised vec\nx: " << normalised.x << "\ny: " << normalised.y << "\nz: " << normalised.z << std::endl;
 
 	return 0;
 }
