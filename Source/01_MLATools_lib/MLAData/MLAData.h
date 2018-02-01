@@ -24,7 +24,7 @@ class Data {
 		Data();
 		Data(const std::string&);
 		Data(const std::string&, std::vector<std::map<std::string, double>>&);
-		void insertNewData(const std::string&, std::vector<std::map<std::string, double>>&);
+		void insertNewData(const std::string&, const std::vector<std::map<std::string, double>>&);
 
 		std::vector<DataType>& getData();
 

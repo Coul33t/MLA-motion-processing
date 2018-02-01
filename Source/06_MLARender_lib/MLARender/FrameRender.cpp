@@ -46,7 +46,7 @@ namespace Mla {
 
 			*/
 			void DisplayPoint(Shader &shader, glm::dmat4 &projection, glm::dmat4 &modelview, const double *point, const double *point_color) {
-				glPointSize(10);
+				glPointSize(5);
 				glUseProgram(shader.getProgramID());
 
 				glVertexAttribPointer(0, 3, GL_DOUBLE, GL_FALSE, 0, point);

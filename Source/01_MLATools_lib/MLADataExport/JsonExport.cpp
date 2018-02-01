@@ -41,7 +41,7 @@ namespace Mla {
 			outfile.open("../../../Data/Speed/" + folder_name + "/" + subfolder_name + "/" + file_name + ".json", std::ios::out | std::ios::app);
 
 			if (outfile.fail()) {
-				std::cout << "Failed to open file " + file_name + ".csv" << std::endl;
+				std::cout << "Failed to open file " + file_name + ".json" << std::endl;
 				return false;
 			}
 			outfile << json_file;

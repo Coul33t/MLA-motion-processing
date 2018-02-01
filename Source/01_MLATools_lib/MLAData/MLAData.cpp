@@ -15,7 +15,7 @@ Data::Data(const std::string& name, std::vector<std::map<std::string, double>>& 
 	insertNewData(name, values);
 }
 
-void Data::insertNewData(const std::string& name, std::vector<std::map<std::string, double>>& values) {
+void Data::insertNewData(const std::string& name, const std::vector<std::map<std::string, double>>& values) {
 	DataType dataT;
 	dataT.name = name;
 	dataT.values = values;
