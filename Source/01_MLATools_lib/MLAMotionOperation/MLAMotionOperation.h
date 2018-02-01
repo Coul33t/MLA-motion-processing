@@ -21,10 +21,6 @@ MotionOperation.h
 // are not accurate.
 #define EPSILON 0.00001
 
-// TODO: automatically find the joint
-//       with the highest speed
-#define JOINT_OF_INTEREST "RightHand"
-
 struct SegmentationInformation {
 	int left_cut;
 	int right_cut;
@@ -41,11 +37,11 @@ namespace Mla {
 		Frame* interpolateFrame(Frame*, Frame*, double);
 
 		void jointsLinearSpeed(std::map<std::string, double>&, Frame*, Frame*, double);
-		void jointsLinearSpeedAxis(std::map<std::string, double>&, Frame*, Frame*, double, std::string&);
+		void jointsLinearSpeedAxis(std::map<std::string, double>&, Frame*, Frame*, double, const std::string&, bool);
 		void jointsAngularSpeed(std::map<std::string, double>&, Frame*, Frame*, double);
 
 		void MeanLinearSpeed(std::vector<std::map<std::string, double>>&, Motion*, unsigned int);
-		void MeanLinearSpeedAxis(std::vector<std::map<std::string, double>>&, Motion*, unsigned int, std::string&);
+		void MeanLinearSpeedAxis(std::vector<std::map<std::string, double>>&, Motion*, unsigned int, const std::string&, bool);
 		Frame* getFrameFromTime(Motion*, double, double);
 
 		void getGlobalCoordinates(Frame*, Frame*, Joint*, glm::dmat4);
@@ -56,13 +52,16 @@ namespace Mla {
 
 		void FindIndexSeparation(std::vector<double>&, unsigned int, unsigned int, std::vector<std::pair<int, int>>&);
 
-		void MotionSegmentation(Motion*, SegmentationInformation&, std::vector<Motion*>&);
+		void MotionSegmentation(Motion*, SegmentationInformation&, std::vector<Motion*>&, const std::string&);
+
+		//TODO: obviously, rename it
+		void JESAISPASQUOI(Motion*, SegmentationInformation&, const std::string&, std::vector<std::map<std::string, double>>&);
 
 		void motionSpeedComputing(Motion*, SpeedData&);
-		void motionSpeedAxisComputing(Motion*, SpeedData&, std::string&);
+		void motionSpeedAxisComputing(Motion*, SpeedData&, const std::string&, bool);
 
 		void ComputeSpeedData(std::vector<Motion*>&, std::vector<SpeedData>&);
-		void ComputeSpeedAxis(std::vector<Motion*>&, std::vector<SpeedData>&, std::string&);
+		void ComputeSpeedAxis(std::vector<Motion*>&, std::vector<SpeedData>&, const std::string&, bool);
 
 		void motionRebuilding(Motion*, Motion*, unsigned int);
 
