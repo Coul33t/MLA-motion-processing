@@ -18,6 +18,18 @@ std::vector<std::map<std::string, double>> SpeedData::getAllValues() {
 
 	return to_return;
 }
+
+double SpeedData::getJointSpeed(const std::string& joint_name, const unsigned int index) const {
+	
+	if (index < m_speed_data.size()) {	
+		std::map<std::string, double>::const_iterator iter = m_speed_data[index].m_speed_set.find(joint_name);
+
+		if (iter != m_speed_data[index].m_speed_set.end()) {
+			return iter->second;
+		}
+	}
+}
+
 /** Returns a couple of speed and time, at a designated index.
 
 	@param jointName the name of the joint
