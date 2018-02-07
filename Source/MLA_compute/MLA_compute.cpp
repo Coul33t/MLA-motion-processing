@@ -3,7 +3,7 @@
 
 // TODO: automatically find the joint
 //       with the highest speed
-#define JOINT_OF_INTEREST "RightHand"
+#define JOINT_OF_INTEREST "LeftHand"
 
 unsigned int LinearSpeed();
 unsigned int MotionCut(int n);
@@ -628,8 +628,8 @@ unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_
 	// Name of the lin_speed file (-4, so that '.bvh' is erased)
 	std::string file_name = motion_name.std::string::substr(0, motion_name.size() - 4);
 
-	Mla::CsvExport::ExportMotionInformations(motion->getMotionInformation(), folder_name, "motion_information");
-	Mla::CsvExport::ExportMotionSegmentationInformations(seg_info, folder_name, "segmentation_information");
+	Mla::JsonExport::ExportMotionInformations(motion->getMotionInformation(), folder_name, "motion_information");
+	Mla::JsonExport::ExportMotionSegmentationInformations(seg_info, folder_name, "segmentation_information");
 
 	Data data;
 	data.insertNewData("Speed", speed_data_set[0].getAllValues());
@@ -660,7 +660,7 @@ unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_
 
 unsigned int FullDataTest() {
 	std::vector<std::string> file_names;
-	std::string folder_name = "C:\\Users\\quentin\\Documents\\Programmation\\C++\\MLA\\Data\\Bvh\\batch_test_Guillaume\\";
+	std::string folder_name = "C:\\Users\\quentin\\Documents\\Programmation\\C++\\MLA\\Data\\Bvh\\batch_test_Damien\\";
 	Mla::Utility::readDirectory(folder_name, file_names);
 
 	for (std::vector<std::string>::iterator it = file_names.begin(); it != file_names.end(); it++) {

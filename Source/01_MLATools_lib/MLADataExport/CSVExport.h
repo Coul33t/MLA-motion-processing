@@ -21,9 +21,6 @@ namespace Mla {
 		bool ExportData(const SpeedData&, const std::string& = "DEFAULT_MOTION_NAME", const std::string& = "", const std::string& = "default");
 		bool ExportData(const std::vector<SpeedData>&, const MotionInformation&, const SegmentationInformation&, const std::string& = "DEFAULT_MOTION_NAME", const std::string& = "", const std::string& = "default");
 		
-		bool ExportMotionSegmentationInformations(const SegmentationInformation&, const std::string& = "DEFAULT_MOTION_NAME", const std::string& = "default");
-		bool ExportMotionInformations(const MotionInformation&, const std::string& = "DEFAULT_MOTION_NAME", const std::string& = "default");
-		
 		void EraseFolderContent(const std::string&);
 	};
 };
