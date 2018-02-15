@@ -28,6 +28,7 @@ struct SegmentationInformation {
 	int savgol_polynom_order;
 	int final_frame_number;
 	double final_interframe_time;
+	std::pair<int, int> throw_idx;
 };
 
 namespace Mla {
@@ -37,6 +38,7 @@ namespace Mla {
 		Frame* interpolateFrame(Frame*, Frame*, double);
 
 		void jointsLinearSpeed(std::map<std::string, double>&, Frame*, Frame*, double);
+		void jointsLinearSpeed(std::map<std::string, glm::dvec3>&, Frame*, Frame*, double);
 		void jointsLinearSpeedAxis(std::map<std::string, double>&, Frame*, Frame*, double, const std::string&, bool);
 		void jointsAngularSpeed(std::map<std::string, double>&, Frame*, Frame*, double);
 
@@ -54,14 +56,15 @@ namespace Mla {
 
 		void MotionSegmentation(Motion*, SegmentationInformation&, std::vector<Motion*>&, const std::string&);
 
-		//TODO: obviously, rename it
-		void JESAISPASQUOI(Motion*, SegmentationInformation&, const std::string&, std::vector<std::map<std::string, double>>&);
+		void getBegEndIndexes(Motion*, SegmentationInformation&, const std::string&, std::vector<int>&);
+		void BegMaxEndAcceleration(Motion*, SegmentationInformation&, const std::string&, std::vector<std::map<std::string, glm::dvec3>>&);
+		void BegMaxEndSpeed(Motion*, SegmentationInformation&, const std::string&, std::vector<std::map<std::string, glm::dvec3>>&);
+		void ThrowDuration(Motion*, SegmentationInformation&, const std::string&);
 
 		void motionSpeedComputing(Motion*, SpeedData&);
-		void motionSpeedAxisComputing(Motion*, SpeedData&, const std::string&, bool);
 
 		void ComputeSpeedData(std::vector<Motion*>&, std::vector<SpeedData>&);
-		void ComputeSpeedAxis(std::vector<Motion*>&, std::vector<SpeedData>&, const std::string&, bool);
+		void motionAccelerationComputing(SpeedData&, std::vector<std::map<std::string, glm::dvec3>>&, bool);
 
 		void motionRebuilding(Motion*, Motion*, unsigned int);
 

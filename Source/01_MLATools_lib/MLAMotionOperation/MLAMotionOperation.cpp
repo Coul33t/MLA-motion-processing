@@ -90,6 +90,39 @@ namespace Mla {
 
 		}
 
+		/** Compute the speed of the joints between 2 frames.
+
+		@param f1 the first frame
+		@param f2 the second frame
+		@param framTime the interframe time
+
+		@return speedVector the linear speed of joints as a 3d vector
+		*/
+		void jointsLinearSpeed (std::map<std::string, glm::dvec3>& lin_speed_vector, Frame* f1, Frame* f2, double frame_time) {
+			Frame* global_frame_1 = f1->duplicateFrame();
+			Frame* global_frame_2 = f2->duplicateFrame();
+
+			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
+
+			glm::dvec3 linear_speed = glm::dvec3();
+
+			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+				glm::dvec3 v1 = global_frame_1->getJoint(j)->getPositions();
+				glm::dvec3 v2 = global_frame_2->getJoint(j)->getPositions();
+
+				// dx / dt -> cm / s
+				// dx / (dt * 100) -> m / s
+				linear_speed[0] = (v2.x - v1.x) / (frame_time * 100);
+				linear_speed[1] = (v2.y - v1.y) / (frame_time * 100);
+				linear_speed[2] = (v2.z - v1.z) / (frame_time * 100);		
+				lin_speed_vector.insert(std::pair<std::string, glm::dvec3>(global_frame_1->getJoint(j)->getName(), linear_speed));
+			}
+
+			delete global_frame_1;
+			delete global_frame_2;
+		}
+
 		/** Compute the speed (along an axis) of the joints between 2 frames.
 
 		@param f1 the first frame
@@ -106,7 +139,7 @@ namespace Mla {
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
 
-			double linear_speed;
+			double linear_speed = 0;
 
 			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
 				glm::dvec3 v1 = global_frame_1->getJoint(j)->getPositions();
@@ -316,6 +349,13 @@ namespace Mla {
 			double last_value = Mla::Utility::getMaxValue(data).first + 1;
 			unsigned int idx = Mla::Utility::getMaxValue(data).second;
 
+			if (idx == 0 && direction < 0)
+				return 0;
+
+			if (idx == data.size() && direction > 0)
+				return data.size() - 1;
+
+			// Problem here
 			while (idx > 0 && idx < data.size() && last_value > data[idx]) {
 				last_value = data[idx];
 				idx += direction;
@@ -557,7 +597,7 @@ namespace Mla {
 			motionSpeedComputing(initial_motion, speed_data);
 
 			std::vector<double> hand_lin_speed;
-			speed_data.getJointSpeedVector(joint_to_segment, hand_lin_speed);
+			speed_data.getMeanSpeedValues(hand_lin_speed, joint_to_segment);
 
 			// Savgol-ing the values
 			std::vector<double> savgoled;
@@ -594,12 +634,10 @@ namespace Mla {
 
 		}
 
-		/*
+		/** TODO: doc
 		
 		*/
-		void JESAISPASQUOI(Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<std::map<std::string, double>>& speed_difference) {
-			Motion* sub_motion = nullptr;
-
+		void getBegEndIndexes(Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<int>& throw_idx) {
 			SpeedData speed_data(motion->getFrames().size() - 1,
 				motion->getFrameTime(),
 				motion->getFrames().size());
@@ -607,7 +645,94 @@ namespace Mla {
 			motionSpeedComputing(motion, speed_data);
 
 			std::vector<double> hand_lin_speed;
-			speed_data.getJointSpeedVector(joint_to_segment, hand_lin_speed);
+			speed_data.getMeanSpeedValues(hand_lin_speed, joint_to_segment);
+
+			// Savgol-ing the values
+			std::vector<double> savgoled;
+
+			Mla::Filters::Savgol(savgoled, hand_lin_speed, seg_info.savgol_polynom_order, seg_info.savgol_window_size);
+
+			// We get the indexes of : beginning of the throw, maximum value and end of the throw
+			throw_idx.push_back(getLocalMinimumFromMaximum(savgoled, -1));
+			throw_idx.push_back(Mla::Utility::getMaxValue(savgoled).second);
+			throw_idx.push_back(getLocalMinimumFromMaximum(savgoled, 1));
+		}
+
+		/** TODO: doc
+		
+		*/
+		void BegMaxEndAcceleration (Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<std::map<std::string, glm::dvec3>>& speed_difference) {
+			std::vector<int> throw_idx;
+			getBegEndIndexes(motion, seg_info, joint_to_segment, throw_idx);
+
+			SpeedData speed_data(motion->getFrames().size() - 1,
+				motion->getFrameTime(),
+				motion->getFrames().size());
+
+			motionSpeedComputing(motion, speed_data);
+
+			std::map<std::string, glm::dvec3> diff_beg_max;
+			std::map<std::string, glm::dvec3> diff_max_end;
+			glm::dvec3 diff = glm::dvec3();
+
+			// For each joint, we're going to populate the vector of map
+			for (unsigned int j = 0; j < motion->getFrame(0)->getJoints().size(); ++j) {
+				// v2 - v1
+				diff = speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[1]) -
+					   speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[0]);
+				diff_beg_max.insert(std::pair<std::string, glm::dvec3>(motion->getFrame(0)->getJoint(j)->getName(), diff));
+
+				// v2 - v1
+				diff = speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[2]) -
+					   speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[1]);
+				diff_max_end.insert(std::pair<std::string, glm::dvec3>(motion->getFrame(0)->getJoint(j)->getName(), diff));
+			}
+
+			speed_difference.push_back(diff_beg_max);
+			speed_difference.push_back(diff_max_end);
+		}
+		
+		/** TODO: doc
+		
+		*/
+		void BegMaxEndSpeed (Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<std::map<std::string, glm::dvec3>>& speed_values) {
+			std::vector<int> throw_idx;
+			getBegEndIndexes(motion, seg_info, joint_to_segment, throw_idx);
+			
+			SpeedData speed_data(motion->getFrames().size() - 1,
+				motion->getFrameTime(),
+				motion->getFrames().size());
+
+			motionSpeedComputing(motion, speed_data);
+
+			std::map<std::string, glm::dvec3> speed_beg;
+			std::map<std::string, glm::dvec3> speed_max;
+			std::map<std::string, glm::dvec3> speed_end;
+
+			// For each joint, we're going to populate the vector of map
+			for (unsigned int j = 0; j < motion->getFrame(0)->getJoints().size(); ++j) {
+				speed_beg.insert(std::pair<std::string, glm::dvec3>(motion->getFrame(0)->getJoint(j)->getName(), speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[0])));
+				speed_max.insert(std::pair<std::string, glm::dvec3>(motion->getFrame(0)->getJoint(j)->getName(), speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[1])));
+				speed_end.insert(std::pair<std::string, glm::dvec3>(motion->getFrame(0)->getJoint(j)->getName(), speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[2])));
+			}
+
+			speed_values.push_back(speed_beg);
+			speed_values.push_back(speed_max);
+			speed_values.push_back(speed_end);
+		}
+
+		/** TODO: doc
+		
+		*/
+		void ThrowDuration (Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment) {
+			SpeedData speed_data(motion->getFrames().size() - 1,
+				motion->getFrameTime(),
+				motion->getFrames().size());
+
+			motionSpeedComputing(motion, speed_data);
+
+			std::vector<double> hand_lin_speed;
+			speed_data.getMeanSpeedValues(hand_lin_speed, joint_to_segment);
 
 			// Savgol-ing the values
 			std::vector<double> savgoled;
@@ -617,28 +742,10 @@ namespace Mla {
 			// We get the indexes of : beginning of the throw, maximum value and end of the throw
 			std::vector<unsigned int> throw_idx;
 			throw_idx.push_back(getLocalMinimumFromMaximum(savgoled, -1));
-			throw_idx.push_back(Mla::Utility::getMaxValue(savgoled).second);	
+			throw_idx.push_back(Mla::Utility::getMaxValue(savgoled).second);
 			throw_idx.push_back(getLocalMinimumFromMaximum(savgoled, 1));
 
-			std::map<std::string, double> diff_beg_max;
-			std::map<std::string, double> diff_max_end;
-			double diff = 0;
-
-			// For each joint, we're going to populate the vector of map
-			for (unsigned int j = 0; j < motion->getFrame(0)->getJoints().size(); ++j) {
-				// v2 - v1
-				diff = speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[1]) -
-					   speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[0]);
-				diff_beg_max.insert(std::pair<std::string, double>(motion->getFrame(0)->getJoint(j)->getName(), diff));
-
-				// v2 - v1
-				diff = speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[2]) -
-					   speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[1]);
-				diff_max_end.insert(std::pair<std::string, double>(motion->getFrame(0)->getJoint(j)->getName(), diff));
-			}
-
-			speed_difference.push_back(diff_beg_max);
-			speed_difference.push_back(diff_max_end);
+			seg_info.throw_idx = std::pair<int, int>(throw_idx[0], throw_idx[2]);
 		}
 
 		/** Compute the speed of the joints for a whole motion.
@@ -646,7 +753,7 @@ namespace Mla {
 		@param motion the motion
 		*/
 		void motionSpeedComputing (Motion* motion, SpeedData& speed_data) {
-			std::map<std::string, double> lin_speed;
+			std::map<std::string, glm::dvec3> lin_speed;
 
 			for (unsigned int i = 0; i < motion->getFrames().size() - 1; i++) {
 				lin_speed.clear();
@@ -654,19 +761,47 @@ namespace Mla {
 				speed_data.addFrameSpeed(lin_speed, i * speed_data.getIntervalTime());
 			}
 		}
+
+		/** Compute the acceleration from a SpeedData class. The axis/normalisation is dependant on the way SpeedData has been computed.
+			
+			@param speed_data The speed data used to compute the acceleration
+			@param acc_vector The returned acceleration vector
 		
-		/** Compute the speed of the joints (on 1 axis) for a whole motion.
-
-		@param motion the motion
-		@param axis The axis on which to compute the speed
 		*/
-		void motionSpeedComputingAxis (Motion* motion, SpeedData& speed_data, const std::string& axis, bool normalise) {
-			std::map<std::string, double> lin_speed;
+		void motionAccelerationComputing (SpeedData& speed_data, std::vector<std::map<std::string, glm::dvec3>>& acc_vector, bool normalise) {
+			if (!speed_data.isEmpty()) {
+				// I cannot think of an elegant way to do it for now
+				std::vector<std::map<std::string, glm::dvec3>> lin_speed_values;
+				speed_data.getAllValues(lin_speed_values);
+				std::map<std::string, glm::dvec3> acc_map;
+				
+				glm::dvec3 acc_val = glm::dvec3();
 
-			for (unsigned int i = 0; i < motion->getFrames().size() - 1; i++) {
-				lin_speed.clear();
-				Mla::MotionOperation::jointsLinearSpeedAxis(lin_speed, motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime(), axis, normalise);
-				speed_data.addFrameSpeed(lin_speed, i * speed_data.getIntervalTime());
+				// For every speed info -1 (since we're doing (v2 - v1) / time)
+				for (unsigned int i = 0; i < lin_speed_values.size() - 1; ++i) {
+					
+					acc_map.clear();
+					
+					// For each joint (C++11 for each)
+					for (auto& kv : lin_speed_values[i]) {
+						// (v2 - v1) / time
+						// (it works because GLM allows us to do that)
+						// /!\ We use the SpeedData time here, as it may not be the same
+						// as the initial motion's one
+						acc_val = (lin_speed_values[i + 1][kv.first] - kv.second) / speed_data.getIntervalTime();
+						
+						if (normalise)
+							acc_val = glm::normalize(acc_val);
+
+						acc_map.insert(std::pair<std::string, glm::dvec3>(kv.first, acc_val));
+					}
+
+					acc_vector.push_back(acc_map);
+				}
+			}
+
+			else {
+				std::cout << "ERROR: The SpeedData class has no speed information." << std::endl;
 			}
 		}
 
@@ -680,34 +815,12 @@ namespace Mla {
 			
 			speed_data_vector.clear();
 
-			for (std::vector<Motion*>::iterator it = motion_segments.begin(); it != motion_segments.end(); it++) {
+			for (auto it = motion_segments.begin(); it != motion_segments.end(); it++) {
 				SpeedData speed_data((*it)->getFrames().size() - 1,
 									 (*it)->getFrameTime(),
 									 (*it)->getFrames().size());
 
 				motionSpeedComputing((*it), speed_data);
-
-				speed_data_vector.push_back(speed_data);
-			}
-		}
-
-		/** Compute the speed data (on 1 axis) for all segments of a motion.
-
-		@param motion_segments The segmented motion
-		@param speed_data_vector The returned speed data corresponding to the motion's segments
-		@param axis The axis on which to compute the speed
-
-		*/
-		void ComputeSpeedAxis (std::vector<Motion*>& motion_segments, std::vector<SpeedData>& speed_data_vector, const std::string& axis, bool normalise) {
-			
-			speed_data_vector.clear();
-
-			for (std::vector<Motion*>::iterator it = motion_segments.begin(); it != motion_segments.end(); it++) {
-				SpeedData speed_data((*it)->getFrames().size() - 1,
-					(*it)->getFrameTime(),
-					(*it)->getFrames().size());
-
-				motionSpeedComputingAxis((*it), speed_data, axis, normalise);
 
 				speed_data_vector.push_back(speed_data);
 			}
