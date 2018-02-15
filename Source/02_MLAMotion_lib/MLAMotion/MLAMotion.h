@@ -34,7 +34,7 @@ public:
 
 	void setName(const std::string& name);
 	void setFrameTime(const double frame_time);
-	void setFrames(const std::vector<Frame*> frames_vector);
+	void setFrames(const std::vector<Frame*>& frames_vector);
 	void setOffsetFrame(Frame* frame);
 
 	const std::string& getName() const;

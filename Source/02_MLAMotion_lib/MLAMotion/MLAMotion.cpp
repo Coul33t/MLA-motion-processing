@@ -35,7 +35,7 @@ void Motion::setOffsetFrame(Frame* frame) {
 	m_offset_frame = frame;
 }
 
-void Motion::setFrames(const std::vector<Frame*> frames_vector) {
+void Motion::setFrames(const std::vector<Frame*>& frames_vector) {
 	m_frames = frames_vector;
 }
 
