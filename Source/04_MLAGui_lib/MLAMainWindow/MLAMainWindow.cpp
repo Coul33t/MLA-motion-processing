@@ -107,9 +107,29 @@ void MainWindow::MainLoop(Motion* motion) {
 	// Displaying offset (0) or animation (1)
 	unsigned int display_type = 0;
 	
+	// Animation speed
 	float current_speed = 1;
 
 	bool neuron_connected = false;
+
+	// Frame per frame display (if true, display the next frame)
+	bool next_frame = false;
+	unsigned int current_frame = 0;
+
+	std::cout << "Controls (azerty keyboard):" << std::endl;
+	std::cout << "Escape: quit" << std::endl;
+	std::cout << "I: connect to Neuron" << std::endl;
+	std::cout << "\tO: Export data" << std::endl;
+	std::cout << "E: Display offset" << std::endl;
+	std::cout << "A: Display animation" << std::endl;
+	std::cout << "F: Frame per frame animation" << std::endl;
+	std::cout << "\tN: Display next frame" << std::endl;
+	std::cout << "Y: Output current frame and time" << std::endl;
+	std::cout << "W: Slows the animation speed" << std::endl;
+	std::cout << "X: Increasees the animation speed" << std::endl;
+	std::cout << "C: Speed = -1 (reverse animation)" << std::endl;
+	std::cout << "V: Speed = 0 (stop animation)" << std::endl;
+	std::cout << "B: Speed = 1 (resume animation)" << std::endl;
 
 	while (!m_input.End()) {
 
@@ -122,6 +142,9 @@ void MainWindow::MainLoop(Motion* motion) {
 		// if (esc), quit the program
 		if (m_input.GetKey(SDL_SCANCODE_ESCAPE))
 			break;
+
+		if (next_frame)
+			next_frame = false;
 
 		// Neuron connection
 		if (m_input.GetKey(SDL_SCANCODE_I)) {
@@ -155,35 +178,54 @@ void MainWindow::MainLoop(Motion* motion) {
 			display_type = 1;
 		}
 
+		// Frame per frame
+		if (m_input.GetKey(SDL_SCANCODE_F)) {
+			display_type = 2;
+		}
+
 		if (m_input.GetKey(SDL_SCANCODE_Y)) {
 			std::cout << "Current time : " << current_time / 1000 << std::endl;
 			std::cout << "Current frame : " << (int)((current_time / 1000.0) / motion->getFrameTime()) + 1 << std::endl;
+			m_input.SetKey(SDL_SCANCODE_Y, false);
 		}
 
 		if(display_type == 1) {
 			if (m_input.GetKey(SDL_SCANCODE_Z) && current_speed > -1) {
 				current_speed -= 0.1f;
 				std::cout << "Current speed : " << current_speed << std::endl;
+				m_input.SetKey(SDL_SCANCODE_Z, false);
 			}
 
 			else if (m_input.GetKey(SDL_SCANCODE_X) && current_speed < 1) {
 				current_speed += 0.1f; 
 				std::cout << "Current speed : " << current_speed << std::endl;
+				m_input.SetKey(SDL_SCANCODE_X, false);
 			}
 
 			else if (m_input.GetKey(SDL_SCANCODE_C)) {
 				current_speed = -1;
 				std::cout << "Current speed : " << current_speed << std::endl;
+				m_input.SetKey(SDL_SCANCODE_C, false);
 			}
 
 			else if (m_input.GetKey(SDL_SCANCODE_V)) {
 				current_speed = 0;
 				std::cout << "Current speed : " << current_speed << std::endl;
+				m_input.SetKey(SDL_SCANCODE_V, false);
 			}
 
 			else if (m_input.GetKey(SDL_SCANCODE_B)) {
 				current_speed = 1;
 				std::cout << "Current speed : " << current_speed << std::endl;
+				m_input.SetKey(SDL_SCANCODE_B, false);
+			}
+		}
+
+		else if (display_type == 2) {
+			if (m_input.GetKey(SDL_SCANCODE_N)) {
+				next_frame = true;
+				std::cout << "Displaying next frame (frame " << current_frame << ")" << std::endl;
+				m_input.SetKey(SDL_SCANCODE_N, false);
 			}
 		}
 
@@ -212,7 +254,7 @@ void MainWindow::MainLoop(Motion* motion) {
 				Mla::FrameRender::RenderFrame(motion->getFrame(1), m_projection, m_modelview, m_shader);
 			}
 
-			else {
+			else if (display_type == 1) {
 				mix_factor = (fmod(current_time / 1000.0, motion->getFrameTime())) / motion->getFrameTime();
 				
 				unsigned int base_frame = (int)((current_time / 1000.0) / motion->getFrameTime());
@@ -237,6 +279,20 @@ void MainWindow::MainLoop(Motion* motion) {
 				
 				delete interpolated_frame;
 				//delete global_frame;
+			}
+
+			else if (display_type == 2) {
+				if (next_frame) {
+					current_frame += 1;
+
+					if (current_frame >= motion->getFrames().size() - 1)
+						current_frame = 0;
+				}
+
+				Mla::FrameRender::RenderFrame(motion->getFrame(current_frame),
+					m_projection,
+					m_modelview,
+					m_shader);
 			}
 		}
 		
