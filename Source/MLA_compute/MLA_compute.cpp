@@ -21,8 +21,9 @@ unsigned int SpeedDataTest();
 unsigned int OneMotionExportTest(std::string&, std::string&);
 unsigned int MultipleMotionExportTest();
 unsigned int DataClassTest(std::string&, std::string&);
-unsigned int JESAISPASQUOITEST();
+unsigned int BegMaxEndAcceleration();
 unsigned int GlmFunctionsTest();
+unsigned int TestSpeed(std::string&, std::string&);
 unsigned int FullDataTest();
 
 unsigned int MemoryLeakChaser();
@@ -30,12 +31,13 @@ unsigned int MemoryLeakChaser();
 int main(int argc, char *argv[]) {
 	//MultipleMotionExportTest();
 	//std::string folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/";
-	//std::string file = "Guillaume_1_Char00.bvh";
+	//std::string file = "Damien_4_Char00.bvh";
 	//DataClassTest(folder, file);
 
 	FullDataTest();
-
+	//TestSpeed(folder, file);
 	//GlmFunctionsTest();
+
 	/*std::cout << std::endl << "Press any key to quit...";
 	std::cin.get();*/
 	return 0;
@@ -605,6 +607,7 @@ unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_
 
 	std::vector<Motion*> motion_vector;
 
+	//TODO: put separation indexes into seg_info
 	SegmentationInformation seg_info = {
 		0,	// left cut
 		0,  // right cut
@@ -628,25 +631,65 @@ unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_
 	// Name of the lin_speed file (-4, so that '.bvh' is erased)
 	std::string file_name = motion_name.std::string::substr(0, motion_name.size() - 4);
 
-	Mla::JsonExport::ExportMotionInformations(motion->getMotionInformation(), folder_name, "motion_information");
+	Mla::JsonExport::ExportMotionInformations(motion->getMotionInformation(), motion->getFrame(0)->getJointsName(), folder_name, "motion_information");
 	Mla::JsonExport::ExportMotionSegmentationInformations(seg_info, folder_name, "segmentation_information");
 
+	std::vector<std::map<std::string, double>> values_to_store = std::vector<std::map<std::string, double>>();
 	Data data;
-	data.insertNewData("Speed", speed_data_set[0].getAllValues());
 
-	speed_data_set.clear();
-	Mla::MotionOperation::ComputeSpeedAxis(motion_vector, speed_data_set, "x", true);
-	data.insertNewData("Speedx", speed_data_set[0].getAllValues());
-	speed_data_set.clear();
-	Mla::MotionOperation::ComputeSpeedAxis(motion_vector, speed_data_set, "y", true);
-	data.insertNewData("Speedy", speed_data_set[0].getAllValues());
-	speed_data_set.clear();
-	Mla::MotionOperation::ComputeSpeedAxis(motion_vector, speed_data_set, "z", true);
-	data.insertNewData("Speedz", speed_data_set[0].getAllValues());
+	speed_data_set[0].getMeanSpeedValues(values_to_store);
+	data.insertNewData("Speed", values_to_store);
+
+	speed_data_set[0].getAllValues(values_to_store, "x", true);
+	data.insertNewData("Speedx", values_to_store);
+
+	speed_data_set[0].getAllValues(values_to_store, "y", true);
+	data.insertNewData("Speedy", values_to_store);
+
+	speed_data_set[0].getAllValues(values_to_store, "z", true);
+	data.insertNewData("Speedz", values_to_store);
+
+	// Used to extract x y z 
+	std::vector<std::map<std::string, glm::dvec3>> acc_vec;
+
+	Mla::MotionOperation::motionAccelerationComputing(speed_data_set[0], acc_vec, false);
+
+	values_to_store.clear();
+
+	// First used to store the norm
+	std::map<std::string, double> acc_map;
+
+	// Acceleration norm
+	// for each vector
+	for (auto it = acc_vec.begin(); it != acc_vec.end(); ++it) {
+		// for each key in the iterator
+		for (auto& kv : *it) {
+			// i = 0 -> x, i = 1 -> y, i = 2 -> z
+			acc_map[kv.first] = glm::length(kv.second);
+		}
+
+		values_to_store.push_back(acc_map);
+	}
+
+	data.insertNewData("Acceleration", values_to_store);
+
+	// Now we recompute it with normalising
+	Mla::MotionOperation::motionAccelerationComputing(speed_data_set[0], acc_vec, true);
+	// Now used to extract x y z 
+	acc_map.clear();
 	
-	std::vector<std::map<std::string, double>> values;
-	Mla::MotionOperation::JESAISPASQUOI(motion, seg_info, JOINT_OF_INTEREST, values);
-	data.insertNewData("DiffSpeed", values);
+	Mla::Utility::ExtractComponent(acc_vec, values_to_store, 0);
+	data.insertNewData("Accelerationx", values_to_store);
+	Mla::Utility::ExtractComponent(acc_vec, values_to_store, 1);
+	data.insertNewData("Accelerationy", values_to_store);
+	Mla::Utility::ExtractComponent(acc_vec, values_to_store, 2);
+	data.insertNewData("Accelerationz", values_to_store);
+	
+
+	// TODO: the same as above
+	/*std::vector<std::map<std::string, glm::dvec3>> begmaxend_values;
+	Mla::MotionOperation::BegMaxEndSpeed(motion, seg_info, JOINT_OF_INTEREST, begmaxend_values);*/
+
 
 	Mla::JsonExport::ExportData(data, folder_name, subfolder_name, file_name);
 
@@ -663,15 +706,15 @@ unsigned int FullDataTest() {
 	std::string folder_name = "C:\\Users\\quentin\\Documents\\Programmation\\C++\\MLA\\Data\\Bvh\\batch_test_Damien\\";
 	Mla::Utility::readDirectory(folder_name, file_names);
 
-	for (std::vector<std::string>::iterator it = file_names.begin(); it != file_names.end(); it++) {
-		std::cout << "Processing " << *it << std::endl;
+	for (auto it = file_names.begin(); it != file_names.end(); it++) {
+		std::cout << "\n\n\nProcessing " << *it << std::endl;
 		DataClassTest(folder_name, *it);
 	}
 
 	return 0;
 }
 
-unsigned int JESAISPASQUOITEST() {
+unsigned int BegMaxEndAcceleration() {
 	
 	Motion* motion = nullptr;
 
@@ -701,9 +744,63 @@ unsigned int JESAISPASQUOITEST() {
 
 	seg_info.final_interframe_time = motion->getFrames().size() * motion->getFrameTime() / static_cast<double>(seg_info.final_frame_number - 1);
 
-	std::vector<std::map<std::string, double>> values;
+	std::vector<std::map<std::string, glm::dvec3>> values;
 
-	Mla::MotionOperation::JESAISPASQUOI(motion, seg_info, JOINT_OF_INTEREST, values);
+	Mla::MotionOperation::BegMaxEndAcceleration(motion, seg_info, JOINT_OF_INTEREST, values);
+
+	return 0;
+}
+
+unsigned int TestSpeed(std::string& motion_folder_name, std::string& motion_name) {
+	Motion* motion = nullptr;
+
+	motion = Mla::BvhParser::parseBvh(motion_folder_name, motion_name);
+
+	if (motion == nullptr) {
+		std::cout << "Error reading motion (make sure the name and folder are correct)." << std::endl;
+		std::cout << "File name: " << motion_name << std::endl;
+		std::cout << "Folder name: " << motion_folder_name << std::endl;
+		return 1;
+	}
+
+	Mla::MotionOperation::motionFiltering(motion);
+
+	SegmentationInformation seg_info = {
+		0,	// left cut
+		0,  // right cut
+		51, // window size
+		3,  // polynom order
+		20, // final frame number
+	};
+
+	seg_info.final_frame_number = motion->getFrames().size();
+
+	Data data;
+	std::vector<SpeedData> speed_data_set;
+	std::vector<Motion*> motion_vector;
+
+	std::vector<std::map<std::string, double>> values;
+	std::map<std::string, double> frame_map;
+
+
+	for (unsigned int i = 0; i < motion->getFrames().size() - 1; ++i) {
+		frame_map.clear();
+		Mla::MotionOperation::jointsLinearSpeed(frame_map, motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime());
+		values.push_back(frame_map);
+	}
+
+	Mla::MotionOperation::MotionSegmentation(motion, seg_info, motion_vector, JOINT_OF_INTEREST);
+
+
+	Mla::MotionOperation::ComputeSpeedData(motion_vector, speed_data_set);
+	data.insertNewData("Speed", values);
+
+	Mla::JsonExport::ExportMotionInformations(motion->getMotionInformation(), motion->getFrame(0)->getJointsName(), "TEST_VIS", "motion_information");
+	Mla::JsonExport::ExportMotionSegmentationInformations(seg_info, "TEST_VIS", "segmentation_information");
+	Mla::JsonExport::ExportData(data, "TEST_VIS", "dontcare", "data");
+	
+	
+	return 0;
 }
 
 unsigned int GlmFunctionsTest() {
@@ -712,7 +809,14 @@ unsigned int GlmFunctionsTest() {
 	std::cout << "Distance: " << glm::distance(glm::dvec3(0, 0, 0), vec) << std::endl;
 	std::cout << "Original vec\nx: " << vec.x << "\ny: " << vec.y << "\nz: " << vec.z << std::endl;
 	std::cout << "Normalised vec\nx: " << normalised.x << "\ny: " << normalised.y << "\nz: " << normalised.z << std::endl;
-
+	std::cout << "Length: " << glm::length(vec) << std::endl;
+	std::cout << "Normalized norm: " << glm::length(normalised) << std::endl;
+	// It works (vec = (13,8,5))
+	vec += 3;
+	std::cout << "Test vec\nx: " << vec.x << "\ny: " << vec.y << "\nz: " << vec.z << std::endl;
+	// It works (vec = (6.5,4,2.5))
+	vec /= 2;
+	std::cout << "Test vec\nx: " << vec.x << "\ny: " << vec.y << "\nz: " << vec.z << std::endl;
 	return 0;
 }
 
