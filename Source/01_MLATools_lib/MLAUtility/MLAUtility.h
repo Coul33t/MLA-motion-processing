@@ -10,6 +10,7 @@ Utility.h
 #define __MLA_UTILITY_H__
 
 #include "MLAMotion/MLAMotion.h"
+
 #include <numeric> // std::accumulate
 
 #include <Windows.h> //readDirectory
@@ -26,6 +27,8 @@ namespace Mla {
 
 		template <typename T>
 		std::pair<T, int> getMinValue(std::vector<T>&);
+
+		void ExtractComponent(std::vector<std::map<std::string, glm::dvec3>>&, std::vector<std::map<std::string, double>>&, unsigned int);
 
 		void readDirectory(const std::string&, std::vector<std::string>&);
 
