@@ -83,6 +83,10 @@ bool Input::GetKey(const SDL_Scancode key) const {
 	return m_keys[key];
 }
 
+void Input::SetKey(const SDL_Scancode key, bool val) {
+	m_keys[key] = val;
+}
+
 bool Input::GetMouseButton(const Uint8 button) const {
 	return m_mouse_buttons[button];
 }

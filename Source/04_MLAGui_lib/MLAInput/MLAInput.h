@@ -16,6 +16,7 @@ public:
 
 	bool End() const;
 	bool GetKey(const SDL_Scancode key) const;
+	void SetKey(const SDL_Scancode key, bool val);
 	bool GetMouseButton(const Uint8 button) const;
 	bool MouseMoving() const;
 	void DisplayCursor(bool disp) const;
