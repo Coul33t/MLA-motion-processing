@@ -39,6 +39,16 @@ void Frame::setRoot(Joint* root) {
 	m_root = root;
 }
 
+std::vector<std::string> Frame::getJointsName() const {
+	std::vector<std::string> joint_names;
+
+	for (std::vector<Joint*>::const_iterator it = m_joints.begin(); it != m_joints.end(); ++it) {
+		joint_names.push_back((*it)->getName());
+	}
+
+	return joint_names;
+}
+
 Joint* Frame::getJoint(const std::string& joint_name) {
 	auto it = find_if(m_joints.begin(), m_joints.end(), [&joint_name](const Joint* obj) {return obj->getName() == joint_name; });
 	if (it != m_joints.end()) {
