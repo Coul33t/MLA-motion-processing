@@ -1,47 +1,129 @@
 from sklearn.cluster import KMeans
+from sklearn.metrics import f1_score, adjusted_mutual_info_score, adjusted_rand_score
+import numpy as np
+from scipy.spatial import distance
+import pdb
 
-def kmeans_algo(data, verbose=False):
-
-    algo_accuracy = []
-
-    # Kmeans initialization type
-    init = ['kmeans++', 'random', 'ndarray']
-
-    for algo in init:
-        
-        accuracy = []
-        
-        if verbose:
-            print("\n\n{}\n".format(algo))
-
-        for i in range(10):
-            
-            if verbose: 
-                print('Iteration {} ... '.format(i+1), end=' ')
-
-            res = KMeans(2, 'k-means++', n_init=20, max_iter=1000).fit(list(data))
-
-            true_labels = [0,0,1,0,0,     0,0,0,0,1,      1,0,0,0,0,      0,1,1,0,1]
-
-            diff = []
-            for i,_ in enumerate(true_labels):
-                diff.append(abs(true_labels[i]-res.labels_[i]))
-
-            accuracy.append(max(diff.count(0)/len(diff), diff.count(1)/len(diff)))
-            
-            if verbose:
-                print('Done.')
-
-        algo_accuracy.append([algo, accuracy])
+def kmeans_algo(data, algo='k-means++', k=2, verbose=False, extrem_verbose=False):
+    """
+        This function is a wrapper around sklearn's KMeans function. It
+        actually doesn't do anything else than applying the fit() function
+        and a few other things (it shouldn't be too hard to read).
+    """
 
     if verbose:
-        for i,algo in enumerate(init):
-            print("Algorithm        : {}".format(algo))
-            print("Accuracy         : {}".format(algo_accuracy[i][1]))
-            print("Highest accuracy : {}".format(max(algo_accuracy[i][1])))
-            print("Lowest accuracy  : {}".format(min(algo_accuracy[i][1])))
-            print("Mean accuracy    : {}".format(sum(algo_accuracy[i][1])/len(algo_accuracy[i][1])))
-            print("Median accuracy  : {}".format(median(algo_accuracy[i][1])))
-            print('\n\n\n')
+        print("\n\n{}\n".format(algo))
 
-    return ([algo_accuracy[i] for i in range(len(init))])
+    # About fit vs fit_predict: https://stackoverflow.com/questions/25012342/scikit-learns-k-means-what-does-the-predict-method-really-do
+    res = KMeans(k, algo, n_init=20, max_iter=10000, verbose=extrem_verbose).fit(list(data))
+
+    return res
+
+
+def per_cluster_inertia(data, centers, labels):
+    """
+        This function returns a list with its length = k (cluster number),
+        containing all the cluster's inertia (opposed to sklearn's k-means,
+        where it's the global inertia). Of course, the data must be sorted 
+        in the same order as the labels' list, i.e.
+        data[0] -> labels[0], data[1] -> labels[1], etc.
+    """
+
+    clusters_inertia = np.zeros( (len(centers) ))
+
+    for i,center in enumerate(centers):
+        cluster_data = [x for j,x in enumerate(data) if labels[j] == i]
+        clusters_inertia[i] += sum(sum(distance.cdist([center], cluster_data, 'sqeuclidean')))
+
+
+    return clusters_inertia
+
+
+def f_score_computing(labels, true_labels):
+    """
+        This methode returns the F1-score of a 2 clusters clustering problem.
+        The F1-score is defined as follow:
+            F1-score = 2 * (precision * recall) / (precision + recall)
+        With    
+            Precision = true positive / (true positive + false positive)
+            Recall = true positive / (true positive + false negative)
+
+    """
+
+    if not isinstance(labels, np.ndarray):
+        labels = np.asarray(labels)
+
+    if not isinstance(true_labels, np.ndarray):
+        true_labels = np.asarray(true_labels)
+
+    # 2 cases here: either true_labels is the label for each data,
+    # in which case len(labels) == len(true_labels), OR it is the
+    # array (natural indexes) telling where the success are; thus
+    # the need of a transformation
+    if len(labels) != len(true_labels):
+        tmp_true_labels = np.zeros( (len(labels)) )
+        # Switching from natural indexes to array indexes
+        tmp_true_labels[true_labels- 1] = 1
+        true_labels = tmp_true_labels.astype(int)
+
+
+    # Since the c0 and c1 of labels may be the opposite of
+    # c0 and c1 from true_labels, we check for this here.
+    # If it's the case, we flip the labels in one of the array.
+    similarity = len(labels) - sum(abs(labels - true_labels))
+
+    if len(labels) - sum(abs(abs(labels - 1) - true_labels)) > similarity:
+        labels = abs(labels - 1)
+
+
+    return f1_score(true_labels, labels)
+
+
+def adjusted_mutual_info_score_computing(labels, true_labels):
+    """
+        This methode returns the adjusted mutual info score of a 2 clusters clustering problem.
+
+    """
+
+    if not isinstance(labels, np.ndarray):
+        labels = np.asarray(labels)
+
+    if not isinstance(true_labels, np.ndarray):
+        true_labels = np.asarray(true_labels)
+
+    # 2 cases here: either true_labels is the label for each data,
+    # in which case len(labels) == len(true_labels), OR it is the
+    # array (natural indexes) telling where the success are; thus
+    # the need of a transformation
+    if len(labels) != len(true_labels):
+        tmp_true_labels = np.zeros( (len(labels)) )
+        # Switching from natural indexes to array indexes
+        tmp_true_labels[true_labels- 1] = 1
+        true_labels = tmp_true_labels.astype(int)
+
+    return adjusted_mutual_info_score(true_labels, labels)
+
+
+def adjusted_rand_score_computing(labels, true_labels):
+    """
+        This methode returns the adjusted rand score of a 2 clusters clustering problem.
+
+    """
+
+    if not isinstance(labels, np.ndarray):
+        labels = np.asarray(labels)
+
+    if not isinstance(true_labels, np.ndarray):
+        true_labels = np.asarray(true_labels)
+
+    # 2 cases here: either true_labels is the label for each data,
+    # in which case len(labels) == len(true_labels), OR it is the
+    # array (natural indexes) telling where the success are; thus
+    # the need of a transformation
+    if len(labels) != len(true_labels):
+        tmp_true_labels = np.zeros( (len(labels)) )
+        # Switching from natural indexes to array indexes
+        tmp_true_labels[true_labels- 1] = 1
+        true_labels = tmp_true_labels.astype(int)
+
+    return adjusted_rand_score(true_labels, labels)

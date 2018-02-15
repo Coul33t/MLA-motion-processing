@@ -20,7 +20,8 @@ from tools import natural_keys
 
 
 def visualization(motion_type="gimbal", joints_to_visualize=None, savgol=False):
-    folder_path_lin = r'C:\Users\quentin\Documents\Programmation\C++\MLA\Data\Speed\Damien_4_Char00\lin'
+    folder_path_lin = r'C:\Users\quentin\Documents\Programmation\C++\MLA\Data\Speed\Damien\TEST_CUT_MAX'
+    # folder_path_lin = r'C:\Users\quentin\Documents\Programmation\C++\MLA\Data\Speed\Damien_1_Char00\lin'
 
     interframe_time = 0.017
 
@@ -108,6 +109,89 @@ def multifiles_visualization(motion_type="gimbal", joints_to_visualize=None, sav
 
     plt.show()
 
+
+def plot_2d(data, true_class, clu_class, label1='NONE_1'):
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    for i,point in enumerate(data):
+        
+        # class 0, OK
+        if clu_class[i] == 0 and true_class[i] == 0:
+            ax.plot(point[0], point[1], 'x', color='green')
+        # class 1, OK
+        elif clu_class[i] == 1 and true_class[i] == 1:
+            ax.plot(point[0], point[1], 'x', color='blue')
+        # missclassed as class 0
+        elif clu_class[i] == 0 and true_class[i] == 1:
+            ax.plot(point[0], point[1], 'x', color='orange')
+        # missclassed as class 1
+        elif clu_class[i] == 1 and true_class[i] == 0:
+            ax.plot(point[0], point[1], 'x', color='red')
+
+    green_patch = mpatches.Patch(color='green', label='class 0, OK')
+    blue_patch = mpatches.Patch(color='blue', label='class 1, OK')
+    orange_patch = mpatches.Patch(color='orange', label='missclassed as class 0')
+    red_patch = mpatches.Patch(color='red', label='missclassed as class 1')
+    plt.legend(handles=[green_patch, blue_patch, orange_patch, red_patch])
+    ax.set_title(label1)      
+   
+    plt.show()
+
+def plot_2d_dual(data, true_class, clu_class, label1='NONE_1', label2='NONE_2'):
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(121)
+    ax2 = fig.add_subplot(122)
+
+    for i,point in enumerate(data):
+        
+        if clu_class[i] == 0:
+            ax.plot(point[0], point[1], 'x', color='red')
+        else:
+            ax.plot(point[0], point[1], 'x', color='blue')
+
+        if true_class[i] == 0:
+            ax2.plot(point[0], point[1], 'x', color='red')
+        else:
+            ax2.plot(point[0], point[1], 'x', color='blue')
+
+    ax.set_title(label1)
+    ax2.set_title(label2)        
+   
+    plt.show()
+
+def plot_data_k_means(data):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    
+    
+
+    color=iter(cm.rainbow(np.linspace(0,1,len(data))))
+
+    for joint in data:
+        c = next(color)
+        y = [k[1] for k in data[joint]]
+        # clusters from 2 to 10
+        x = np.linspace(2, len(y)+1, len(y))
+
+        ax.plot(x, y, '-', color=c, label=joint)
+
+    plt.legend()
+    plt.show()
+
+def simple_plot_2d(data):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    x = np.linspace(0, data.shape[1]-1, data.shape[1])
+
+    pdb.set_trace()
+    
+    ax.plot(x, data.reshape(data.shape[1]), color='blue')
+
+    plt.show()
 
 def test():
     data = []
