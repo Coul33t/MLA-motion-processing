@@ -189,7 +189,7 @@ namespace Mla {
 			
 			std::vector<std::map<std::string, double>> speed_set;
 			
-			data.getSpeedSetVector(speed_set);
+			data.getMeanSpeedValues(speed_set);
 			
 			for (unsigned int i = 0; i < speed_set.size(); i++) {
 				ExportData(speed_set[i], folder_name, subfolder_name, file_name + std::to_string(i));
