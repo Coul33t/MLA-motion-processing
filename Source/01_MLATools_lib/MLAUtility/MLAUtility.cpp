@@ -30,6 +30,14 @@ namespace Mla {
 			}
 		}
 
+		void ExtractComponent(std::vector<glm::dvec3>& vec_3d, std::vector<double>& extracted_component, unsigned int idx) {
+			extracted_component.clear();
+
+			for (auto it = vec_3d.begin(); it != vec_3d.end(); ++it) {
+				extracted_component.push_back((*it)[idx]);
+			}
+		}
+
 		// See http://www.martinbroadhurst.com/list-the-files-in-a-directory-in-c.html
 		void readDirectory(const std::string& folder, std::vector<std::string>& file_names_vector) {
 			std::string pattern(folder);
