@@ -25,6 +25,7 @@ class SpeedData {
 			double m_time;
 			// Set of speed values (x, y, z) for each joint at time m_time
 			std::map<std::string, glm::dvec3> m_speed_set;
+			std::map<std::string, double> m_norm;
 		};
 
 	public:
@@ -32,9 +33,10 @@ class SpeedData {
 		~SpeedData();
 
 		void getAllValues(std::vector<std::map<std::string, glm::dvec3>>&, bool normalise = false) const;
-		void getAllValues(std::vector<std::map<std::string, double>>&, std::string, bool normalise = false) const;
-		void getMeanSpeedValues(std::vector<double>&, std::string) const;
-		void getMeanSpeedValues(std::vector<std::map<std::string, double>>&) const;
+		void getAllValues(std::vector<glm::dvec3>&, const std::string&) const;
+		void getAllValues(std::vector<std::map<std::string, double>>&, const std::string&, bool normalise = false) const;
+		void getNorm(std::vector<double>&, const std::string&) const;
+		void getNorm(std::vector<std::map<std::string, double>>&) const;
 
 
 		bool isEmpty();
@@ -49,8 +51,13 @@ class SpeedData {
 		const unsigned int getNbInterval() const;
 		const double getIntervalTime() const;
 		double getDuration() const;
+		const unsigned int getBodySpeedCount() const;
+		const std::vector<std::string> getJointNames() const;
 
 		void addFrameSpeed(const std::map<std::string, glm::dvec3>& body_speed, double time);
+
+		void setSpeedSet(std::vector<double>&, std::string, unsigned int);
+		void setNormSet(std::vector<double>&, std::string);
 
 	private:
 		// Set of speed and corresponding time, for each joint for the whole motion

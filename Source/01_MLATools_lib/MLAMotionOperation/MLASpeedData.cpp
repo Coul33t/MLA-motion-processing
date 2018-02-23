@@ -45,13 +45,26 @@ void SpeedData::getAllValues(std::vector<std::map<std::string, glm::dvec3>>& val
 	}
 }
 
+/** Returns all the values of the Speed for one joint (as a vector of 3d vector)
+
+@param values The returned vector containing the 3d vectors of the joints
+@param normalise Whenever the vector should be normalised or not (default: false)
+*/
+void SpeedData::getAllValues(std::vector<glm::dvec3>& values, const std::string& joint) const {
+	values.clear();
+
+	// For each speed map
+	for (auto it = m_speed_data.begin(); it != m_speed_data.end(); ++it)
+		values.push_back(it->m_speed_set.at(joint));
+}
+
 /** Returns all the values of the Speed along an axis (as a vector of map containing a value for each joint)
 
 	@param values The returned vector containing maps of joints and their corresponding value of speed
 	@param normalise Whenever the vector should be normalised or not (default: false)
 
 */
-void SpeedData::getAllValues(std::vector<std::map<std::string, double>>& values, std::string axis, bool normalise) const {
+void SpeedData::getAllValues(std::vector<std::map<std::string, double>>& values, const std::string& axis, bool normalise) const {
 	
 	values.clear();
 	// A tmp map to put one axis of the vector
@@ -75,13 +88,17 @@ void SpeedData::getAllValues(std::vector<std::map<std::string, double>>& values,
 			// Normalised
 			else {
 				auto vec = glm::normalize(kv.second);
-				// TODO: Code duplication is bad
-				if (axis == "x")
+				
+				// Since we normalise, if ||v|| = 0, any vec component = NaN
+				if (isnan(vec.x))
+					tmp_map[kv.first] = 0;
+				else if (axis == "x")
 					tmp_map[kv.first] = vec[0];
 				else if (axis == "y")
 					tmp_map[kv.first] = vec[1];
 				else if (axis == "z")
 					tmp_map[kv.first] = vec[2];
+				
 			}
 			
 		}
@@ -90,39 +107,27 @@ void SpeedData::getAllValues(std::vector<std::map<std::string, double>>& values,
 	}
 }
 
-/** Returns all the mean values of the Speed (as a vector containing a value for each speed value)
-
-	@param mean_speed The returned vector containing the mean speed values for a joint
-	@param joint The specified joint
-*/
-void SpeedData::getMeanSpeedValues(std::vector<double>& mean_speed, std::string joint) const {
-	
-	mean_speed.clear();
+void SpeedData::getNorm(std::vector<double>& norm, const std::string& joint) const {
+	norm.clear();
 
 	// for each frame
 	// Here, auto sets a const interator to the map.
 	// Since C++11, const map can't use [] to access elements
 	// (see https://stackoverflow.com/questions/1474894/why-isnt-the-operator-const-for-stl-maps)
 	for (auto it = m_speed_data.begin(); it != m_speed_data.end(); ++it) {
-		mean_speed.push_back(glm::length(it->m_speed_set.at(joint)));
+		norm.push_back(it->m_norm.at(joint));
 	}
 }
 
-/** Returns all the mean values of the Speed (as a vector containing a value for each speed value)
-
-	@param mean_speed The returned vector containing the mean speed values for all joint
-*/
-void SpeedData::getMeanSpeedValues(std::vector<std::map<std::string, double>>& mean_speed) const {
-
-	mean_speed.clear();
-	std::map<std::string, double> mean_speed_values = std::map<std::string, double>();
+void SpeedData::getNorm(std::vector<std::map<std::string, double>>& norm) const {
+	norm.clear();
 
 	// for each frame
+	// Here, auto sets a const interator to the map.
+	// Since C++11, const map can't use [] to access elements
+	// (see https://stackoverflow.com/questions/1474894/why-isnt-the-operator-const-for-stl-maps)
 	for (auto it = m_speed_data.begin(); it != m_speed_data.end(); ++it) {
-		for (auto& kv : it->m_speed_set) {
-			mean_speed_values[kv.first] = glm::length(kv.second);
-		}
-		mean_speed.push_back(mean_speed_values);
+		norm.push_back(it->m_norm);
 	}
 }
 
@@ -138,6 +143,8 @@ glm::dvec3 SpeedData::getJointSpeed(const std::string& joint_name, const unsigne
 			return iter->second;
 		}
 	}
+
+	return glm::dvec3(0, 0, 0);
 }
 
 /** Returns a couple of speed and time, at a designated index.
@@ -240,9 +247,46 @@ double SpeedData::getDuration() const {
 	return (double)m_interval_number * m_interval_time;
 }
 
+const unsigned int SpeedData::getBodySpeedCount() const {
+	return m_speed_data.size();
+}
+
+const std::vector<std::string> SpeedData::getJointNames() const {
+	std::vector<std::string> names;
+
+	for (auto& kv: m_speed_data[0].m_speed_set)
+		names.push_back(kv.first);
+
+	return names;
+}
+
 void SpeedData::addFrameSpeed(const std::map<std::string, glm::dvec3>& body_speed, double time) {
 	BodySpeed newbodySpeed;
 	newbodySpeed.m_speed_set = body_speed;
 	newbodySpeed.m_time = time;
+
+	std::map<std::string, double> body_norm;
+	for (auto& kv : body_speed) {
+		body_norm[kv.first] = glm::length(kv.second);
+	}
+
+	newbodySpeed.m_norm = body_norm;
+
 	m_speed_data.push_back(newbodySpeed);
+}
+
+void SpeedData::setSpeedSet(std::vector<double>& data, std::string joint, unsigned int axis) {
+	if (m_speed_data[0].m_speed_set.find(joint) != m_speed_data[0].m_speed_set.end()) {
+		for (unsigned int i = 0; i < data.size(); ++i) {
+			m_speed_data[i].m_speed_set[joint][axis] = data[i];
+		}
+	}		
+}
+
+void SpeedData::setNormSet(std::vector<double>& data, std::string joint) {
+	if (m_speed_data[0].m_norm.find(joint) != m_speed_data[0].m_norm.end()) {
+		for (unsigned int i = 0; i < data.size(); ++i) {
+			m_speed_data[i].m_norm[joint] = data[i];
+		}
+	}
 }
