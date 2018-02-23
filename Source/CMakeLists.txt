@@ -1,1 +1,1 @@
-SUBDIRS(01_MLATools_lib 02_MLAMotion_lib 03_MLAParser_lib 04_MLAGui_lib 05_MLANeuron_lib 06_MLARender_lib MLA_app MLA_compute)
+SUBDIRS(02_MLAMotion_lib 01_MLATools_lib 03_MLAParser_lib 04_MLAGui_lib 05_MLANeuron_lib 06_MLARender_lib MLA_app MLA_compute)
