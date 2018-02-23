@@ -107,15 +107,16 @@ namespace Mla {
 
 			glm::dvec3 linear_speed = glm::dvec3();
 
+			//TODO: iterator
 			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
 				glm::dvec3 v1 = global_frame_1->getJoint(j)->getPositions();
 				glm::dvec3 v2 = global_frame_2->getJoint(j)->getPositions();
 
 				// dx / dt -> cm / s
 				// dx / (dt * 100) -> m / s
-				linear_speed[0] = (v2.x - v1.x) / (frame_time * 100);
-				linear_speed[1] = (v2.y - v1.y) / (frame_time * 100);
-				linear_speed[2] = (v2.z - v1.z) / (frame_time * 100);		
+				linear_speed[0] = (v2.x - v1.x) / (frame_time * 100.0);
+				linear_speed[1] = (v2.y - v1.y) / (frame_time * 100.0);
+				linear_speed[2] = (v2.z - v1.z) / (frame_time * 100.0);		
 				lin_speed_vector.insert(std::pair<std::string, glm::dvec3>(global_frame_1->getJoint(j)->getName(), linear_speed));
 			}
 
@@ -282,30 +283,50 @@ namespace Mla {
 		
 		@return new_frame the interpolated frame
 		*/
-		Frame* getFrameFromTime (Motion* motion, double time, double frame_time) {
+		Frame* getFrameFromTime (Motion* motion, double current_time, double original_frame_time) {
 			Frame* returnFrame = nullptr;
 
-			unsigned int frame_bef = static_cast<unsigned int>(time / frame_time);
+			double frame_wanted = current_time / original_frame_time;
 
-			// ???
-			if (frame_bef > 0)
-				frame_bef -= 1;
+			// If we actually want an already existing frame
+			if (fabs(frame_wanted - round(frame_wanted)) < EPSILON) {
+				
+				if (static_cast<unsigned int>(round(frame_wanted)) == motion->getFrames().size())
+					frame_wanted -= 1;
+				returnFrame = motion->getFrame(static_cast<unsigned int>(round(frame_wanted)))->duplicateFrame();
+				return returnFrame;
+			}
+				
+			// If it's not, we compute the frame before, and after, etc.
+			unsigned int frame_bef = static_cast<unsigned int>(frame_wanted);
+
+			// W H Y ???
+			// This is all because the time -> frame space
+			// let say, 11 frames, from 0 to 5s (interframe_time = 0.5)
+			// std::vector<Frame*>.size() == 11 [0 to 10]
+			// t(f0) = 0s, t(f11) = 5s
+			// if time = 5s,
+			// frame_bef = time / frame_time = 10
+			// frame_after = 11 -> ouch
+			// Only happens when we want the last frame, so this workaround should work:
+			// If the time / frame_time = last frame (which is last vector element + 1),
+			// We make it back to the before-last vector idx, so that frame_aft = last array idx.
+			// mixFactor should be = 1 in these case, which gives us the last frame
+			/*if (frame_bef >= motion->getFrames().size() - 1)
+				frame_bef = motion->getFrames().size() - 2;*/
 
 			unsigned int frame_aft = frame_bef + 1;
 
-			double tpsBef = frame_bef * frame_time;
-
-			// -1 ???
-			double mixFactor = ((time - tpsBef) / frame_time) - 1;
+			double mixFactor = frame_wanted - static_cast<int>(frame_wanted);
 
 			if (mixFactor <= EPSILON)
-				return (returnFrame = interpolateFrame(motion->getFrame(frame_bef), motion->getFrame(frame_bef), 0));
+				return (interpolateFrame(motion->getFrame(frame_bef), motion->getFrame(frame_bef), 0));
 
 			else if (1 + EPSILON >= mixFactor && mixFactor >= 1 - EPSILON)
-				return (returnFrame = interpolateFrame(motion->getFrame(frame_aft), motion->getFrame(frame_aft), 1));
+				return (interpolateFrame(motion->getFrame(frame_aft), motion->getFrame(frame_aft), 1));
 
 			else
-				return (returnFrame = interpolateFrame(motion->getFrame(frame_bef), motion->getFrame(frame_aft), mixFactor));
+				return (interpolateFrame(motion->getFrame(frame_bef), motion->getFrame(frame_aft), mixFactor));
 		}
 
 		/** Recursively transforms initial joints (and its childs) local coordinates to global coordinates.
@@ -546,6 +567,11 @@ namespace Mla {
 				*new_motion = Motion();
 				return;
 			}
+
+			if (frames_number == original_motion->getFrames().size()) {
+				new_motion = original_motion;
+				return;
+			}
 				
 			Frame* frame_to_insert = new Frame();
 
@@ -560,16 +586,23 @@ namespace Mla {
 			// original_time / new_number_of_frames
 
 			// Used for the getFrameFromTime() function
-			double frame_time = original_motion->getFrameTime();
+			double original_frame_time = original_motion->getFrameTime();
 
-			// frameNumber - 1 
-			double new_interval = (original_motion->getFrames().size() * frame_time) / static_cast<double>(frames_number - 1);
+			// - 1
+			// let 
+			//	original_interframe_time = 0.008
+			//  original_frame_number    = 5
+			//  new_frame_number         = 20
+			// frame original time: f0 = 0s, f1 = 0.008s, f2 = 0.016s, f3 = 0.024s, f4 = 0.032s
+			// new_interframe_time = (original_frame_number * original_interframe_time) / (frames_number - 1)
+			// f0 = 0s, f1 = 0.0016s, f2 = 0.0024s, f3 = 0.0032s, f4 = 0.004s, ... f19 = 0.032s
+			double new_interval = ((original_motion->getFrames().size() - 1) * original_frame_time) / (frames_number - 1);
 			new_motion->setFrameTime(new_interval);
 
 			double current_time = 0.0;
 
 			for (unsigned int i = 0; i < frames_number; i++) {
-				frame_to_insert = getFrameFromTime(original_motion, current_time, frame_time);
+				frame_to_insert = getFrameFromTime(original_motion, current_time, original_frame_time);
 				new_motion->addFrame(frame_to_insert);
 				current_time += new_interval;
 			}
@@ -597,7 +630,7 @@ namespace Mla {
 			motionSpeedComputing(initial_motion, speed_data);
 
 			std::vector<double> hand_lin_speed;
-			speed_data.getMeanSpeedValues(hand_lin_speed, joint_to_segment);
+			speed_data.getNorm(hand_lin_speed, joint_to_segment);
 
 			// Savgol-ing the values
 			std::vector<double> savgoled;
@@ -637,7 +670,7 @@ namespace Mla {
 		/** TODO: doc
 		
 		*/
-		void getBegEndIndexes(Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<int>& throw_idx) {
+		void getBegEndIndexes (Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<int>& throw_idx) {
 			SpeedData speed_data(motion->getFrames().size() - 1,
 				motion->getFrameTime(),
 				motion->getFrames().size());
@@ -645,7 +678,7 @@ namespace Mla {
 			motionSpeedComputing(motion, speed_data);
 
 			std::vector<double> hand_lin_speed;
-			speed_data.getMeanSpeedValues(hand_lin_speed, joint_to_segment);
+			speed_data.getNorm(hand_lin_speed, joint_to_segment);
 
 			// Savgol-ing the values
 			std::vector<double> savgoled;
@@ -704,6 +737,7 @@ namespace Mla {
 				motion->getFrames().size());
 
 			motionSpeedComputing(motion, speed_data);
+			ComputeSavgol(speed_data, seg_info);
 
 			std::map<std::string, glm::dvec3> speed_beg;
 			std::map<std::string, glm::dvec3> speed_max;
@@ -732,7 +766,7 @@ namespace Mla {
 			motionSpeedComputing(motion, speed_data);
 
 			std::vector<double> hand_lin_speed;
-			speed_data.getMeanSpeedValues(hand_lin_speed, joint_to_segment);
+			speed_data.getNorm(hand_lin_speed, joint_to_segment);
 
 			// Savgol-ing the values
 			std::vector<double> savgoled;
@@ -750,7 +784,7 @@ namespace Mla {
 
 		/** Compute the speed of the joints for a whole motion.
 
-		@param motion the motion
+			@param motion the motion
 		*/
 		void motionSpeedComputing (Motion* motion, SpeedData& speed_data) {
 			std::map<std::string, glm::dvec3> lin_speed;
@@ -769,6 +803,8 @@ namespace Mla {
 		
 		*/
 		void motionAccelerationComputing (SpeedData& speed_data, std::vector<std::map<std::string, glm::dvec3>>& acc_vector, bool normalise) {
+			acc_vector.clear();
+			
 			if (!speed_data.isEmpty()) {
 				// I cannot think of an elegant way to do it for now
 				std::vector<std::map<std::string, glm::dvec3>> lin_speed_values;
@@ -791,7 +827,10 @@ namespace Mla {
 						acc_val = (lin_speed_values[i + 1][kv.first] - kv.second) / speed_data.getIntervalTime();
 						
 						if (normalise)
-							acc_val = glm::normalize(acc_val);
+							if (glm::length(acc_val) > 0)
+								acc_val = glm::normalize(acc_val);
+							else
+								acc_val = glm::dvec3(0, 0, 0);
 
 						acc_map.insert(std::pair<std::string, glm::dvec3>(kv.first, acc_val));
 					}
@@ -807,8 +846,8 @@ namespace Mla {
 
 		/** Compute the speed data for all segments of a motion.
 
-		@param motion_segments The segmented motion
-		@param speed_data_vector The returned speed data corresponding to the motion's segments
+			@param motion_segments The segmented motion
+			@param speed_data_vector The returned speed data corresponding to the motion's segments
 		
 		*/
 		void ComputeSpeedData (std::vector<Motion*>& motion_segments, std::vector<SpeedData>& speed_data_vector) {
@@ -824,6 +863,52 @@ namespace Mla {
 
 				speed_data_vector.push_back(speed_data);
 			}
+		}
+
+		/** Compute a Savgol for a full motion speed values. Note that this is NOT reversible.
+			TODO: un-optimised af, do it
+			
+			@param speed_data The speed_data
+			@param data The savgol informations
+		
+		*/
+		void ComputeSavgol (SpeedData& speed_data, SegmentationInformation& seg_info) {
+			
+			// This vector will contain the extracted speed values (for 1 joint)
+			// from the SpeedData class
+			std::vector<glm::dvec3> speed_3d_vector;
+
+			// This vector will contain the savgoled speed values (for 1 joint)
+			std::vector<glm::dvec3> savgoled_speed;
+			
+			// This vector will store the speed values for 1 component
+			std::vector<double> tmp_speed_component;
+			// This vector will store the savgoled values for 1 component
+			std::vector<double> tmp_savgol_component;
+
+			std::vector<std::string> joint_names = speed_data.getJointNames();
+
+			// For each joint
+			for (auto it_j = joint_names.begin(); it_j != joint_names.end(); ++it_j) {
+				// We get the speed vector
+				speed_data.getAllValues(speed_3d_vector, *it_j);
+
+				// We savgol each component of the 3d vector
+				for (auto axis = 0; axis < 3; ++axis) {
+					// We extract x, y, then z
+					Mla::Utility::ExtractComponent(speed_3d_vector, tmp_speed_component, axis);
+					// We savgol it
+					Mla::Filters::Savgol(tmp_savgol_component, tmp_speed_component, seg_info.savgol_polynom_order, seg_info.savgol_window_size);
+
+					// And now we put it back into the speed_data
+					speed_data.setSpeedSet(tmp_savgol_component, *it_j, axis);
+				}
+
+				speed_data.getNorm(tmp_speed_component, *it_j);
+				Mla::Filters::Savgol(tmp_savgol_component, tmp_speed_component, seg_info.savgol_polynom_order, seg_info.savgol_window_size);
+				speed_data.setNormSet(tmp_savgol_component, *it_j);
+			}
+
 		}
 
 		/** Filter a motion, by eliminating position variations.

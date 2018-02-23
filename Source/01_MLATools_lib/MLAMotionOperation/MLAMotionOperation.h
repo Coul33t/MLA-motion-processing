@@ -14,12 +14,8 @@ MotionOperation.h
 #include "MLAFilters/MLASavgol.h"
 #include "MLAMotionOperation/MLASpeedData.h"
 #include <numeric> // std::accumulate
-#include <limits>
 
-// Define an EPSILON value to compare to.
-// This is because floating point operations
-// are not accurate.
-#define EPSILON 0.00001
+#define EPSILON 0.0001
 
 struct SegmentationInformation {
 	int left_cut;
@@ -45,6 +41,7 @@ namespace Mla {
 		void MeanLinearSpeed(std::vector<std::map<std::string, double>>&, Motion*, unsigned int);
 		void MeanLinearSpeedAxis(std::vector<std::map<std::string, double>>&, Motion*, unsigned int, const std::string&, bool);
 		Frame* getFrameFromTime(Motion*, double, double);
+		Frame* getFrameFromIndex(Motion*, unsigned int, double);
 
 		void getGlobalCoordinates(Frame*, Frame*, Joint*, glm::dmat4);
 
@@ -65,6 +62,7 @@ namespace Mla {
 
 		void ComputeSpeedData(std::vector<Motion*>&, std::vector<SpeedData>&);
 		void motionAccelerationComputing(SpeedData&, std::vector<std::map<std::string, glm::dvec3>>&, bool);
+		void ComputeSavgol(SpeedData&, SegmentationInformation&);
 
 		void motionRebuilding(Motion*, Motion*, unsigned int);
 
