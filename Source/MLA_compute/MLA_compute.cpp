@@ -24,19 +24,20 @@ unsigned int DataClassTest(std::string&, std::string&);
 unsigned int BegMaxEndAcceleration();
 unsigned int GlmFunctionsTest();
 unsigned int TestSpeed(std::string&, std::string&);
-unsigned int FullDataTest();
+unsigned int FullDataTest(std::string&);
 
 unsigned int MemoryLeakChaser();
 
 int main(int argc, char *argv[]) {
 	//MultipleMotionExportTest();
-	//std::string folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/";
-	//std::string file = "Damien_4_Char00.bvh";
+	std::string folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/batch_test_Damien/";
+	std::string file = "Throw_11Char00.bvh";
 	//DataClassTest(folder, file);
 
-	FullDataTest();
+	FullDataTest(folder);
+	//DataClassTest(folder, file);
 	//TestSpeed(folder, file);
-	//GlmFunctionsTest();
+	//GlmFunctionsTest();	
 
 	/*std::cout << std::endl << "Press any key to quit...";
 	std::cin.get();*/
@@ -607,7 +608,6 @@ unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_
 
 	std::vector<Motion*> motion_vector;
 
-	//TODO: put separation indexes into seg_info
 	SegmentationInformation seg_info = {
 		0,	// left cut
 		0,  // right cut
@@ -618,14 +618,17 @@ unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_
 
 	seg_info.final_interframe_time = motion->getFrames().size() * motion->getFrameTime() / static_cast<double>(seg_info.final_frame_number - 1);
 
+	// Throw extraction
+	// Motion segmentation (0 left, 0 right)
 	Mla::MotionOperation::MotionSegmentation(motion, seg_info, motion_vector, JOINT_OF_INTEREST);
 
 	std::vector<SpeedData> speed_data_set;
 
+	// Computing speed
 	Mla::MotionOperation::ComputeSpeedData(motion_vector, speed_data_set);
 
 	// Name of the motion (-4, so that '.bvh' is erased)
-	std::string folder_name = motion_name.std::string::substr(0, motion_name.size() - 4) + "_JSON_BATCH_TEST";
+	std::string folder_name = motion_name.std::string::substr(0, motion_name.size() - 4);
 	// Name of the segmentation (NB_SEG_X) HARDCODED FOR THE MOMENT
 	std::string subfolder_name = "NB_SEG_0";
 	// Name of the lin_speed file (-4, so that '.bvh' is erased)
@@ -635,10 +638,19 @@ unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_
 	Mla::JsonExport::ExportMotionSegmentationInformations(seg_info, folder_name, "segmentation_information");
 
 	std::vector<std::map<std::string, double>> values_to_store = std::vector<std::map<std::string, double>>();
+	
+	// Instanciating the data class, which will hold all the data (wow rly?)
 	Data data;
 
-	speed_data_set[0].getMeanSpeedValues(values_to_store);
-	data.insertNewData("Speed", values_to_store);
+	// Experimental
+	seg_info.savgol_window_size = seg_info.final_frame_number / 4;
+	
+	if (seg_info.savgol_window_size % 2 == 0)
+		seg_info.savgol_window_size++;
+
+	Mla::MotionOperation::ComputeSavgol(speed_data_set[0], seg_info);
+	speed_data_set[0].getNorm(values_to_store);
+	data.insertNewData("SpeedNorm", values_to_store);
 
 	speed_data_set[0].getAllValues(values_to_store, "x", true);
 	data.insertNewData("Speedx", values_to_store);
@@ -657,7 +669,7 @@ unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_
 	values_to_store.clear();
 
 	// First used to store the norm
-	std::map<std::string, double> acc_map;
+	std::map<std::string, double> norm_map;
 
 	// Acceleration norm
 	// for each vector
@@ -665,18 +677,17 @@ unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_
 		// for each key in the iterator
 		for (auto& kv : *it) {
 			// i = 0 -> x, i = 1 -> y, i = 2 -> z
-			acc_map[kv.first] = glm::length(kv.second);
+			norm_map[kv.first] = glm::length(kv.second);
 		}
 
-		values_to_store.push_back(acc_map);
+		values_to_store.push_back(norm_map);
 	}
 
-	data.insertNewData("Acceleration", values_to_store);
+	data.insertNewData("AccelerationNorm", values_to_store);
 
 	// Now we recompute it with normalising
 	Mla::MotionOperation::motionAccelerationComputing(speed_data_set[0], acc_vec, true);
-	// Now used to extract x y z 
-	acc_map.clear();
+	// And we extract x y z 
 	
 	Mla::Utility::ExtractComponent(acc_vec, values_to_store, 0);
 	data.insertNewData("Accelerationx", values_to_store);
@@ -686,10 +697,31 @@ unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_
 	data.insertNewData("Accelerationz", values_to_store);
 	
 
-	// TODO: the same as above
-	/*std::vector<std::map<std::string, glm::dvec3>> begmaxend_values;
-	Mla::MotionOperation::BegMaxEndSpeed(motion, seg_info, JOINT_OF_INTEREST, begmaxend_values);*/
+	values_to_store.clear();
+	norm_map.clear();
 
+	std::vector<std::map<std::string, glm::dvec3>> begmaxend_values;
+	Mla::MotionOperation::BegMaxEndSpeed(motion, seg_info, JOINT_OF_INTEREST, begmaxend_values);
+	// BegMaxEndSpeed norm
+	// for each vector
+	for (auto it = begmaxend_values.begin(); it != begmaxend_values.end(); ++it) {
+		// for each key in the iterator
+		for (auto& kv : *it) {
+			// i = 0 -> x, i = 1 -> y, i = 2 -> z
+			norm_map[kv.first] = glm::length(kv.second);
+		}
+
+		values_to_store.push_back(norm_map);
+	}
+
+	data.insertNewData("BegMaxEndSpeedNorm", values_to_store);
+
+	Mla::Utility::ExtractComponent(begmaxend_values, values_to_store, 0);
+	data.insertNewData("BegMaxEndSpeedx", values_to_store);
+	Mla::Utility::ExtractComponent(begmaxend_values, values_to_store, 1);
+	data.insertNewData("BegMaxEndSpeedy", values_to_store);
+	Mla::Utility::ExtractComponent(begmaxend_values, values_to_store, 2);
+	data.insertNewData("BegMaxEndSpeedz", values_to_store);
 
 	Mla::JsonExport::ExportData(data, folder_name, subfolder_name, file_name);
 
@@ -701,14 +733,13 @@ unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_
 	return 0;
 }
 
-unsigned int FullDataTest() {
+unsigned int FullDataTest(std::string& folder) {
 	std::vector<std::string> file_names;
-	std::string folder_name = "C:\\Users\\quentin\\Documents\\Programmation\\C++\\MLA\\Data\\Bvh\\batch_test_Damien\\";
-	Mla::Utility::readDirectory(folder_name, file_names);
+	Mla::Utility::readDirectory(folder, file_names);
 
 	for (auto it = file_names.begin(); it != file_names.end(); it++) {
 		std::cout << "\n\n\nProcessing " << *it << std::endl;
-		DataClassTest(folder_name, *it);
+		DataClassTest(folder, *it);
 	}
 
 	return 0;
@@ -791,9 +822,18 @@ unsigned int TestSpeed(std::string& motion_folder_name, std::string& motion_name
 
 	Mla::MotionOperation::MotionSegmentation(motion, seg_info, motion_vector, JOINT_OF_INTEREST);
 
+	SpeedData test_speed(motion->getFrames().size(), motion->getFrameTime(), motion->getFrames().size());
 
-	Mla::MotionOperation::ComputeSpeedData(motion_vector, speed_data_set);
-	data.insertNewData("Speed", values);
+	std::vector<std::map<std::string, double>> values_to_store = std::vector<std::map<std::string, double>>();
+
+	Mla::MotionOperation::motionSpeedComputing(motion, test_speed);
+	
+	test_speed.getNorm(values_to_store);
+	data.insertNewData("Norm", values_to_store);
+	values_to_store.clear();
+	Mla::MotionOperation::ComputeSavgol(test_speed, seg_info);
+	test_speed.getNorm(values_to_store);
+	data.insertNewData("SavgoledNorm", values_to_store);
 
 	Mla::JsonExport::ExportMotionInformations(motion->getMotionInformation(), motion->getFrame(0)->getJointsName(), "TEST_VIS", "motion_information");
 	Mla::JsonExport::ExportMotionSegmentationInformations(seg_info, "TEST_VIS", "segmentation_information");
