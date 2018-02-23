@@ -189,7 +189,10 @@ namespace Mla {
 			// Interframe time
 			searchForward(infile, "Time:");
 			infile >> current_word;
-			motion->setFrameTime(atof(current_word.c_str()));
+			if (current_word == "0.017")
+				motion->setFrameTime(0.01666666);
+			if (current_word == "0.008")
+				motion->setFrameTime(0.00833333);
 
 			motion->setOffsetFrame(initial_frame);
 
