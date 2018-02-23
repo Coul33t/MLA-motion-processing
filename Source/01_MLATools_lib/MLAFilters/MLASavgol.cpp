@@ -14,7 +14,7 @@ namespace Mla {
 		**************************************************************/
 		void LUDCMP(MAT A, int N, int *INDX, int *D, int *CODE) {
 
-#define NMX  100
+			#define NMX  100
 
 			double AMAX, DUM, SUM, TINY;
 			double VV[NMX];
@@ -183,6 +183,8 @@ namespace Mla {
 				std::cout << "ERROR: polynom order must be inferior than window size" << std::endl;
 				return;
 			}
+
+			output_data.clear();
 
 			// The windows length for the left and right of the signal
 			// (The window is centered on the current point)

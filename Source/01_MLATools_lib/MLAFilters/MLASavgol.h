@@ -4,6 +4,7 @@
 // Behold the horror of code wrote by progamming-illiterate people
 // I'm currently rewriting the whole thing, to feel less like a
 // Fortran/MATLAB code, and more like a C++ one.
+// (Every array idx is still offset-ed by 1... Jesus.)
 
 #include <math.h>
 #include <vector>
