@@ -182,14 +182,35 @@ def plot_data_k_means(data):
     plt.show()
 
 def simple_plot_2d(data):
+    data = np.asarray(data)
+    
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
-    x = np.linspace(0, data.shape[1]-1, data.shape[1])
-
-    pdb.set_trace()
+    x = np.linspace(0, data.shape[0]-1, data.shape[0])
     
-    ax.plot(x, data.reshape(data.shape[1]), color='blue')
+    ax.set_xlabel('Frame')
+    ax.set_ylabel('Linear speed (m/s)')
+
+
+    ax.plot(x, data.reshape(data.shape[0]), color='blue')
+
+    plt.show()
+
+def simple_plot_2d_2_curves(data1, data2):
+    data1 = np.asarray(data1)
+    data2 = np.asarray(data2)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    x = np.linspace(0, data1.shape[0]-1, data1.shape[0])
+    
+    ax.set_xlabel('Frame')
+    ax.set_ylabel('Linear speed (m/s)')
+
+    ax.plot(x, data1.reshape(data1.shape[0]), color='blue')
+    ax.plot(x, data2.reshape(data2.shape[0]), color='red')
 
     plt.show()
 
