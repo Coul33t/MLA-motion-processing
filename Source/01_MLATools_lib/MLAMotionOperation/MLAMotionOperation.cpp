@@ -377,9 +377,14 @@ namespace Mla {
 				return data.size() - 1;
 
 			// Problem here
-			while (idx > 0 && idx < data.size() && last_value > data[idx]) {
+			while (last_value > data[idx]) {
+				if ((idx <= 0 && direction < 0) || (idx >= data.size() && direction > 0))
+					break;
 				last_value = data[idx];
 				idx += direction;
+
+				if (idx == data.size())
+					break;
 			}
 
 			// idx - direction because we add the value even if we're good
@@ -556,6 +561,88 @@ namespace Mla {
 			}
 		}
 
+		void FindThrowIndex (std::vector<double>& data, std::pair<int, int>& cut_time) {
+			// Pair: idx begin, idx end
+
+			// The mean above which we consider it's still part of the throw motion
+			double data_mean = std::accumulate(data.begin(), data.end(), 0.0) / data.size();
+
+			// First, we segment the throw (" most useful " part of the motion)
+			cut_time.first = getLocalMinimumFromMaximum(data, -1);
+			cut_time.second = getLocalMinimumFromMaximum(data, 1);
+
+			// Used to search the next local minimum from the local maximum
+			int local_max = -1;
+
+			// Used to get a subset of the data vector
+			std::vector<double> sub_vector;
+
+			unsigned int left_idx = cut_time.first;
+			unsigned int right_idx = cut_time.second;
+
+			// Then, we add the LEFT parts until it's under the mean
+			while(data[left_idx] >= data_mean) {
+				
+				if (left_idx == 0)
+					break;
+
+				// The left of the last cut become the right of the new cut
+				right_idx = left_idx;
+
+				// We extract the data's part which have not been processed yet
+				sub_vector = std::vector<double>(data.begin(), data.begin() + right_idx);
+
+				local_max = getLocalMaximum(sub_vector, -1);
+
+				// If we're at the beginning of the signal, then there's nothing
+				// to the left, so there's no more left cut
+				if (local_max == 0) {
+					left_idx = 0;
+					cut_time.first = 0;
+					break;
+				}
+
+				sub_vector = std::vector<double>(data.begin(), data.begin() + local_max);
+
+				left_idx = getLocalMinimum(sub_vector, -1);
+
+				if (left_idx == 0)
+					break;
+			}
+
+			// We got the first correct left index
+			// (i.e. at a local minimum and UNDER the average of the data)
+			cut_time.first = left_idx;
+
+			// Then, we add the RIGHT parts until it's under the mean
+			while (data[right_idx] >= data_mean) {
+				// The right of the last cut become the left of the new cut
+				left_idx = right_idx;
+
+				sub_vector = std::vector<double>(data.begin() + left_idx, data.end());
+
+				// + cut_time.first, because it doesn't start at the beginning
+				local_max = getLocalMaximum(sub_vector, +1) + left_idx;
+
+				// If we're at the end of the signal, then there's nothing
+				// to the right, so there's no more right cut
+				if (local_max == static_cast<int>(sub_vector.size() + left_idx - 1)) {
+					right_idx = local_max;
+					cut_time.second = local_max;
+					break;
+				}
+
+				sub_vector = std::vector<double>(data.begin() + local_max, data.end());
+
+				right_idx = getLocalMinimum(sub_vector, +1) + local_max;
+
+				if (right_idx == static_cast<int>(sub_vector.size() + cut_time.first - 1))
+					break;
+			}
+
+			cut_time.second = right_idx;
+		}
+
 		/** Rebuild a motion from an initial one, with a new count of frames.
 
 		@param original_motion the original motion
@@ -665,6 +752,58 @@ namespace Mla {
 				motion_segments.push_back(cut_motion);
 			}
 
+		}
+
+		/** Segment a motion into submotions.
+
+		@param initial_motion The motion to be segmented
+		@param left_cut The number of segment to the left of the global maximum
+		@param right_cut The number of segment to the right of the global maximum
+		@param savgol_window_size [SAVGOL] The window size for the savgol algorithm
+		@param savgol_polynom_order [SAVGOL] The polynom order for the savgol algorithm
+		@param frame_number_cut The final number of frame for each submotion
+		@param motion_segments The different segments returned
+		@param joint_to_segment The join tused to find the [mini/maxi]mums
+		*/
+		void MotionThrowSegmentation(Motion* initial_motion, SegmentationInformation& seg_info, Motion* result_motion, const std::string& joint_to_segment) {
+			Motion* sub_motion = nullptr;
+
+			SpeedData speed_data(initial_motion->getFrames().size() - 1,
+				initial_motion->getFrameTime(),
+				initial_motion->getFrames().size());
+
+			motionSpeedComputing(initial_motion, speed_data);
+
+			std::vector<double> hand_lin_speed;
+			speed_data.getNorm(hand_lin_speed, joint_to_segment);
+
+			// Savgol-ing the values
+			std::vector<double> savgoled;
+
+			// hand_lin_speed -> accessor class
+			Mla::Filters::Savgol(savgoled, hand_lin_speed, seg_info.savgol_polynom_order, seg_info.savgol_window_size);
+
+			// Finding the separation indexes
+			std::pair<int, int> separation_indexes;
+
+			Mla::MotionOperation::FindThrowIndex(savgoled, separation_indexes);
+
+			// Creating the new submotion
+
+			sub_motion = new Motion();
+			sub_motion->setName(initial_motion->getName());
+			sub_motion->setFrameTime(initial_motion->getFrameTime());
+			sub_motion->setOffsetFrame(initial_motion->getOffsetFrame()->duplicateFrame());
+
+
+			for (int j = separation_indexes.first; j < separation_indexes.second + 1; j++) {
+				sub_motion->addFrame(initial_motion->getFrame(j)->duplicateFrame());
+			}
+
+			// reconstruct the motion
+			Mla::MotionOperation::motionRebuilding(sub_motion, result_motion, seg_info.final_frame_number);
+
+			delete sub_motion;
 		}
 
 		/** TODO: doc

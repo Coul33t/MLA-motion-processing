@@ -50,8 +50,10 @@ namespace Mla {
 		int getLocalMinimum(std::vector<double>&, int);
 
 		void FindIndexSeparation(std::vector<double>&, unsigned int, unsigned int, std::vector<std::pair<int, int>>&);
+		void FindThrowIndex(std::vector<double>&, std::pair<int, int>&);
 
 		void MotionSegmentation(Motion*, SegmentationInformation&, std::vector<Motion*>&, const std::string&);
+		void MotionThrowSegmentation(Motion*, SegmentationInformation&, Motion*, const std::string&);
 
 		void getBegEndIndexes(Motion*, SegmentationInformation&, const std::string&, std::vector<int>&);
 		void BegMaxEndAcceleration(Motion*, SegmentationInformation&, const std::string&, std::vector<std::map<std::string, glm::dvec3>>&);
