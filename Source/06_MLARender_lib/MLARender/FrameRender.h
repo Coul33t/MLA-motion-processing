@@ -10,6 +10,7 @@ namespace Mla {
 		void RenderFrame(Frame*, glm::dmat4&, glm::dmat4&, Shader&);
 		void DrawFromGlobal(std::map<std::string, glm::dvec3>&, glm::dmat4&, glm::dmat4&, Shader&);
 		void DrawFromGlobal(Frame*, glm::dmat4&, glm::dmat4&, Shader&);
+		void DrawXYZ(glm::dmat4&, glm::dmat4&, Shader&);
 
 	};
 };

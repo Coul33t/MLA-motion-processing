@@ -296,6 +296,7 @@ void MainWindow::MainLoop(Motion* motion) {
 			}
 		}
 		
+		Mla::FrameRender::DrawXYZ(m_projection, m_modelview, m_shader);
 		
 		SDL_GL_SwapWindow(m_window);
 

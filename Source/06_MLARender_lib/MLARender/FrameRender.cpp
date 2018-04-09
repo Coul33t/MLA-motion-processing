@@ -182,5 +182,27 @@ namespace Mla {
 				}
 			}
 		}
+
+		void DrawXYZ(glm::dmat4& projection, glm::dmat4& modelview, Shader& shader) {
+			std::vector<double> l_v;
+			std::vector<double> l_c;
+			l_v = { 0,0,0,25,0,0 };
+			l_c = { 1,0,0,1,0,0 };
+			double *line_vertices = &l_v[0];
+			double *line_colour = &l_c[0];
+			DisplayLine(shader, projection, modelview, line_vertices, line_colour);
+
+			l_v = { 0,0,0,0,25,0 };
+			l_c = { 0,1,0,0,1,0 };
+			line_vertices = &l_v[0];
+			line_colour = &l_c[0];
+			DisplayLine(shader, projection, modelview, line_vertices, line_colour);
+
+			l_v = { 0,0,0,0,0,25 };
+			l_c = { 0,0,1,0,0,1 };
+			line_vertices = &l_v[0];
+			line_colour = &l_c[0];
+			DisplayLine(shader, projection, modelview, line_vertices, line_colour);
+		}
 	}
 }
