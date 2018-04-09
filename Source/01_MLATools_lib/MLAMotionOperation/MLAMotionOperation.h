@@ -58,6 +58,7 @@ namespace Mla {
 		void getBegEndIndexes(Motion*, SegmentationInformation&, const std::string&, std::vector<int>&);
 		void BegMaxEndAcceleration(Motion*, SegmentationInformation&, const std::string&, std::vector<std::map<std::string, glm::dvec3>>&);
 		void BegMaxEndSpeed(Motion*, SegmentationInformation&, const std::string&, std::vector<std::map<std::string, glm::dvec3>>&);
+		void BegMaxEndSpeedThrow(Motion*, SegmentationInformation&, const std::string&, std::vector<std::map<std::string, glm::dvec3>>&, bool);
 		void ThrowDuration(Motion*, SegmentationInformation&, const std::string&);
 
 		void motionSpeedComputing(Motion*, SpeedData&);

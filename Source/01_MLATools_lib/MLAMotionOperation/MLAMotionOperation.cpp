@@ -894,6 +894,44 @@ namespace Mla {
 			speed_values.push_back(speed_end);
 		}
 
+		void BegMaxEndSpeedThrow (Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<std::map<std::string, glm::dvec3>>& speed_values, bool normalise) {
+			speed_values.clear();
+			
+			std::pair<int, int> throw_idx;
+
+			SpeedData speed_data(motion->getFrames().size() - 1,
+				motion->getFrameTime(),
+				motion->getFrames().size());
+
+			motionSpeedComputing(motion, speed_data);
+			ComputeSavgol(speed_data, seg_info);
+
+			std::vector<double> speed_norm;
+			speed_data.getNorm(speed_norm, joint_to_segment);
+			FindThrowIndex(speed_norm, throw_idx);
+			int max_idx = Mla::Utility::getMaxValue(speed_norm).second;
+
+			std::vector<std::map<std::string, glm::dvec3>> normalised_val;
+
+			speed_data.getAllValues(normalised_val, normalise);
+
+			std::map<std::string, glm::dvec3> speed_beg;
+			std::map<std::string, glm::dvec3> speed_max;
+			std::map<std::string, glm::dvec3> speed_end;
+
+			// For each joint, we're going to populate the vector of map
+			for (unsigned int j = 0; j < motion->getFrame(0)->getJoints().size(); ++j) {
+				std::string joint_name = motion->getFrame(0)->getJoint(j)->getName();
+				speed_beg.insert(std::pair<std::string, glm::dvec3>(joint_name, normalised_val[throw_idx.first][joint_name]));
+				speed_max.insert(std::pair<std::string, glm::dvec3>(joint_name, normalised_val[max_idx][joint_name]));
+				speed_end.insert(std::pair<std::string, glm::dvec3>(joint_name, normalised_val[throw_idx.second][joint_name]));
+			}
+
+			speed_values.push_back(speed_beg);
+			speed_values.push_back(speed_max);
+			speed_values.push_back(speed_end);
+		}
+
 		/** TODO: doc
 		
 		*/
