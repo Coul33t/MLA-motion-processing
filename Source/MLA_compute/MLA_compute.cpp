@@ -25,19 +25,35 @@ unsigned int BegMaxEndAcceleration();
 unsigned int GlmFunctionsTest();
 unsigned int TestSpeed(std::string&, std::string&);
 unsigned int FullDataTest(std::string&);
-unsigned int ThrowDataClassTest(std::string&, std::string&);
-unsigned int FullThrowDataTest(std::string&);
+unsigned int ThrowDataClassTest(std::string&, std::string&, std::string&);
+unsigned int FullThrowDataTest(std::string&, std::string&);
 
 unsigned int MemoryLeakChaser();
 
 int main(int argc, char *argv[]) {
 	//MultipleMotionExportTest();
-	std::string folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/batch_test_Ines/";
+	std::string folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/batch_test_";
 	std::string file = "Ines_10Char00.bvh";
 	//DataClassTest(folder, file);
-
+	std::vector<std::string> names;
+	names.push_back("Aous");
+	names.push_back("Damien");
+	names.push_back("Esteban");
+	names.push_back("Guillaume");
+	names.push_back("Ines");
+	names.push_back("Iza");
+	names.push_back("Ludovic");
+	names.push_back("Marc");
+	names.push_back("Oussema");
+	names.push_back("Pierre");
+	names.push_back("Sebastien");
+	names.push_back("Vincent");
+	names.push_back("Yann");
 	//FullDataTest(folder);
-	FullThrowDataTest(folder);
+	for (auto it = names.begin(); it != names.end(); it++) {		
+		FullThrowDataTest(folder + *it + "/", *it);
+	}
+	
 	//DataClassTest(folder, file);
 	//TestSpeed(folder, file);
 	//GlmFunctionsTest();	
@@ -753,7 +769,7 @@ unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_
 	return 0;
 }
 
-unsigned int ThrowDataClassTest(std::string& motion_folder_name, std::string& motion_name) {
+unsigned int ThrowDataClassTest(std::string& motion_folder_name, std::string& motion_name, std::string& joint_to_segment) {
 	Motion* motion = nullptr;
 
 	motion = Mla::BvhParser::parseBvh(motion_folder_name, motion_name);
@@ -781,7 +797,7 @@ unsigned int ThrowDataClassTest(std::string& motion_folder_name, std::string& mo
 
 	// Throw extraction
 	// Motion segmentation (0 left, 0 right)
-	Mla::MotionOperation::MotionThrowSegmentation(motion, seg_info, segmented_motion, JOINT_OF_INTEREST);
+	Mla::MotionOperation::MotionThrowSegmentation(motion, seg_info, segmented_motion, joint_to_segment);
 
 	// Computing speed
 	SpeedData speed_data(segmented_motion->getFrames().size() - 1,
@@ -814,25 +830,40 @@ unsigned int ThrowDataClassTest(std::string& motion_folder_name, std::string& mo
 
 	// Computing the savgol on the data
 	Mla::MotionOperation::ComputeSavgol(speed_data, seg_info);
+
+	// --------------------------------------------
+	// From here, the speed_data is now savgoled,
+	// which means that every subsequent operation
+	// is done on a savgoled signal
+	// --------------------------------------------
+
+	// Extracting the norm of the speed
 	speed_data.getNorm(values_to_store);
 	data.insertNewData("SpeedNorm", values_to_store);
 
-	// Storing x speed values (savgoled)
-	speed_data.getAllValues(values_to_store, "x", true);
+	// Storing x speed and directions values (savgoled)
+	speed_data.getAllValues(values_to_store, "x", false);
 	data.insertNewData("Speedx", values_to_store);
+	speed_data.getAllValues(values_to_store, "x", true);
+	data.insertNewData("SpeedDirx", values_to_store);
 
-	// Storing y speed values (savgoled)
-	speed_data.getAllValues(values_to_store, "y", true);
+	// Storing y speed and directions values (savgoled)
+	speed_data.getAllValues(values_to_store, "y", false);
 	data.insertNewData("Speedy", values_to_store);
+	speed_data.getAllValues(values_to_store, "y", true);
+	data.insertNewData("SpeedDiry", values_to_store);
 
-	// Storing z speed values (savgoled)
+	// Storing z speed and directions values (savgoled)
+	speed_data.getAllValues(values_to_store, "z", false);
+	data.insertNewData("Speedy", values_to_store);
 	speed_data.getAllValues(values_to_store, "z", true);
-	data.insertNewData("Speedz", values_to_store);
+	data.insertNewData("SpeedDirz", values_to_store);
 
+	// ------------------------------------
 	// Used to extract acceleration (x y z)
+	// ------------------------------------
 	std::vector<std::map<std::string, glm::dvec3>> acc_vec;
 
-	// 
 	Mla::MotionOperation::motionAccelerationComputing(speed_data, acc_vec, false);
 
 	values_to_store.clear();
@@ -855,10 +886,6 @@ unsigned int ThrowDataClassTest(std::string& motion_folder_name, std::string& mo
 	// Storing acceleration norm
 	data.insertNewData("AccelerationNorm", values_to_store);
 
-	// Now we recompute it with normalising
-	Mla::MotionOperation::motionAccelerationComputing(speed_data, acc_vec, true);
-	// And we extract x y z 
-
 	// Storing x acceleration values (savgoled)
 	Mla::Utility::ExtractComponent(acc_vec, values_to_store, 0);
 	data.insertNewData("Accelerationx", values_to_store);
@@ -871,11 +898,33 @@ unsigned int ThrowDataClassTest(std::string& motion_folder_name, std::string& mo
 	Mla::Utility::ExtractComponent(acc_vec, values_to_store, 2);
 	data.insertNewData("Accelerationz", values_to_store);
 
+	// -----------------------------------------------------------------------
+	// Re-doing the same but this time we NORMALISE the speed for x/y/z values
+	// -----------------------------------------------------------------------
+	Mla::MotionOperation::motionAccelerationComputing(speed_data, acc_vec, true);
+	// And we extract x y z 
+
+	// Storing x acceleration values (savgoled)
+	Mla::Utility::ExtractComponent(acc_vec, values_to_store, 0);
+	data.insertNewData("AccelerationDirx", values_to_store);
+
+	// Storing y acceleration values (savgoled)
+	Mla::Utility::ExtractComponent(acc_vec, values_to_store, 1);
+	data.insertNewData("AccelerationDiry", values_to_store);
+
+	// Storing z acceleration values (savgoled)
+	Mla::Utility::ExtractComponent(acc_vec, values_to_store, 2);
+	data.insertNewData("AccelerationDirz", values_to_store);
+
 	values_to_store.clear();
 	norm_map.clear();
 
+
+	// ---------------------------------------
+	// Extracting the Beg/Max/End speed values
+	// ---------------------------------------
 	std::vector<std::map<std::string, glm::dvec3>> begmaxend_values;
-	Mla::MotionOperation::BegMaxEndSpeed(motion, seg_info, JOINT_OF_INTEREST, begmaxend_values);
+	Mla::MotionOperation::BegMaxEndSpeedThrow(motion, seg_info, JOINT_OF_INTEREST, begmaxend_values, false);
 
 	// BegMaxEndSpeed norm
 	// for each vector
@@ -903,6 +952,24 @@ unsigned int ThrowDataClassTest(std::string& motion_folder_name, std::string& mo
 	Mla::Utility::ExtractComponent(begmaxend_values, values_to_store, 2);
 	data.insertNewData("BegMaxEndSpeedz", values_to_store);
 
+	// -----------------------------------------------------------------------
+	// Re-doing the same but this time we NORMALISE the speed for x/y/z values
+	// -----------------------------------------------------------------------
+	begmaxend_values.clear();
+	Mla::MotionOperation::BegMaxEndSpeedThrow(motion, seg_info, JOINT_OF_INTEREST, begmaxend_values, true);
+
+	// Storing x begmaxend direction values (savgoled)
+	Mla::Utility::ExtractComponent(begmaxend_values, values_to_store, 0);
+	data.insertNewData("BegMaxEndDirx", values_to_store);
+
+	// Storing y begmaxend direction values (savgoled)
+	Mla::Utility::ExtractComponent(begmaxend_values, values_to_store, 1);
+	data.insertNewData("BegMaxEndDiry", values_to_store);
+
+	// Storing z begmaxend direction values (savgoled)
+	Mla::Utility::ExtractComponent(begmaxend_values, values_to_store, 2);
+	data.insertNewData("BegMaxEndDirz", values_to_store);
+
 	Mla::JsonExport::ExportData(data, folder_name, subfolder_name, file_name);
 
 	delete segmented_motion;
@@ -923,13 +990,18 @@ unsigned int FullDataTest(std::string& folder) {
 	return 0;
 }
 
-unsigned int FullThrowDataTest(std::string& folder) {
+unsigned int FullThrowDataTest(std::string& folder, std::string& name) {
 	std::vector<std::string> file_names;
+
+	std::string joint_to_segment = "RightHand";
+	if (name == "Aous" || name == "Damien")
+		joint_to_segment = "LeftHand";
+
 	Mla::Utility::readDirectory(folder, file_names);
 
 	for (auto it = file_names.begin(); it != file_names.end(); it++) {
 		std::cout << "\n\n\nProcessing " << *it << std::endl;
-		ThrowDataClassTest(folder, *it);
+		ThrowDataClassTest(folder, *it, joint_to_segment);
 	}
 
 	return 0;
