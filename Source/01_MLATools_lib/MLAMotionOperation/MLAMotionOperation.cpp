@@ -656,7 +656,7 @@ namespace Mla {
 			}
 
 			if (frames_number == original_motion->getFrames().size()) {
-				new_motion = original_motion;
+				*new_motion = Motion(*original_motion);
 				return;
 			}
 				
@@ -800,6 +800,8 @@ namespace Mla {
 				sub_motion->addFrame(initial_motion->getFrame(j)->duplicateFrame());
 			}
 
+			seg_info.final_frame_number = (separation_indexes.second - separation_indexes.first) + 1;
+			seg_info.final_interframe_time = sub_motion->getFrames().size() * sub_motion->getFrameTime() / static_cast<double>(seg_info.final_frame_number - 1);
 			// reconstruct the motion
 			Mla::MotionOperation::motionRebuilding(sub_motion, result_motion, seg_info.final_frame_number);
 
@@ -895,6 +897,10 @@ namespace Mla {
 		}
 
 		void BegMaxEndSpeedThrow (Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<std::map<std::string, glm::dvec3>>& speed_values, bool normalise) {
+			// Check if maximum is to the left or to the right
+			// If it 's the case, redo the algorithm on the extracted part
+			// With the 2nd maximum value
+
 			speed_values.clear();
 			
 			std::pair<int, int> throw_idx;
