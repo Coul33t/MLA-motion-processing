@@ -23,20 +23,21 @@ unsigned int MultipleMotionExportTest();
 unsigned int DataClassTest(std::string&, std::string&);
 unsigned int BegMaxEndAcceleration();
 unsigned int GlmFunctionsTest();
-unsigned int TestSpeed(std::string&, std::string&);
+unsigned int SavgolSpeedComparison(std::string&, std::string&);
 unsigned int FullDataTest(std::string&);
 unsigned int ThrowDataClassTest(std::string&, std::string&, std::string&);
 unsigned int FullThrowDataTest(std::string&, std::string&);
+unsigned int NewThrowExtraction(std::string&, std::string&);
 
 unsigned int MemoryLeakChaser();
 
 int main(int argc, char *argv[]) {
 	//MultipleMotionExportTest();
-	std::string folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/batch_test_";
-	std::string file = "Ines_10Char00.bvh";
+	std::string folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/Throw_ball_";
+	std::string file = "Leo_1Char00.bvh";
 	//DataClassTest(folder, file);
 	std::vector<std::string> names;
-	names.push_back("Aous");
+	/*names.push_back("Aous");
 	names.push_back("Damien");
 	names.push_back("Esteban");
 	names.push_back("Guillaume");
@@ -48,11 +49,16 @@ int main(int argc, char *argv[]) {
 	names.push_back("Pierre");
 	names.push_back("Sebastien");
 	names.push_back("Vincent");
-	names.push_back("Yann");
+	names.push_back("Yann");*/
 	//FullDataTest(folder);
+	names.push_back("Leo");
 	for (auto it = names.begin(); it != names.end(); it++) {		
 		FullThrowDataTest(folder + *it + "/", *it);
 	}
+
+	//ThrowDataClassTest(folder, file, std::string(JOINT_OF_INTEREST));
+
+	//NewThrowExtraction(folder, file);
 	
 	//DataClassTest(folder, file);
 	//TestSpeed(folder, file);
@@ -793,6 +799,7 @@ unsigned int ThrowDataClassTest(std::string& motion_folder_name, std::string& mo
 		20, // final frame number
 	};
 
+	seg_info.final_frame_number = motion->getFrames().size();
 	seg_info.final_interframe_time = motion->getFrames().size() * motion->getFrameTime() / static_cast<double>(seg_info.final_frame_number - 1);
 
 	// Throw extraction
@@ -814,7 +821,6 @@ unsigned int ThrowDataClassTest(std::string& motion_folder_name, std::string& mo
 	std::string file_name = motion_name.std::string::substr(0, motion_name.size() - 4);
 
 	Mla::JsonExport::ExportMotionInformations(motion->getMotionInformation(), motion->getFrame(0)->getJointsName(), folder_name, "motion_information");
-	Mla::JsonExport::ExportMotionSegmentationInformations(seg_info, folder_name, "segmentation_information");
 
 	std::vector<std::map<std::string, double>> values_to_store = std::vector<std::map<std::string, double>>();
 
@@ -830,6 +836,9 @@ unsigned int ThrowDataClassTest(std::string& motion_folder_name, std::string& mo
 
 	// Computing the savgol on the data
 	Mla::MotionOperation::ComputeSavgol(speed_data, seg_info);
+
+	// We export the infos
+	Mla::JsonExport::ExportMotionSegmentationInformations(seg_info, folder_name, "segmentation_information");
 
 	// --------------------------------------------
 	// From here, the speed_data is now savgoled,
@@ -855,7 +864,7 @@ unsigned int ThrowDataClassTest(std::string& motion_folder_name, std::string& mo
 
 	// Storing z speed and directions values (savgoled)
 	speed_data.getAllValues(values_to_store, "z", false);
-	data.insertNewData("Speedy", values_to_store);
+	data.insertNewData("Speedz", values_to_store);
 	speed_data.getAllValues(values_to_store, "z", true);
 	data.insertNewData("SpeedDirz", values_to_store);
 
@@ -960,15 +969,15 @@ unsigned int ThrowDataClassTest(std::string& motion_folder_name, std::string& mo
 
 	// Storing x begmaxend direction values (savgoled)
 	Mla::Utility::ExtractComponent(begmaxend_values, values_to_store, 0);
-	data.insertNewData("BegMaxEndDirx", values_to_store);
+	data.insertNewData("BegMaxEndSpeedDirx", values_to_store);
 
 	// Storing y begmaxend direction values (savgoled)
 	Mla::Utility::ExtractComponent(begmaxend_values, values_to_store, 1);
-	data.insertNewData("BegMaxEndDiry", values_to_store);
+	data.insertNewData("BegMaxEndSpeedDiry", values_to_store);
 
 	// Storing z begmaxend direction values (savgoled)
 	Mla::Utility::ExtractComponent(begmaxend_values, values_to_store, 2);
-	data.insertNewData("BegMaxEndDirz", values_to_store);
+	data.insertNewData("BegMaxEndSpeedDirz", values_to_store);
 
 	Mla::JsonExport::ExportData(data, folder_name, subfolder_name, file_name);
 
@@ -1044,7 +1053,7 @@ unsigned int BegMaxEndAcceleration() {
 	return 0;
 }
 
-unsigned int TestSpeed(std::string& motion_folder_name, std::string& motion_name) {
+unsigned int SavgolSpeedComparison(std::string& motion_folder_name, std::string& motion_name) {
 	Motion* motion = nullptr;
 
 	motion = Mla::BvhParser::parseBvh(motion_folder_name, motion_name);
@@ -1090,6 +1099,13 @@ unsigned int TestSpeed(std::string& motion_folder_name, std::string& motion_name
 
 	Mla::MotionOperation::motionSpeedComputing(motion, test_speed);
 	
+	// Experimental (setting the savgol window size)
+	seg_info.savgol_window_size = seg_info.final_frame_number / 4;
+
+	// Window size must be odd
+	if (seg_info.savgol_window_size % 2 == 0)
+		seg_info.savgol_window_size++;
+
 	test_speed.getNorm(values_to_store);
 	data.insertNewData("Norm", values_to_store);
 	values_to_store.clear();
@@ -1103,6 +1119,91 @@ unsigned int TestSpeed(std::string& motion_folder_name, std::string& motion_name
 	
 	delete new_motion;
 	
+	return 0;
+}
+
+
+unsigned int NewThrowExtraction(std::string& motion_folder_name, std::string& motion_name) {
+	Motion* motion = nullptr;
+
+	motion = Mla::BvhParser::parseBvh(motion_folder_name, motion_name);
+
+	if (motion == nullptr) {
+		std::cout << "Error reading motion (make sure the name and folder are correct)." << std::endl;
+		std::cout << "File name: " << motion_name << std::endl;
+		std::cout << "Folder name: " << motion_folder_name << std::endl;
+		return 1;
+	}
+
+	Mla::MotionOperation::motionFiltering(motion);
+
+	SegmentationInformation seg_info = {
+		0,	// left cut
+		0,  // right cut
+		51, // window size
+		3,  // polynom order
+		20, // final frame number
+	};
+
+	// No rebuilding
+	seg_info.final_frame_number = motion->getFrames().size();
+
+	Data data;
+	
+	std::pair<int, int> throw_idx;
+
+	SpeedData speed_data(motion->getFrames().size() - 1,
+		motion->getFrameTime(),
+		motion->getFrames().size());
+
+	Mla::MotionOperation::motionSpeedComputing(motion, speed_data);
+
+	std::vector<std::map<std::string, double>> values_to_store = std::vector<std::map<std::string, double>>();
+	speed_data.getNorm(values_to_store);
+	data.insertNewData("Norm", values_to_store);
+	values_to_store.clear();
+
+	// Experimental (setting the savgol window size)
+	seg_info.savgol_window_size = seg_info.final_frame_number / 4;
+
+	// Window size must be odd
+	if (seg_info.savgol_window_size % 2 == 0)
+		seg_info.savgol_window_size++;
+
+	Mla::MotionOperation::ComputeSavgol(speed_data, seg_info);
+
+	std::vector<double> speed_norm;
+	speed_data.getNorm(speed_norm, JOINT_OF_INTEREST);
+
+	speed_data.getNorm(values_to_store);
+	data.insertNewData("SavgoledNorm", values_to_store);
+	values_to_store.clear();
+
+	Mla::MotionOperation::FindThrowIndex(speed_norm, throw_idx);
+	std::cout << throw_idx.first << " " << throw_idx.second << std::endl;
+	
+	Motion* new_motion = new Motion();
+
+	new_motion->setName(motion->getName());
+	new_motion->setFrameTime(motion->getFrameTime());
+	new_motion->setOffsetFrame(motion->getOffsetFrame()->duplicateFrame());
+
+	for (int j = throw_idx.first; j < throw_idx.second + 1; j++) {
+		new_motion->addFrame(motion->getFrame(j)->duplicateFrame());
+	}
+
+	SpeedData test_speed(new_motion->getFrames().size(), new_motion->getFrameTime(), new_motion->getFrames().size());
+	Mla::MotionOperation::motionSpeedComputing(new_motion, test_speed);
+	Mla::MotionOperation::ComputeSavgol(test_speed, seg_info);
+	test_speed.getNorm(values_to_store);
+	data.insertNewData("NewThrowNorm", values_to_store);
+
+	Mla::JsonExport::ExportMotionInformations(motion->getMotionInformation(), motion->getFrame(0)->getJointsName(), "TEST_VIS", "motion_information");
+	Mla::JsonExport::ExportMotionSegmentationInformations(seg_info, "TEST_VIS", "segmentation_information");
+	Mla::JsonExport::ExportData(data, "TEST_VIS", "dontcare", "data");
+
+	delete new_motion;
+
 	return 0;
 }
 
