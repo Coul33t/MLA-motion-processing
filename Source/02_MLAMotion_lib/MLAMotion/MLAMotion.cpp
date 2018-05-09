@@ -14,12 +14,22 @@ Motion::~Motion() {
 
 Motion::Motion(const Motion& motion) {
 	m_frame_time = motion.m_frame_time;
-	m_frames = motion.m_frames;
+
+	for (auto it = motion.m_frames.begin(); it != motion.m_frames.end(); it++)
+		m_frames.push_back((*it)->duplicateFrame());
+
+	m_offset_frame = motion.m_offset_frame->duplicateFrame();
+	m_motion_name = motion.m_motion_name;
 }
 
 Motion& Motion::operator=(const Motion& motion) {
 	m_frame_time = motion.m_frame_time;
-	m_frames = motion.m_frames;
+	
+	for (auto it = motion.m_frames.begin(); it != motion.m_frames.end(); it++)
+		m_frames.push_back((*it)->duplicateFrame());
+
+	m_offset_frame = motion.m_offset_frame->duplicateFrame();
+	m_motion_name = motion.m_motion_name;
 	return *this;
 }
 
