@@ -9,7 +9,7 @@ INCLUDE_DIRECTORIES(${01_MLATools_lib_SOURCE_DIR}
 )
 
 ADD_LIBRARY(01_MLATools_lib STATIC
-	MLATools_lib.h 
+	MLATools_lib.h
 	MLACommonInclude.h
 
 	MLAShader/MLAShader.h
@@ -20,6 +20,8 @@ ADD_LIBRARY(01_MLATools_lib STATIC
 
     MLAMotionOperation/MLASpeedData.h
     MLAMotionOperation/MLASpeedData.cpp
+    MLAMotionOperation/MLAAccData.h
+    MLAMotionOperation/MLAAccData.cpp
 
     MLAData/MLAData.h
     MLAData/MLAData.cpp
@@ -53,6 +55,8 @@ SOURCE_GROUP("MLAData\\Fichiers sources" FILES MLAData/MLAData.cpp)
 
 SOURCE_GROUP("MLAMotionOperation\\Fichiers d'en-tete" FILES MLAMotionOperation/MLASpeedData.h)
 SOURCE_GROUP("MLAMotionOperation\\Fichiers sources" FILES MLAMotionOperation/MLASpeedData.cpp)
+SOURCE_GROUP("MLAMotionOperation\\Fichiers d'en-tete" FILES MLAMotionOperation/MLAAccData.h)
+SOURCE_GROUP("MLAMotionOperation\\Fichiers sources" FILES MLAMotionOperation/MLAAccData.cpp)
 
 SOURCE_GROUP("MLAFilters\\Fichiers d'en-tete" FILES MLAFilters/MLAFilters.h)
 SOURCE_GROUP("MLAFilters\\Fichiers sources" FILES MLAFilters/MLAFilters.cpp)

@@ -1,4 +1,4 @@
-#ifndef __MLA_TOOLS_LIB_INCLUDE_FILES__ 
+#ifndef __MLA_TOOLS_LIB_INCLUDE_FILES__
 #define __MLA_TOOLS_LIB_INCLUDE_FILES__
 
 #include "MLACommonInclude.h"
@@ -6,6 +6,7 @@
 #include "MLAMotionOperation/MLAMotionOperation.h"
 #include "MLAData/MLAData.h"
 #include "MLAMotionOperation/MLASpeedData.h"
+#include "MLAMotionOperation/MLAAccData.h"
 #include "MLAFilters/MLAFilters.h"
 #include "MLAFilters/MLASavgol.h"
 #include "MLAUtility/MLAUtility.h"
