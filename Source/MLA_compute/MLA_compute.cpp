@@ -33,7 +33,7 @@ unsigned int MemoryLeakChaser();
 
 int main(int argc, char *argv[]) {
 	//MultipleMotionExportTest();
-	std::string folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/Throw_ball_";
+	std::string folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/throw_ball_";
 	std::string file = "Leo_1Char00.bvh";
 	//DataClassTest(folder, file);
 	std::vector<std::string> names;
@@ -49,11 +49,11 @@ int main(int argc, char *argv[]) {
 	names.push_back("Pierre");
 	names.push_back("Sebastien");
 	names.push_back("Vincent");
-	names.push_back("Yann");*/
-	//FullDataTest(folder);
+	names.push_back("Yann");
+	FullDataTest(folder);*/
 	names.push_back("Leo");
 	for (auto it = names.begin(); it != names.end(); it++) {		
-		FullThrowDataTest(folder + *it + "/", *it);
+		FullThrowDataTest(folder + (*it) + "/", (*it));
 	}
 
 	//ThrowDataClassTest(folder, file, std::string(JOINT_OF_INTEREST));
@@ -618,7 +618,7 @@ unsigned int MultipleMotionExportTest() {
 // Be careful: 0 cut is hardcoded here (data.insertNewData("Speedx", speed_data_set[0].getAllValues());)
 //                                                                         here
 unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_name) {
-	Motion* motion = nullptr;
+	/*Motion* motion = nullptr;
 
 	motion = Mla::BvhParser::parseBvh(motion_folder_name, motion_name);
 
@@ -770,7 +770,7 @@ unsigned int DataClassTest(std::string& motion_folder_name, std::string& motion_
 	for (unsigned int i = 0; i < motion_vector.size(); i++)
 		delete motion_vector[i];
 
-	delete motion;
+	delete motion;*/
 
 	return 0;
 }
@@ -871,63 +871,40 @@ unsigned int ThrowDataClassTest(std::string& motion_folder_name, std::string& mo
 	// ------------------------------------
 	// Used to extract acceleration (x y z)
 	// ------------------------------------
-	std::vector<std::map<std::string, glm::dvec3>> acc_vec;
+	AccData acc_data(segmented_motion->getFrames().size() - 1,
+		segmented_motion->getFrameTime(),
+		segmented_motion->getFrames().size());
 
-	Mla::MotionOperation::motionAccelerationComputing(speed_data, acc_vec, false);
+	Mla::MotionOperation::motionAccelerationComputing(segmented_motion, acc_data);
+	Mla::MotionOperation::ComputeSavgol(acc_data, seg_info);
 
 	values_to_store.clear();
-
-	// First used to store the norm
-	std::map<std::string, double> norm_map;
-
-	// Acceleration norm
-	// for each vector
-	for (auto it = acc_vec.begin(); it != acc_vec.end(); ++it) {
-		// for each key in the iterator
-		for (auto& kv : *it) {
-			// i = 0 -> x, i = 1 -> y, i = 2 -> z
-			norm_map[kv.first] = glm::length(kv.second);
-		}
-
-		values_to_store.push_back(norm_map);
-	}
 
 	// Storing acceleration norm
-	data.insertNewData("AccelerationNorm", values_to_store);
+	acc_data.getNorm(values_to_store);
+	data.insertNewData("AccNorm", values_to_store);
 
-	// Storing x acceleration values (savgoled)
-	Mla::Utility::ExtractComponent(acc_vec, values_to_store, 0);
-	data.insertNewData("Accelerationx", values_to_store);
+	// Storing x speed and directions values (savgoled)
+	acc_data.getAllValues(values_to_store, "x", false);
+	data.insertNewData("Accx", values_to_store);
+	acc_data.getAllValues(values_to_store, "x", true);
+	data.insertNewData("AccDirx", values_to_store);
 
-	// Storing y acceleration values (savgoled)
-	Mla::Utility::ExtractComponent(acc_vec, values_to_store, 1);
-	data.insertNewData("Accelerationy", values_to_store);
+	// Storing y speed and directions values (savgoled)
+	acc_data.getAllValues(values_to_store, "y", false);
+	data.insertNewData("Accy", values_to_store);
+	acc_data.getAllValues(values_to_store, "y", true);
+	data.insertNewData("AccDiry", values_to_store);
 
-	// Storing z acceleration values (savgoled)
-	Mla::Utility::ExtractComponent(acc_vec, values_to_store, 2);
-	data.insertNewData("Accelerationz", values_to_store);
-
-	// -----------------------------------------------------------------------
-	// Re-doing the same but this time we NORMALISE the speed for x/y/z values
-	// -----------------------------------------------------------------------
-	Mla::MotionOperation::motionAccelerationComputing(speed_data, acc_vec, true);
-	// And we extract x y z 
-
-	// Storing x acceleration values (savgoled)
-	Mla::Utility::ExtractComponent(acc_vec, values_to_store, 0);
-	data.insertNewData("AccelerationDirx", values_to_store);
-
-	// Storing y acceleration values (savgoled)
-	Mla::Utility::ExtractComponent(acc_vec, values_to_store, 1);
-	data.insertNewData("AccelerationDiry", values_to_store);
-
-	// Storing z acceleration values (savgoled)
-	Mla::Utility::ExtractComponent(acc_vec, values_to_store, 2);
-	data.insertNewData("AccelerationDirz", values_to_store);
+	// Storing z speed and directions values (savgoled)
+	acc_data.getAllValues(values_to_store, "z", false);
+	data.insertNewData("Accz", values_to_store);
+	acc_data.getAllValues(values_to_store, "z", true);
+	data.insertNewData("AccDirz", values_to_store);
 
 	values_to_store.clear();
-	norm_map.clear();
 
+	std::map<std::string, double> norm_map;
 
 	// ---------------------------------------
 	// Extracting the Beg/Max/End speed values
