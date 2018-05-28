@@ -13,6 +13,7 @@ MotionOperation.h
 #include "MLAUtility/MLAUtility.h"
 #include "MLAFilters/MLASavgol.h"
 #include "MLAMotionOperation/MLASpeedData.h"
+#include "MLAMotionOperation/MLAAccData.h"
 #include <numeric> // std::accumulate
 
 #define EPSILON 0.0001
@@ -34,9 +35,13 @@ namespace Mla {
 		Frame* interpolateFrame(Frame*, Frame*, double);
 
 		void jointsLinearSpeed(std::map<std::string, double>&, Frame*, Frame*, double);
-		void jointsLinearSpeed(std::map<std::string, glm::dvec3>&, Frame*, Frame*, double);
-		void jointsLinearSpeedAxis(std::map<std::string, double>&, Frame*, Frame*, double, const std::string&, bool);
+		void jointsLinearSpeed(std::map<std::string, glm::dvec3>&, Frame*, Frame*, double, bool = false);
+		void jointsLinearSpeedAxis(std::map<std::string, double>&, Frame*, Frame*, double, const std::string&, bool = false);
 		void jointsAngularSpeed(std::map<std::string, double>&, Frame*, Frame*, double);
+
+		void jointsLinearAcc(std::map<std::string, double>&, Frame*, Frame*, Frame*, double);
+		void jointsLinearAcc(std::map<std::string, glm::dvec3>&, Frame*, Frame*, Frame*, double, bool = false);
+		void jointLinearAccAxis(std::map<std::string, double>&, Frame*, Frame*, Frame*, double, const std::string&, bool = false);
 
 		void MeanLinearSpeed(std::vector<std::map<std::string, double>>&, Motion*, unsigned int);
 		void MeanLinearSpeedAxis(std::vector<std::map<std::string, double>>&, Motion*, unsigned int, const std::string&, bool);
@@ -62,10 +67,12 @@ namespace Mla {
 		void ThrowDuration(Motion*, SegmentationInformation&, const std::string&);
 
 		void motionSpeedComputing(Motion*, SpeedData&);
+		void motionAccelerationComputing(Motion*, AccData&);
 
 		void ComputeSpeedData(std::vector<Motion*>&, std::vector<SpeedData>&);
-		void motionAccelerationComputing(SpeedData&, std::vector<std::map<std::string, glm::dvec3>>&, bool);
+		
 		void ComputeSavgol(SpeedData&, SegmentationInformation&);
+		void ComputeSavgol(AccData&, SegmentationInformation&);
 
 		void motionRebuilding(Motion*, Motion*, unsigned int);
 

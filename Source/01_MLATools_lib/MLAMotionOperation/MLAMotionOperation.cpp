@@ -61,7 +61,7 @@ namespace Mla {
 
 		@param f1 the first frame
 		@param f2 the second frame
-		@param framTime the interframe time
+		@param frame_time the interframe time
 
 		@return speedVector the linear speed of joints
 		*/
@@ -72,16 +72,16 @@ namespace Mla {
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
-
+				
 			double linear_speed = 0;
 
 			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
-				glm::dvec3 v1 = global_frame_1->getJoint(j)->getPositions();
-				glm::dvec3 v2 = global_frame_2->getJoint(j)->getPositions();
+				glm::dvec3 vec1 = global_frame_1->getJoint(j)->getPositions();
+				glm::dvec3 vec2 = global_frame_2->getJoint(j)->getPositions();
 
 				// dx / dt -> cm / s
 				// dx / (dt * 100) -> m / s
-				linear_speed = glm::distance(v1, v2) / (frame_time * 100);
+				linear_speed = glm::distance(vec1, vec2) / (2.0 * frame_time * 100.0);
 				lin_speed_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), linear_speed));
 			}
 
@@ -94,11 +94,11 @@ namespace Mla {
 
 		@param f1 the first frame
 		@param f2 the second frame
-		@param framTime the interframe time
+		@param frame_time the interframe time
 
 		@return speedVector the linear speed of joints as a 3d vector
 		*/
-		void jointsLinearSpeed (std::map<std::string, glm::dvec3>& lin_speed_vector, Frame* f1, Frame* f2, double frame_time) {
+		void jointsLinearSpeed (std::map<std::string, glm::dvec3>& lin_speed_vector, Frame* f1, Frame* f2, double frame_time, bool normalise) {
 			Frame* global_frame_1 = f1->duplicateFrame();
 			Frame* global_frame_2 = f2->duplicateFrame();
 
@@ -109,14 +109,24 @@ namespace Mla {
 
 			//TODO: iterator
 			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
-				glm::dvec3 v1 = global_frame_1->getJoint(j)->getPositions();
-				glm::dvec3 v2 = global_frame_2->getJoint(j)->getPositions();
+				glm::dvec3 vec1 = global_frame_1->getJoint(j)->getPositions();
+				glm::dvec3 vec2 = global_frame_2->getJoint(j)->getPositions();
 
 				// dx / dt -> cm / s
 				// dx / (dt * 100) -> m / s
-				linear_speed[0] = (v2.x - v1.x) / (frame_time * 100.0);
-				linear_speed[1] = (v2.y - v1.y) / (frame_time * 100.0);
-				linear_speed[2] = (v2.z - v1.z) / (frame_time * 100.0);		
+				linear_speed.x = (vec2.x - vec1.x) / (2.0 * frame_time * 100.0);
+				linear_speed.y = (vec2.y - vec1.y) / (2.0 * frame_time * 100.0);
+				linear_speed.z = (vec2.z - vec1.z) / (2.0 * frame_time * 100.0);
+
+				if (normalise) {
+					double norm = sqrt(pow(linear_speed.x, 2) + pow(linear_speed.y, 2) + pow(linear_speed.z, 2));
+					if (norm != 0) {
+						linear_speed.x = linear_speed.x / norm;
+						linear_speed.y = linear_speed.y / norm;
+						linear_speed.z = linear_speed.z / norm;
+					}
+				}
+
 				lin_speed_vector.insert(std::pair<std::string, glm::dvec3>(global_frame_1->getJoint(j)->getName(), linear_speed));
 			}
 
@@ -128,7 +138,7 @@ namespace Mla {
 
 		@param f1 the first frame
 		@param f2 the second frame
-		@param framTime the interframe time
+		@param frame_time the interframe time
 
 		@return speedVector the linear speed of joints
 		*/
@@ -143,18 +153,18 @@ namespace Mla {
 			double linear_speed = 0;
 
 			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
-				glm::dvec3 v1 = global_frame_1->getJoint(j)->getPositions();
-				glm::dvec3 v2 = global_frame_2->getJoint(j)->getPositions();
+				glm::dvec3 vec1 = global_frame_1->getJoint(j)->getPositions();
+				glm::dvec3 vec2 = global_frame_2->getJoint(j)->getPositions();
 				
-				double norm = glm::distance(v1, v2);
+				double norm = glm::distance(vec1, vec2);
 				// dx / dt -> cm / s
 				// dx / (dt * 100) -> m / s
 				if (axis == "x")
-					linear_speed = (v2.x - v1.x) / (frame_time * 100);
+					linear_speed = (vec2.x - vec1.x) / (2.0 * frame_time * 100.0);
 				else if (axis == "y")
-					linear_speed = (v2.y - v1.y) / (frame_time * 100);
+					linear_speed = (vec2.y - vec1.y) / (2.0 * frame_time * 100.0);
 				else if (axis == "z")
-					linear_speed = (v2.z - v1.z) / (frame_time * 100);
+					linear_speed = (vec2.z - vec1.z) / (2.0 * frame_time * 100.0);
 
 				if (normalise && norm != 0.0)
 					linear_speed = linear_speed / norm;
@@ -273,6 +283,128 @@ namespace Mla {
 				delete beg_frame;
 				delete end_frame;
 			}
+		}
+		
+		/*      */
+		void jointsLinearAcc(std::map<std::string, double>& lin_acc_vector, Frame* f1, Frame* f2, Frame* f3, double frame_time) {
+			Frame* global_frame_1 = f1->duplicateFrame();
+			Frame* global_frame_3 = f3->duplicateFrame();
+			Frame* global_frame_2 = f2->duplicateFrame();
+
+			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f3, global_frame_3, f2->getJoint("Hips"), glm::dmat4(1.0));
+
+			double linear_acc = 0.0;
+			glm::dvec3 lacc_vec;
+
+			//TODO: iterator
+			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+				lacc_vec = glm::dvec3(0.0, 0.0, 0.0);
+
+				glm::dvec3 vec1 = global_frame_1->getJoint(j)->getPositions();
+				glm::dvec3 vec2 = global_frame_2->getJoint(j)->getPositions();
+				glm::dvec3 vec3 = global_frame_3->getJoint(j)->getPositions();
+
+				// dv / dt -> cm / s
+				// dv / (dt * 100) -> m / s^(-2)
+				lacc_vec.x = (vec3.x - (2.0 * vec2.x) + vec1.x) / (frame_time * frame_time * 100.0);
+				lacc_vec.y = (vec3.y - (2.0 * vec2.y) + vec1.y) / (frame_time * frame_time * 100.0);
+				lacc_vec.z = (vec3.z - (2.0 * vec2.z) + vec1.z) / (frame_time * frame_time * 100.0);
+				linear_acc = sqrt(pow(lacc_vec.x, 2) + pow(lacc_vec.y, 2) + pow(lacc_vec.z, 2));
+				lin_acc_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), linear_acc));
+			}
+
+			delete global_frame_1;
+			delete global_frame_2;
+		}
+
+		/*      */
+		void jointsLinearAcc(std::map<std::string, glm::dvec3>& lin_acc_vector, Frame* f1, Frame* f2, Frame* f3, double frame_time, bool normalise) {
+			// f2 should ALWAYS be != nullptr, else the problem is somewhere else.
+			Frame* global_frame_1 = f1->duplicateFrame();
+			Frame* global_frame_2 = f2->duplicateFrame();
+			Frame* global_frame_3 = f3->duplicateFrame();
+
+			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f3, global_frame_3, f2->getJoint("Hips"), glm::dmat4(1.0));
+
+			glm::dvec3 linear_acc = glm::dvec3();
+
+			//TODO: iterator
+			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+				glm::dvec3 vec1 = global_frame_1->getJoint(j)->getPositions();
+				glm::dvec3 vec2 = global_frame_2->getJoint(j)->getPositions();
+				glm::dvec3 vec3 = global_frame_3->getJoint(j)->getPositions();
+
+				// dv / dt -> cm / s
+				// dv / (dt * 100) -> m / s^(-2)
+				linear_acc.x = (vec3.x - (2.0 * vec2.x) + vec1.x) / (frame_time * frame_time * 100.0);
+				linear_acc.y = (vec3.y - (2.0 * vec2.y) + vec1.y) / (frame_time * frame_time * 100.0);
+				linear_acc.z = (vec3.z - (2.0 * vec2.z) + vec1.z) / (frame_time * frame_time * 100.0);
+
+				if (normalise) {
+					double norm = sqrt(pow(linear_acc.x, 2) + pow(linear_acc.y, 2) + pow(linear_acc.z, 2));
+					if (norm != 0) {
+						linear_acc.x = linear_acc.x / norm;
+						linear_acc.y = linear_acc.y / norm;
+						linear_acc.z = linear_acc.z / norm;
+					}
+				}
+
+				lin_acc_vector.insert(std::pair<std::string, glm::dvec3>(global_frame_1->getJoint(j)->getName(), linear_acc));
+			}
+
+			delete global_frame_1;
+			delete global_frame_2;
+		}
+
+		/*      */
+		void jointLinearAccAxis(std::map<std::string, double>& lin_acc_vector, Frame* f1, Frame* f2, Frame* f3, double frame_time, const std::string& axis, bool normalise) {
+
+			Frame* global_frame_1 = f1->duplicateFrame();
+			Frame* global_frame_2 = f2->duplicateFrame();
+			Frame* global_frame_3 = f3->duplicateFrame();
+
+			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f3, global_frame_3, f3->getJoint("Hips"), glm::dmat4(1.0));
+
+			double linear_acc = 0.0;
+			glm::dvec3 lacc_vec;
+
+			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+				if (normalise)
+					lacc_vec = glm::dvec3(0.0, 0.0, 0.0);
+
+				glm::dvec3 vec1 = global_frame_1->getJoint(j)->getPositions();
+				glm::dvec3 vec2 = global_frame_2->getJoint(j)->getPositions();
+				glm::dvec3 vec3 = global_frame_3->getJoint(j)->getPositions();
+
+				if (axis == "x")
+					linear_acc = (vec3.x - (2.0 * vec2.x) + vec1.x) / (frame_time * frame_time * 100.0);
+				else if (axis == "y")
+					linear_acc = (vec3.y - (2.0 * vec2.y) + vec1.y) / (frame_time * frame_time * 100.0);
+				else if (axis == "z")
+					linear_acc = (vec3.z - (2.0 * vec2.z) + vec1.z) / (frame_time * frame_time * 100.0);
+
+				if (normalise) {
+					lacc_vec.x = (vec3.x - (2.0 * vec2.x) + vec1.x) / (frame_time * frame_time * 100.0);
+					lacc_vec.y = (vec3.y - (2.0 * vec2.y) + vec1.y) / (frame_time * frame_time * 100.0);
+					lacc_vec.z = (vec3.z - (2.0 * vec2.z) + vec1.z) / (frame_time * frame_time * 100.0);
+					linear_acc = linear_acc / sqrt(pow(lacc_vec.x, 2) + pow(lacc_vec.y, 2) + pow(lacc_vec.z, 2));
+				}
+					
+
+				// dx / dt -> cm / s
+				// dx / (dt * 100) -> m / s
+				lin_acc_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), linear_acc));
+			}
+
+			delete global_frame_1;
+			delete global_frame_2;
+
 		}
 		
 		/** Return an interpolated frame from a motion, and a time
@@ -561,6 +693,7 @@ namespace Mla {
 			}
 		}
 
+		/*      */
 		void FindThrowIndex (std::vector<double>& data, std::pair<int, int>& cut_time) {
 			// Pair: idx begin, idx end
 
@@ -896,6 +1029,7 @@ namespace Mla {
 			speed_values.push_back(speed_end);
 		}
 
+		/*       */
 		void BegMaxEndSpeedThrow (Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<std::map<std::string, glm::dvec3>>& speed_values, bool normalise) {
 			// Check if maximum is to the left or to the right
 			// If it 's the case, redo the algorithm on the extracted part
@@ -972,9 +1106,16 @@ namespace Mla {
 		void motionSpeedComputing (Motion* motion, SpeedData& speed_data) {
 			std::map<std::string, glm::dvec3> lin_speed;
 
-			for (unsigned int i = 0; i < motion->getFrames().size() - 1; i++) {
+			// v(t) = ( v(t+1) - v(t-1) ) / 2dt
+			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
 				lin_speed.clear();
-				Mla::MotionOperation::jointsLinearSpeed(lin_speed, motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime());
+				if (i == 0)
+					Mla::MotionOperation::jointsLinearSpeed(lin_speed, motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime());
+				else if (i == motion->getFrames().size() - 1)
+					Mla::MotionOperation::jointsLinearSpeed(lin_speed, motion->getFrame(i - 1), motion->getFrame(i), motion->getFrameTime());
+				else
+					Mla::MotionOperation::jointsLinearSpeed(lin_speed, motion->getFrame(i - 1), motion->getFrame(i + 1), motion->getFrameTime());
+				
 				speed_data.addFrameSpeed(lin_speed, i * speed_data.getIntervalTime());
 			}
 		}
@@ -985,45 +1126,20 @@ namespace Mla {
 			@param acc_vector The returned acceleration vector
 		
 		*/
-		void motionAccelerationComputing (SpeedData& speed_data, std::vector<std::map<std::string, glm::dvec3>>& acc_vector, bool normalise) {
-			acc_vector.clear();
-			
-			if (!speed_data.isEmpty()) {
-				// I cannot think of an elegant way to do it for now
-				std::vector<std::map<std::string, glm::dvec3>> lin_speed_values;
-				speed_data.getAllValues(lin_speed_values);
-				std::map<std::string, glm::dvec3> acc_map;
-				
-				glm::dvec3 acc_val = glm::dvec3();
+		void motionAccelerationComputing (Motion* motion, AccData& acc_data) {
+			std::map<std::string, glm::dvec3> lin_acc;
 
-				// For every speed info -1 (since we're doing (v2 - v1) / time)
-				for (unsigned int i = 0; i < lin_speed_values.size() - 1; ++i) {
-					
-					acc_map.clear();
-					
-					// For each joint (C++11 for each)
-					for (auto& kv : lin_speed_values[i]) {
-						// (v2 - v1) / time
-						// (it works because GLM allows us to do that)
-						// /!\ We use the SpeedData time here, as it may not be the same
-						// as the initial motion's one
-						acc_val = (lin_speed_values[i + 1][kv.first] - kv.second) / speed_data.getIntervalTime();
-						
-						if (normalise)
-							if (glm::length(acc_val) > 0)
-								acc_val = glm::normalize(acc_val);
-							else
-								acc_val = glm::dvec3(0, 0, 0);
+			// a(t) = ( x(t+1) - 2 x(t)  + x(t-1) ) / dt²
+			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
+				lin_acc.clear();
+				if (i == 0)
+					Mla::MotionOperation::jointsLinearAcc(lin_acc, motion->getFrame(i), motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime());
+				else if (i == motion->getFrames().size() - 1)
+					Mla::MotionOperation::jointsLinearAcc(lin_acc, motion->getFrame(i - 1), motion->getFrame(i), motion->getFrame(i), motion->getFrameTime());
+				else
+					Mla::MotionOperation::jointsLinearAcc(lin_acc, motion->getFrame(i - 1), motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime());
 
-						acc_map.insert(std::pair<std::string, glm::dvec3>(kv.first, acc_val));
-					}
-
-					acc_vector.push_back(acc_map);
-				}
-			}
-
-			else {
-				std::cout << "ERROR: The SpeedData class has no speed information." << std::endl;
+				acc_data.addFrameAcc(lin_acc, i * acc_data.getIntervalTime());
 			}
 		}
 
@@ -1048,6 +1164,22 @@ namespace Mla {
 			}
 		}
 
+		/*      */
+		void ComputeAccData (std::vector<Motion*>& motion_segments, std::vector<AccData>& acc_data_vector) {
+
+			acc_data_vector.clear();
+
+			for (auto it = motion_segments.begin(); it != motion_segments.end(); it++) {
+				AccData acc_data((*it)->getFrames().size() - 1,
+					(*it)->getFrameTime(),
+					(*it)->getFrames().size());
+
+				motionAccelerationComputing((*it), acc_data);
+
+				acc_data_vector.push_back(acc_data);
+			}
+		}
+		
 		/** Compute a Savgol for a full motion speed values. Note that this is NOT reversible.
 			TODO: un-optimised af, do it
 			
@@ -1090,6 +1222,46 @@ namespace Mla {
 				speed_data.getNorm(tmp_speed_component, *it_j);
 				Mla::Filters::Savgol(tmp_savgol_component, tmp_speed_component, seg_info.savgol_polynom_order, seg_info.savgol_window_size);
 				speed_data.setNormSet(tmp_savgol_component, *it_j);
+			}
+
+		}
+
+		/*      */
+		void ComputeSavgol(AccData& acc_data, SegmentationInformation& seg_info) {
+
+			// This vector will contain the extracted speed values (for 1 joint)
+			// from the SpeedData class
+			std::vector<glm::dvec3> acc_3d_vector;
+
+			// This vector will contain the savgoled speed values (for 1 joint)
+			std::vector<glm::dvec3> savgoled_acc;
+
+			// This vector will store the speed values for 1 component
+			std::vector<double> tmp_acc_component;
+			// This vector will store the savgoled values for 1 component
+			std::vector<double> tmp_savgol_component;
+
+			std::vector<std::string> joint_names = acc_data.getJointNames();
+
+			// For each joint
+			for (auto it_j = joint_names.begin(); it_j != joint_names.end(); ++it_j) {
+				// We get the speed vector
+				acc_data.getAllValues(acc_3d_vector, *it_j);
+
+				// We savgol each component of the 3d vector
+				for (auto axis = 0; axis < 3; ++axis) {
+					// We extract x, y, then z
+					Mla::Utility::ExtractComponent(acc_3d_vector, tmp_acc_component, axis);
+					// We savgol it
+					Mla::Filters::Savgol(tmp_savgol_component, tmp_acc_component, seg_info.savgol_polynom_order, seg_info.savgol_window_size);
+
+					// And now we put it back into the speed_data
+					acc_data.setAccSet(tmp_savgol_component, *it_j, axis);
+				}
+
+				acc_data.getNorm(tmp_acc_component, *it_j);
+				Mla::Filters::Savgol(tmp_savgol_component, tmp_acc_component, seg_info.savgol_polynom_order, seg_info.savgol_window_size);
+				acc_data.setNormSet(tmp_savgol_component, *it_j);
 			}
 
 		}
