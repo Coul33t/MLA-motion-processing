@@ -814,7 +814,7 @@ unsigned int ThrowDataClassTest(std::string& motion_folder_name, std::string& mo
 	Mla::MotionOperation::motionSpeedComputing(segmented_motion, speed_data);
 
 	// Name of the motion (-4, so that '.bvh' is erased)
-	std::string folder_name = motion_name.std::string::substr(0, motion_name.size() - 4);
+	std::string folder_name = "LALALA/" + motion_name.std::string::substr(0, motion_name.size() - 4);
 	// Name of the segmentation (NB_SEG_X) HARDCODED FOR THE MOMENT
 	std::string subfolder_name = "data";
 	// Name of the lin_speed file (-4, so that '.bvh' is erased)
