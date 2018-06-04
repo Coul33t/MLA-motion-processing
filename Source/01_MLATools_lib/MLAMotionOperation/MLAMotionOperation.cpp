@@ -481,6 +481,29 @@ namespace Mla {
 			}
 		}
 
+		void getGlobalMaximum(std::vector<double>& data, std::pair<double, unsigned int>& global_max) {
+
+			std::vector<double> sub_vector;
+			global_max = Mla::Utility::getMaxValue(data);
+
+			if (global_max.second == 0 || global_max.second == data.size() - 1) {
+				if (global_max.second == 0) {
+					int local_min = getLocalMinimum(data, 1);
+					sub_vector = std::vector<double>(data.begin() + local_min, data.end());
+				}
+
+				else {
+					int local_min = getLocalMinimum(data, -1);
+					sub_vector = std::vector<double>(data.begin(), data.begin() + local_min);
+				}
+
+				 getGlobalMaximum(sub_vector, global_max);
+			}
+
+			else
+				return;
+		}
+
 		/** Find the next local minimum from the max value, if and only if this value is inferior to a threshold.
 
 		@param data the data to process
@@ -499,8 +522,13 @@ namespace Mla {
 				return -1;
 			}
 
-			double last_value = Mla::Utility::getMaxValue(data).first + 1;
-			unsigned int idx = Mla::Utility::getMaxValue(data).second;
+			// There was a +1 in the initial code
+			// TODO: why tho
+			// EDIT: I think I got it (we're gonna look for an <= value, something like that)
+			std::pair<double, unsigned int> global_max;
+			getGlobalMaximum(data, global_max);
+			double last_value = global_max.first + 1;
+			unsigned int idx = global_max.second;
 
 			if (idx == 0 && direction < 0)
 				return 0;
@@ -508,7 +536,6 @@ namespace Mla {
 			if (idx == data.size() && direction > 0)
 				return data.size() - 1;
 
-			// Problem here
 			while (last_value > data[idx]) {
 				if ((idx <= 0 && direction < 0) || (idx >= data.size() && direction > 0))
 					break;

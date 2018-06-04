@@ -13,6 +13,10 @@ namespace Mla {
 				}
 			}
 
+			if (idx == 0 || idx == data.size() - 1) {
+				
+			}
+				
 			return std::pair<T, int>(max_value, idx);
 		}
 

@@ -50,6 +50,7 @@ namespace Mla {
 
 		void getGlobalCoordinates(Frame*, Frame*, Joint*, glm::dmat4);
 
+		void getGlobalMaximum(std::vector<double>&, std::pair<double, unsigned int>&);
 		int getLocalMinimumFromMaximum(std::vector<double>&, int);
 		int getLocalMaximum(std::vector<double>&, int);
 		int getLocalMinimum(std::vector<double>&, int);
