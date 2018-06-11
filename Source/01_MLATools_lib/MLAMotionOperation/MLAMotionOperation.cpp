@@ -317,6 +317,7 @@ namespace Mla {
 
 			delete global_frame_1;
 			delete global_frame_2;
+			delete global_frame_3;
 		}
 
 		/*      */
@@ -358,6 +359,7 @@ namespace Mla {
 
 			delete global_frame_1;
 			delete global_frame_2;
+			delete global_frame_3;
 		}
 
 		/*      */
@@ -404,6 +406,7 @@ namespace Mla {
 
 			delete global_frame_1;
 			delete global_frame_2;
+			delete global_frame_3;
 
 		}
 		
@@ -480,6 +483,7 @@ namespace Mla {
 				getGlobalCoordinates(local_frame, global_frame, current_joint->getChilds()[i], global_mat);
 			}
 		}
+
 
 		void getGlobalMaximum(std::vector<double>& data, std::pair<double, unsigned int>& global_max) {
 
