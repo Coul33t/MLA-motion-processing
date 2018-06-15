@@ -486,26 +486,24 @@ namespace Mla {
 
 
 		void getGlobalMaximum(std::vector<double>& data, std::pair<double, unsigned int>& global_max) {
-
+			// TODO: add a temporal constraint (1/5 of signal length)
 			std::vector<double> sub_vector;
 			global_max = Mla::Utility::getMaxValue(data);
 
-			if (global_max.second == 0 || global_max.second == data.size() - 1) {
-				if (global_max.second == 0) {
-					int local_min = getLocalMinimum(data, 1);
-					sub_vector = std::vector<double>(data.begin() + local_min, data.end());
-				}
+			unsigned int temporal_threshold = unsigned int(std::round(data.size() / 5));
 
-				else {
-					int local_min = getLocalMinimum(data, -1);
-					sub_vector = std::vector<double>(data.begin(), data.begin() + local_min);
-				}
-
-				 getGlobalMaximum(sub_vector, global_max);
+			if (global_max.second < temporal_threshold) {
+				sub_vector = std::vector<double>(data.begin() + temporal_threshold, data.end());
+				int local_min = getLocalMinimum(sub_vector, 1);
+				sub_vector = std::vector<double>(sub_vector.begin() + local_min, sub_vector.end());
+				global_max = Mla::Utility::getMaxValue(sub_vector);
 			}
-
-			else
-				return;
+				
+			if (global_max.second > data.size() - temporal_threshold) {
+				sub_vector = std::vector<double>(data.begin(), data.begin() + data.size() - temporal_threshold);
+				int local_min = getLocalMinimum(sub_vector, -1);
+				sub_vector = std::vector<double>(sub_vector.begin(), sub_vector.begin() + sub_vector.size() - local_min);
+			}
 		}
 
 		/** Find the next local minimum from the max value, if and only if this value is inferior to a threshold.

@@ -15,6 +15,7 @@ MotionOperation.h
 #include "MLAMotionOperation/MLASpeedData.h"
 #include "MLAMotionOperation/MLAAccData.h"
 #include <numeric> // std::accumulate
+#include <cmath> // std::round
 
 #define EPSILON 0.0001
 
