@@ -5,6 +5,7 @@ Joint::Joint() {
 }
 
 Joint::~Joint() {
+
 }
 
 Joint::Joint(const Joint& joint) {

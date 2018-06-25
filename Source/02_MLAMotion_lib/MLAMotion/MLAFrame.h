@@ -38,7 +38,7 @@ public:
 
 private:
 	std::vector<Joint*> m_joints;
-	// A pointer poiting to the root (in m_joints)
+	// A pointer to the root (in m_joints)
 	Joint* m_root;
 };
 
