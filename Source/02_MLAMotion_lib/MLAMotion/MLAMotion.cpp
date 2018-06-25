@@ -1,7 +1,7 @@
 #include "MLAMotion.h"
 
 Motion::Motion() {
-
+	m_offset_frame = nullptr;
 }
 
 Motion::~Motion() {

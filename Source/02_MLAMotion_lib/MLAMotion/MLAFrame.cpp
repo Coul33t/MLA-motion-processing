@@ -1,10 +1,11 @@
 #include "MLAFrame.h"
 
 Frame::Frame() {
-
+	m_root = nullptr;
 }
 
 Frame::~Frame() {
+	// No need to delete m_root since it will be deleted by this
 	if (!m_joints.empty())
 		for (unsigned int i = 0; i < m_joints.size(); i++)
 			delete (m_joints[i]);
