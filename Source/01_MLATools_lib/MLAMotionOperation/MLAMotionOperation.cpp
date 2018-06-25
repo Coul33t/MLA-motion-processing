@@ -486,11 +486,10 @@ namespace Mla {
 
 
 		void getGlobalMaximum(std::vector<double>& data, std::pair<double, unsigned int>& global_max) {
-			// TODO: add a temporal constraint (1/5 of signal length)
 			std::vector<double> sub_vector;
 			global_max = Mla::Utility::getMaxValue(data);
 
-			unsigned int temporal_threshold = unsigned int(std::round(data.size() / 5));
+			unsigned int temporal_threshold = unsigned int(std::round(data.size() / 10));
 
 			if (global_max.second < temporal_threshold) {
 				sub_vector = std::vector<double>(data.begin() + temporal_threshold, data.end());
