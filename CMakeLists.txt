@@ -16,7 +16,7 @@
 cmake_minimum_required(VERSION 3.6.2)
 
 # Our project is called 'MLA' this is how it will be called in
-# visual studio, and in our makefiles. 
+# visual studio, and in our makefiles.
 PROJECT(MLA)
 
 
@@ -51,7 +51,7 @@ ENDIF(NOT ((CMAKE_BUILD_TYPE STREQUAL "Debug") OR (CMAKE_BUILD_TYPE STREQUAL "Re
 set(CMAKE_MODULE_PATH ${MLA_SOURCE_DIR})
 
 #Path in which to build LIBRARY target files
-SET(LIBRARY_OUTPUT_PATH ${MLA_SOURCE_DIR}/Lib)  
+SET(LIBRARY_OUTPUT_PATH ${MLA_SOURCE_DIR}/Lib)
 
 #Path in which to build RUNTIME target files
 SET(ARCHIVE_OUTPUT_PATH     ${MLA_SOURCE_DIR}/Lib)
@@ -76,13 +76,13 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${TOUPPER_BUILD_TYPE} ${MLA_SOURCE_DIR}/Lib )
 
 
 IF(APPLE)
-    
+
     SET(APPLE_OS 1)
-    
+
     MESSAGE(STATUS "Platform: Mac")
 
 ELSE(APPLE)
-    
+
     SET(APPLE_OS 0)
 
 ENDIF(APPLE)
@@ -90,25 +90,25 @@ ENDIF(APPLE)
 
 
 IF((UNIX) AND NOT (APPLE))
-    
+
     SET(LINUX_OS 1)
-    
+
     MESSAGE(STATUS "Platform: Linux")
 ELSE((UNIX) AND NOT (APPLE))
-    
+
     SET(LINUX_OS 0)
 
 ENDIF((UNIX) AND NOT (APPLE))
 
 
 IF(WIN32)
-    
+
     SET(WIN_OS 1)
-    
+
     MESSAGE(STATUS "Platform: Windows")
 
 ELSE(WIN32)
-    
+
     SET(WIN_OS 0)
 
 ENDIF(WIN32)
@@ -120,7 +120,7 @@ MESSAGE(STATUS "OS: " ${CMAKE_SYSTEM_NAME})
 
 
 IF(NOT(LINUX_OS) AND NOT (APPLE_OS) AND NOT (WIN_OS))
-    
+
     message(FATAL_ERROR "Error: OS not recognized, please reconfigure CmakeLists.txt")
 
 ENDIF(NOT(LINUX_OS) AND NOT (APPLE_OS) AND NOT (WIN_OS))
@@ -134,7 +134,7 @@ ENDIF(NOT(LINUX_OS) AND NOT (APPLE_OS) AND NOT (WIN_OS))
 
 
 if((LINUX_OS) OR (APPLE_OS))
-    
+
     message(FATAL_ERROR "Error: project not ready for Unix OS, please reconfigure CmakeLists.txt")
 
 endif((LINUX_OS) OR (APPLE_OS))
@@ -147,7 +147,7 @@ IF(WIN_OS)
     # IF (NOT(MSVC12) OR NOT(MSVC15))
     #     message(FATAL_ERROR "Error: project valid only for Visual studio 2013 or 2017 version, please reconfigure CmakeLists.txt" )
     # endif(NOT(MSVC12) OR NOT(MSVC15))
-    
+
 
     IF (MSVC_VERSION EQUAL 12)
         SET(CMAKE_VERSION_VISUAL_STUDIO_NAME "Visual Studio 12 2013")
@@ -159,27 +159,27 @@ IF(WIN_OS)
 
     IF (MSVC_VERSION EQUAL 15)
         SET(CMAKE_VERSION_VISUAL_STUDIO_NAME "Visual Studio 15 2017")
-    ENDIF (MSVC_VERSION EQUAL 15) 
-    
+    ENDIF (MSVC_VERSION EQUAL 15)
+
 
     SET(WIN_IDE_ARCH 0)
     IF(CMAKE_GENERATOR STREQUAL "${CMAKE_VERSION_VISUAL_STUDIO_NAME} Win64")
-        SET(CMAKE_ARCHITECTURE_TYPE x64)        
-        SET(WIN_IDE_ARCH 1) 
+        SET(CMAKE_ARCHITECTURE_TYPE x64)
+        SET(WIN_IDE_ARCH 1)
     ENDIF(CMAKE_GENERATOR STREQUAL "${CMAKE_VERSION_VISUAL_STUDIO_NAME} Win64")
- 
+
 
     IF(CMAKE_GENERATOR STREQUAL ${CMAKE_VERSION_VISUAL_STUDIO_NAME})
-        SET(CMAKE_ARCHITECTURE_TYPE x86)        
+        SET(CMAKE_ARCHITECTURE_TYPE x86)
         SET(WIN_IDE_ARCH 1)
     ENDIF(CMAKE_GENERATOR STREQUAL ${CMAKE_VERSION_VISUAL_STUDIO_NAME})
 
 
     IF(NOT (WIN_IDE_ARCH))
-        
+
         message(FATAL_ERROR "Error: the following Visual Studio architecture is unknown: ${CMAKE_GENERATOR}")
 
-    ELSE(NOT (WIN_IDE_ARCH))    
+    ELSE(NOT (WIN_IDE_ARCH))
         IF(MSVC_VERSION EQUAL 12)
             MESSAGE(STATUS "Configuration: Visual Studio 2013")
         ENDIF(MSVC_VERSION EQUAL 12)
@@ -203,20 +203,20 @@ SET(CMAKE_ARCHITECTURE_TYPE x86)
 
 
 ##---------------------------------------------------------------------------
-# Common settings 
+# Common settings
 ##---------------------------------------------------------------------------
 
 
     #-------------------------------------
     # OPENGL
-    #-------------------------------------  
+    #-------------------------------------
     find_package(OpenGL QUIET)
 
     IF(CMAKE_ARCHITECTURE_TYPE STREQUAL "x86" )
 
         IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
             MESSAGE(STATUS "Architecture: Debug, 32 bits")
-        ELSE(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        ELSE(CMAKE_BUILD_TYPE STREQUAL "Release")
             MESSAGE(STATUS "Architecture: Release, 32 bits")
         ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
@@ -227,7 +227,7 @@ SET(CMAKE_ARCHITECTURE_TYPE x86)
 
         IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
             MESSAGE(STATUS "Architecture: Debug, 64 bits")
-        ELSE(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        ELSE(CMAKE_BUILD_TYPE STREQUAL "Release")
             MESSAGE(STATUS "Architecture: Release, 64 bits")
         ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug")
     ENDIF(CMAKE_ARCHITECTURE_TYPE STREQUAL "x64" )
@@ -252,7 +252,7 @@ IF(WIN_OS)
 
     #-------------------------------------
     # OpenGL
-    #-------------------------------------  
+    #-------------------------------------
     if(NOT OPENGL_FOUND)
         message(FATAL_ERROR "Error OpenGL not found: please install OpenGL package")
     endif(NOT OPENGL_FOUND)
@@ -261,27 +261,27 @@ IF(WIN_OS)
 
     #-------------------------------------
     # GLEW
-    #-------------------------------------  
+    #-------------------------------------
     SET(GLEW_INCLUDE_DIR        ${MLA_SOURCE_DIR}/ThirdParty/Windows/Glew/include)
     SET(GLEW_LIBRARIES_DIR      ${MLA_SOURCE_DIR}/ThirdParty/Windows/Glew/lib)
 
 
     #-------------------------------------
     # SDL
-    #-------------------------------------                  
+    #-------------------------------------
     SET(SDL_INCLUDE_DIR         ${MLA_SOURCE_DIR}/ThirdParty/Windows/SDL/include)
     SET(SDL_LIBRARIES_DIR       ${MLA_SOURCE_DIR}/ThirdParty/Windows/SDL/lib)
 
 
     #-------------------------------------
     # GLM
-    #-------------------------------------                  
+    #-------------------------------------
     SET(GLM_INCLUDE_DIR         ${MLA_SOURCE_DIR}/ThirdParty/CrossPlatform/glm)
 
 
     #-------------------------------------
     # NEURON SDK
-    #-------------------------------------  
+    #-------------------------------------
     SET(NEURON_INCLUDE_DIR         ${MLA_SOURCE_DIR}/ThirdParty/Windows/NeuronDataReaderSDK/include)
     SET(NEURON_LIBRARIES_DIR       ${MLA_SOURCE_DIR}/ThirdParty/Windows/NeuronDataReaderSDK/lib/x86)
 
@@ -294,8 +294,8 @@ IF(WIN_OS)
 
     #-------------------------------------
     # LIBS
-    #-------------------------------------  
-    
+    #-------------------------------------
+
     IF(CMAKE_ARCHITECTURE_TYPE STREQUAL "x86" )
 
         SET(GLEW_LIB        GLEW32_x86.lib
@@ -312,11 +312,11 @@ IF(WIN_OS)
 
 
         ADD_DEFINITIONS(-D_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH)
-        ADD_DEFINITIONS(/W4)       
-    
+        ADD_DEFINITIONS(/W4)
+
     ENDIF(CMAKE_ARCHITECTURE_TYPE STREQUAL "x86" )
 
-    
+
     IF(CMAKE_ARCHITECTURE_TYPE STREQUAL "x64" )
 
         SET(GLEW_LIB        GLEW32_x64.lib
@@ -332,7 +332,7 @@ IF(WIN_OS)
         SET(NEURON_DYNAMIC_LIB      ${MLA_SOURCE_DIR}/ThirdParty/Windows/NeuronDataReaderSDK/lib/x64/NeuronDataReader.dll)
 
     ENDIF(CMAKE_ARCHITECTURE_TYPE STREQUAL "x64" )
-    
+
     IF (CMAKE_BUILD_TYPE STREQUAL "Release")
         MESSAGE("Do not forget to set Visual Studio configuration to Release mode")
     ENDIF(CMAKE_BUILD_TYPE STREQUAL "Release")
