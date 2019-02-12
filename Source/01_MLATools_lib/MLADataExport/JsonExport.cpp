@@ -19,13 +19,13 @@ namespace Mla {
 			std::vector<DataType> data_contents = data.getData();
 
 			// iterates over every data type
-			for (std::vector<DataType>::const_iterator data_contents_it = data_contents.begin(); data_contents_it != data_contents.end(); ++data_contents_it) {
+			for (auto data_contents_it = data_contents.begin(); data_contents_it != data_contents.end(); ++data_contents_it) {
 				
 				std::map<std::string, std::vector<double>> values_rearranged;
 				data.convertToMap(data_contents_it->name, values_rearranged);
 
 				// iterates over every joint
-				for (std::map<std::string, std::vector<double>>::const_iterator data_it = values_rearranged.begin(); data_it != values_rearranged.end(); ++data_it) {
+				for (auto data_it = values_rearranged.begin(); data_it != values_rearranged.end(); ++data_it) {
 					json j_vec(data_it->second);
 					json_file[data_contents_it->name][data_it->first] = j_vec;
 				} // end iteration over joint
