@@ -22,13 +22,15 @@ unsigned int OneMotionExportTest(std::string&, std::string&);
 unsigned int MultipleMotionExportTest();
 unsigned int DataClassTest(std::string&, std::string&);
 unsigned int BegMaxEndAcceleration();
-unsigned int GlmFunctionsTest();
 unsigned int SavgolSpeedComparison(std::string&, std::string&);
 unsigned int FullDataTest(std::string&);
 unsigned int ThrowDataClassTest(std::string&, std::string&, std::string&);
 unsigned int FullThrowDataTest(std::string&, std::string&);
 unsigned int NewThrowExtraction(std::string&, std::string&);
+unsigned int BoudingBoxSolo(std::string&, std::string&);
+unsigned int BoudingBoxesMulti(std::string&, std::string&);
 
+unsigned int GlmFunctionsTest();
 unsigned int MemoryLeakChaser();
 
 int main(int argc, char *argv[]) {
@@ -50,11 +52,21 @@ int main(int argc, char *argv[]) {
 	names.push_back("Sebastien");
 	names.push_back("Vincent");
 	names.push_back("Yann");
-	FullDataTest(folder);*/
-	names.push_back("Leo");
-	for (auto it = names.begin(); it != names.end(); it++) {		
+	//FullDataTest(folder);*/
+
+	/*names.push_back("Leo");
+	for (auto it = names.begin(); it != names.end(); it++) {
 		FullThrowDataTest(folder + (*it) + "/", (*it));
-	}
+	}*/
+
+	//BoudingBoxSolo(folder + "Leo/", file);
+	BoudingBoxesMulti(folder + "Leo/", file);
+
+
+	
+
+	/*std::string joint = "LeftHand";
+	ThrowDataClassTest(folder, file, joint);*/
 
 	//ThrowDataClassTest(folder, file, std::string(JOINT_OF_INTEREST));
 
@@ -64,8 +76,8 @@ int main(int argc, char *argv[]) {
 	//TestSpeed(folder, file);
 	//GlmFunctionsTest();	
 
-	/*std::cout << std::endl << "Press any key to quit...";
-	std::cin.get();*/
+	std::cout << std::endl << "Press any key to quit...";
+	std::cin.get();
 	return 0;
 }
 
@@ -814,7 +826,7 @@ unsigned int ThrowDataClassTest(std::string& motion_folder_name, std::string& mo
 	Mla::MotionOperation::motionSpeedComputing(segmented_motion, speed_data);
 
 	// Name of the motion (-4, so that '.bvh' is erased)
-	std::string folder_name = "LALALA/" + motion_name.std::string::substr(0, motion_name.size() - 4);
+	std::string folder_name = "testaccbugandjerk/" + motion_name.std::string::substr(0, motion_name.size() - 4);
 	// Name of the segmentation (NB_SEG_X) HARDCODED FOR THE MOMENT
 	std::string subfolder_name = "data";
 	// Name of the lin_speed file (-4, so that '.bvh' is erased)
@@ -956,6 +968,29 @@ unsigned int ThrowDataClassTest(std::string& motion_folder_name, std::string& mo
 	Mla::Utility::ExtractComponent(begmaxend_values, values_to_store, 2);
 	data.insertNewData("BegMaxEndSpeedDirz", values_to_store);
 
+	std::vector<int> throw_idx;
+	Mla::MotionOperation::getBegMaxEndIndexes(motion, seg_info, joint_to_segment, throw_idx);
+
+ 	Mla::MotionOperation::computeJerk(motion, values_to_store, std::string("norm"), false);
+	data.insertNewData("JerkNorm", values_to_store);
+
+	Mla::MotionOperation::computeJerk(motion, values_to_store, std::string("x"), false);
+	data.insertNewData("Jerkx", values_to_store);
+	Mla::MotionOperation::computeJerk(motion, values_to_store, std::string("x"), true);
+	data.insertNewData("JerkDirx", values_to_store);
+	Mla::MotionOperation::computeJerk(motion, values_to_store, std::string("y"), false);
+	data.insertNewData("Jerky", values_to_store);
+	Mla::MotionOperation::computeJerk(motion, values_to_store, std::string("y"), true);
+	data.insertNewData("JerkDiry", values_to_store);
+	Mla::MotionOperation::computeJerk(motion, values_to_store, std::string("z"), false);
+	data.insertNewData("Jerkz", values_to_store);
+	Mla::MotionOperation::computeJerk(motion, values_to_store, std::string("z"), true);
+	data.insertNewData("JerkDirz", values_to_store);
+
+	/* EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEH 
+	Mla::MotionOperation::computeJerk(motion, values_to_store, std::string("x"), false);
+	data.insertNewData("BoundingBox", values_to_store);*/
+
 	Mla::JsonExport::ExportData(data, folder_name, subfolder_name, file_name);
 
 	delete segmented_motion;
@@ -989,43 +1024,6 @@ unsigned int FullThrowDataTest(std::string& folder, std::string& name) {
 		std::cout << "\n\n\nProcessing " << *it << std::endl;
 		ThrowDataClassTest(folder, *it, joint_to_segment);
 	}
-
-	return 0;
-}
-
-unsigned int BegMaxEndAcceleration() {
-	
-	Motion* motion = nullptr;
-
-	std::string motion_name = "Guillaume_1_Char00.bvh";
-	std::string motion_folder_name = "C:\\Users\\quentin\\Documents\\Programmation\\C++\\MLA\\Data\\Bvh\\batch_test_Guillaume\\";
-
-	motion = Mla::BvhParser::parseBvh(motion_folder_name, motion_name);
-
-	if (motion == nullptr) {
-		std::cout << "Error reading motion (make sure the name and folder are correct)." << std::endl;
-		std::cout << "File name: " << motion_name << std::endl;
-		std::cout << "Folder name: " << motion_folder_name << std::endl;
-		return 1;
-	}
-
-	Mla::MotionOperation::motionFiltering(motion);
-
-	std::vector<Motion*> motion_vector;
-
-	SegmentationInformation seg_info = {
-		0,	// left cut
-		0,  // right cut
-		51, // window size
-		3,  // polynom order
-		20, // final frame number
-	};
-
-	seg_info.final_interframe_time = motion->getFrames().size() * motion->getFrameTime() / static_cast<double>(seg_info.final_frame_number - 1);
-
-	std::vector<std::map<std::string, glm::dvec3>> values;
-
-	Mla::MotionOperation::BegMaxEndAcceleration(motion, seg_info, JOINT_OF_INTEREST, values);
 
 	return 0;
 }
@@ -1184,6 +1182,52 @@ unsigned int NewThrowExtraction(std::string& motion_folder_name, std::string& mo
 	return 0;
 }
 
+unsigned int BoudingBoxSolo(std::string& motion_folder_name, std::string& motion_name) {
+	Motion* motion = nullptr;
+
+	motion = Mla::BvhParser::parseBvh(motion_folder_name, motion_name);
+
+	if (motion == nullptr) {
+		std::cout << "Error reading motion (make sure the name and folder are correct)." << std::endl;
+		std::cout << "File name: " << motion_name << std::endl;
+		std::cout << "Folder name: " << motion_folder_name << std::endl;
+		return 1;
+	}
+
+	std::vector<double> bb;
+	std::vector<std::string> joints_to_check;
+	joints_to_check.push_back("LeftArm");
+	joints_to_check.push_back("LeftForeArm");
+	joints_to_check.push_back("LeftHand");
+	joints_to_check.push_back("LeftShoulder");
+	Mla::MotionOperation::jointsBoundingBox(bb, motion->getFrame(0), joints_to_check);
+
+	return 0;
+}
+
+unsigned int BoudingBoxesMulti(std::string& motion_folder_name, std::string& motion_name) {
+	Motion* motion = nullptr;
+
+	motion = Mla::BvhParser::parseBvh(motion_folder_name, motion_name);
+
+	if (motion == nullptr) {
+		std::cout << "Error reading motion (make sure the name and folder are correct)." << std::endl;
+		std::cout << "File name: " << motion_name << std::endl;
+		std::cout << "Folder name: " << motion_folder_name << std::endl;
+		return 1;
+	}
+	
+	std::vector<std::vector<double>> bbs;
+
+	std::vector<std::string> joints_to_check;
+	joints_to_check.push_back("LeftArm");
+	joints_to_check.push_back("LeftForeArm");
+	joints_to_check.push_back("LeftHand");
+	joints_to_check.push_back("LeftShoulder");
+	Mla::MotionOperation::computeBoundingBoxes(motion, bbs, joints_to_check);
+
+	return 0;
+}
 unsigned int GlmFunctionsTest() {
 	glm::dvec3 vec(10, 5, 2);
 	glm::dvec3 normalised = glm::normalize(vec);
