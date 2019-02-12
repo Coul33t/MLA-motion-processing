@@ -37,6 +37,7 @@ public:
 	Joint* getParent() const;
 
 private:
+	// TODO: char* instead of std::string (performance related in getName())
 	std::string m_joint_name;
 
 	// a vector with the initial offset
