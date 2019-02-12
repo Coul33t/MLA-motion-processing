@@ -1,15 +1,21 @@
+/**
+* \file MlaMotionOperation.cpp
+* \brief This file contains all the motion operations function, such as filtering, descriptors extraction, etc.
+* \author Quentin.C
+* \version 0.1
+* \date 12 February 2019
+*/
+
 #include "MLAMotionOperation.h"
 
 namespace Mla {
 	namespace MotionOperation {
 
-		/** Interpolate a joint from 2 joints and a mix factor.
-
-		@param j1 the first joint
-		@param j2 the second joint
-		@param mixFactor the mix factor between the 2 joints
-
-		@return interpolatedJoint the interpolated joint
+		/** Interpolate a joint position and orientation from two original joints and a mix factor.
+		* @param j1 First joint
+		* @param j2 Second joint
+		* @param mixFactor Mix factor between the 2 joints
+		* @return An interpolated joint
 		*/
 		Joint* interpolateJoint (Joint* j1, Joint* j2, double mix_factor) {
 			Joint* interpolated_joint = new Joint();
@@ -25,13 +31,11 @@ namespace Mla {
 			return interpolated_joint;
 		}
 
-		/** Interpolate a frame from 2 frame and a mix factor.
-
-		@param f1 the first frame
-		@param f2 the second frame
-		@param mixFactor the mix factor between the 2 frames
-
-		@return interpolatedFrame the interpolated frame
+		/** Interpolate a frame from two original frames and a mix factor.
+		* @param f1 First frame
+		* @param f2 Second frame
+		* @param mixFactor Mix factor between the 2 frames
+		* @return An interpolated frame
 		*/
 		Frame* interpolateFrame (Frame* f1, Frame* f2, double mix_factor) {
 
@@ -57,13 +61,12 @@ namespace Mla {
 			return interpolated_frame;
 		}
 
-		/** Compute the speed of the joints between 2 frames.
-
-		@param f1 the first frame
-		@param f2 the second frame
-		@param frame_time the interframe time
-
-		@return speedVector the linear speed of joints
+		/** Compute the speed of the joints at a given point in time (t).
+		* @param lin_speed_vector Output vector
+		* @param f1 First frame (t-1)
+		* @param f2 Second frame (t+1)
+		* @param frame_time Interframe time
+		* @return A vector containing the linear speed of all the joints
 		*/
 		void jointsLinearSpeed (std::map<std::string, double>& lin_speed_vector, Frame* f1, Frame* f2, double frame_time) {
 			
@@ -90,13 +93,12 @@ namespace Mla {
 
 		}
 
-		/** Compute the speed of the joints between 2 frames.
-
-		@param f1 the first frame
-		@param f2 the second frame
-		@param frame_time the interframe time
-
-		@return speedVector the linear speed of joints as a 3d vector
+		/** Compute the normalised (or not) speed of the joints at a given point in time (t).
+		* @param lin_speed_vector Output vector
+		* @param f1 First frame (t-1)
+		* @param f2 Second frame (t+1)
+		* @param frame_time Interframe time
+		* @return A vector containing the linear speed of the joints
 		*/
 		void jointsLinearSpeed (std::map<std::string, glm::dvec3>& lin_speed_vector, Frame* f1, Frame* f2, double frame_time, bool normalise) {
 			Frame* global_frame_1 = f1->duplicateFrame();
@@ -134,13 +136,12 @@ namespace Mla {
 			delete global_frame_2;
 		}
 
-		/** Compute the speed (along an axis) of the joints between 2 frames.
-
-		@param f1 the first frame
-		@param f2 the second frame
-		@param frame_time the interframe time
-
-		@return speedVector the linear speed of joints
+		/** Compute the normalised (or not) speed of the joints at a given point in time (t) along one axis.
+		* @param lin_speed_vector Output vector
+		* @param f1 First frame (t-1)
+		* @param f2 Second frame (t+1)
+		* @param frame_time Interframe time
+		* @return A vector containing the linear speed of all the joints
 		*/
 		void jointsLinearSpeedAxis (std::map<std::string, double>& lin_speed_vector, Frame* f1, Frame* f2, double frame_time, const std::string& axis, bool normalise) {
 
@@ -177,13 +178,12 @@ namespace Mla {
 
 		}
 
-		/** Compute the speed of the joints between 2 frames.
-
-		@param f1 the first frame
-		@param f2 the second frame
-		@param framTime the interframe time
-
-		@return speedVector the angular speed of joints
+		/** Compute the angular speed of the joints at a given point in time (t).
+		* @param ang_speed_vector Output vector
+		* @param f1 First frame (t-1)
+		* @param f2 Second frame (t+1)
+		* @param frame_time Interframe time
+		* @return A vector containing the angular speed of all the joints
 		*/
 		void jointsAngularSpeed (std::map<std::string, double>& ang_speed_vector, Frame* f1, Frame* f2, double frame_time) {
 			
@@ -212,11 +212,10 @@ namespace Mla {
 		}
 
 		/** Compute the mean speed on given intervals for the full motion between two frames, with skeleton interpolation.
-
-		@param motion the motion
-		@param n the number of interval
-
-		@return meanLinSpeed A vector containing the mean speed for each joint on the frames, for each interval
+		@param mean_lin_speed_inter Output vector
+		@param motion Motion
+		@param n Number of interval
+		@return A vector containing the mean speed for each joint on the frames, for each interval
 		*/
 		void MeanLinearSpeed (std::vector<std::map<std::string, double>>& mean_lin_speed_inter, Motion* motion, unsigned int n) {
 
@@ -249,11 +248,10 @@ namespace Mla {
 		}
 
 		/** Compute the mean speed (on the 3 axis) on given intervals for the full motion between two frames, with skeleton interpolation.
-
-		@param motion the motion
-		@param n the number of interval
-
-		@return meanLinSpeed A vector containing the mean speed (on the 3 axis) for each joint on the frames, for each interval
+		* @param mean_lin_speed_inter Output vector
+		* @param motion Motion
+		* @param n Number of interval
+		* @return A vector containing the mean speed (on the 3 axis) for each joint on the frames, for each interval
 		*/
 		void MeanLinearSpeedAxis (std::vector<std::map<std::string, double>>& mean_lin_speed_inter, Motion* motion, unsigned int n, const std::string& axis, bool normalise) {
 
@@ -285,15 +283,22 @@ namespace Mla {
 			}
 		}
 		
-		/*      */
+		/* Compute the acceleration of the joints at a given point in time (t).
+		* @param lin_acc_vector Output vector
+		* @param f1 First frame (t-1)
+		* @param f2 Second frame (t)
+		* @param f3 Third frame (t+1)
+		* @param frame_time Interframe time
+		* @return A vector containing the acceleration
+		*/
 		void jointsLinearAcc(std::map<std::string, double>& lin_acc_vector, Frame* f1, Frame* f2, Frame* f3, double frame_time) {
 			Frame* global_frame_1 = f1->duplicateFrame();
-			Frame* global_frame_3 = f3->duplicateFrame();
 			Frame* global_frame_2 = f2->duplicateFrame();
+			Frame* global_frame_3 = f3->duplicateFrame();
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
-			getGlobalCoordinates(f3, global_frame_3, f2->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f3, global_frame_3, f3->getJoint("Hips"), glm::dmat4(1.0));
 
 			double linear_acc = 0.0;
 			glm::dvec3 lacc_vec;
@@ -308,9 +313,9 @@ namespace Mla {
 
 				// dv / dt -> cm / s
 				// dv / (dt * 100) -> m / s^(-2)
-				lacc_vec.x = (vec3.x - (2.0 * vec2.x) + vec1.x) / (frame_time * frame_time * 100.0);
-				lacc_vec.y = (vec3.y - (2.0 * vec2.y) + vec1.y) / (frame_time * frame_time * 100.0);
-				lacc_vec.z = (vec3.z - (2.0 * vec2.z) + vec1.z) / (frame_time * frame_time * 100.0);
+				lacc_vec.x = (vec3.x - (2.0 * vec2.x) + vec1.x) / (pow(frame_time, 2) * 100.0);
+				lacc_vec.y = (vec3.y - (2.0 * vec2.y) + vec1.y) / (pow(frame_time, 2) * 100.0);
+				lacc_vec.z = (vec3.z - (2.0 * vec2.z) + vec1.z) / (pow(frame_time, 2) * 100.0);
 				linear_acc = sqrt(pow(lacc_vec.x, 2) + pow(lacc_vec.y, 2) + pow(lacc_vec.z, 2));
 				lin_acc_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), linear_acc));
 			}
@@ -320,16 +325,23 @@ namespace Mla {
 			delete global_frame_3;
 		}
 
-		/*      */
+		/* Compute the normalised (or not) acceleration of the joints at a given point in time (t).
+		* @param lin_acc_vector Output vector
+		* @param f1 First frame (t-1)
+		* @param f2 Second frame (t)
+		* @param f3 Third frame (t+1)
+		* @param frame_time Interframe time
+		* @param normalise Indicating if the values must be normalised or not 
+		* @return A vector containing the acceleration
+		*/
 		void jointsLinearAcc(std::map<std::string, glm::dvec3>& lin_acc_vector, Frame* f1, Frame* f2, Frame* f3, double frame_time, bool normalise) {
-			// f2 should ALWAYS be != nullptr, else the problem is somewhere else.
 			Frame* global_frame_1 = f1->duplicateFrame();
 			Frame* global_frame_2 = f2->duplicateFrame();
 			Frame* global_frame_3 = f3->duplicateFrame();
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
-			getGlobalCoordinates(f3, global_frame_3, f2->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f3, global_frame_3, f3->getJoint("Hips"), glm::dmat4(1.0));
 
 			glm::dvec3 linear_acc = glm::dvec3();
 
@@ -341,9 +353,9 @@ namespace Mla {
 
 				// dv / dt -> cm / s
 				// dv / (dt * 100) -> m / s^(-2)
-				linear_acc.x = (vec3.x - (2.0 * vec2.x) + vec1.x) / (frame_time * frame_time * 100.0);
-				linear_acc.y = (vec3.y - (2.0 * vec2.y) + vec1.y) / (frame_time * frame_time * 100.0);
-				linear_acc.z = (vec3.z - (2.0 * vec2.z) + vec1.z) / (frame_time * frame_time * 100.0);
+				linear_acc.x = (vec3.x - (2.0 * vec2.x) + vec1.x) / (pow(frame_time, 2) * 100.0);
+				linear_acc.y = (vec3.y - (2.0 * vec2.y) + vec1.y) / (pow(frame_time, 2) * 100.0);
+				linear_acc.z = (vec3.z - (2.0 * vec2.z) + vec1.z) / (pow(frame_time, 2) * 100.0);
 
 				if (normalise) {
 					double norm = sqrt(pow(linear_acc.x, 2) + pow(linear_acc.y, 2) + pow(linear_acc.z, 2));
@@ -362,7 +374,16 @@ namespace Mla {
 			delete global_frame_3;
 		}
 
-		/*      */
+		/* Compute the normalised (or not) acceleration of the joints at a given point in time (t) along one axis.
+		* @param lin_acc_vector Output vector
+		* @param f1 First frame (t-1)
+		* @param f2 Second frame (t)
+		* @param f3 Third frame (t+1)
+		* @param frame_time Interframe time
+		* @param axis Axis along which the acceleration will be computed
+		* @param normalise Indicating if the values must be normalised or not
+		* @return A vector containing the acceleration
+		*/
 		void jointLinearAccAxis(std::map<std::string, double>& lin_acc_vector, Frame* f1, Frame* f2, Frame* f3, double frame_time, const std::string& axis, bool normalise) {
 
 			Frame* global_frame_1 = f1->duplicateFrame();
@@ -385,16 +406,16 @@ namespace Mla {
 				glm::dvec3 vec3 = global_frame_3->getJoint(j)->getPositions();
 
 				if (axis == "x")
-					linear_acc = (vec3.x - (2.0 * vec2.x) + vec1.x) / (frame_time * frame_time * 100.0);
+					linear_acc = (vec3.x - (2.0 * vec2.x) + vec1.x) / (pow(frame_time, 2) * 100.0);
 				else if (axis == "y")
-					linear_acc = (vec3.y - (2.0 * vec2.y) + vec1.y) / (frame_time * frame_time * 100.0);
+					linear_acc = (vec3.y - (2.0 * vec2.y) + vec1.y) / (pow(frame_time, 2) * 100.0);
 				else if (axis == "z")
-					linear_acc = (vec3.z - (2.0 * vec2.z) + vec1.z) / (frame_time * frame_time * 100.0);
+					linear_acc = (vec3.z - (2.0 * vec2.z) + vec1.z) / (pow(frame_time, 2) * 100.0);
 
 				if (normalise) {
-					lacc_vec.x = (vec3.x - (2.0 * vec2.x) + vec1.x) / (frame_time * frame_time * 100.0);
-					lacc_vec.y = (vec3.y - (2.0 * vec2.y) + vec1.y) / (frame_time * frame_time * 100.0);
-					lacc_vec.z = (vec3.z - (2.0 * vec2.z) + vec1.z) / (frame_time * frame_time * 100.0);
+					lacc_vec.x = (vec3.x - (2.0 * vec2.x) + vec1.x) / (pow(frame_time, 2) * 100.0);
+					lacc_vec.y = (vec3.y - (2.0 * vec2.y) + vec1.y) / (pow(frame_time, 2) * 100.0);
+					lacc_vec.z = (vec3.z - (2.0 * vec2.z) + vec1.z) / (pow(frame_time, 2) * 100.0);
 					linear_acc = linear_acc / sqrt(pow(lacc_vec.x, 2) + pow(lacc_vec.y, 2) + pow(lacc_vec.z, 2));
 				}
 					
@@ -410,13 +431,224 @@ namespace Mla {
 
 		}
 		
-		/** Return an interpolated frame from a motion, and a time
+		/* Compute the jerk of the joints at a given point in time (t).
+		* @param jerk_vector Output vector
+		* @param f1 First frame (t+2)
+		* @param f2 Second frame (t+1)
+		* @param f3 Third frame (t-1)
+		* @param f4 Fourth frame (t-2)
+		* @param frame_time Interframe time
+		* @return A vector containing the jerk
+		*/
+		void jointsJerk(std::map<std::string, glm::vec3>& jerk_vector, Frame* f1, Frame* f2, Frame* f3, Frame* f4, double frame_time) {
+			// f1 -> t+2
+			// f2 -> t+1
+			// f3 -> t-1
+			// f4 -> t-2
+			Frame* global_frame_1 = f1->duplicateFrame();
+			Frame* global_frame_2 = f2->duplicateFrame();
+			Frame* global_frame_3 = f3->duplicateFrame();
+			Frame* global_frame_4 = f4->duplicateFrame();
 
-		@param motion the motion from which the frame will be interpolated
-		@param time the time at which the frame will be interpolated
-		@param frame_time the interframe_time from the initial motion
+			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f3, global_frame_3, f3->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f4, global_frame_4, f4->getJoint("Hips"), glm::dmat4(1.0));
+
+			glm::dvec3 jerk = glm::dvec3();
+			jerk_vector.clear();
+
+			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+				glm::dvec3 vec1 = global_frame_1->getJoint(j)->getPositions();
+				glm::dvec3 vec2 = global_frame_2->getJoint(j)->getPositions();
+				glm::dvec3 vec3 = global_frame_3->getJoint(j)->getPositions();
+				glm::dvec3 vec4 = global_frame_4->getJoint(j)->getPositions();
+
+				jerk.x = (vec1.x - 2.0 * vec2.x + 2.0 * vec3.x - vec4.x) / (2.0 * pow(frame_time, 3) * 100.0);
+				jerk.y = (vec1.y - 2.0 * vec2.y + 2.0 * vec3.y - vec4.y) / (2.0 * pow(frame_time, 3) * 100.0);
+				jerk.z = (vec1.z - 2.0 * vec2.z + 2.0 * vec3.z - vec4.z) / (2.0 * pow(frame_time, 3) * 100.0);
+
+				jerk_vector.insert(std::pair<std::string, glm::dvec3>(global_frame_1->getJoint(j)->getName(), jerk));
+			}
+
+			delete global_frame_1;
+			delete global_frame_2;
+			delete global_frame_3;
+			delete global_frame_4;
+		}
+
+		/* Compute the normalised jerk of the joints at a given point in time (t).
+		* @param jerk_vector Output vector
+		* @param f1 First frame (t+2)
+		* @param f2 Second frame (t+1)
+		* @param f3 Third frame (t-1)
+		* @param f4 Fourth frame (t-2)
+		* @param frame_time Interframe time
+		* @return A vector containing the jerk
+		*/
+		void jointsJerkNorm(std::map<std::string, double>& jerk_vector, Frame* f1, Frame* f2, Frame* f3, Frame* f4, double frame_time) {
+			// f1 -> t+2
+			// f2 -> t+1
+			// f3 -> t-1
+			// f4 -> t-2
+			Frame* global_frame_1 = f1->duplicateFrame();
+			Frame* global_frame_2 = f2->duplicateFrame();
+			Frame* global_frame_3 = f3->duplicateFrame();
+			Frame* global_frame_4 = f4->duplicateFrame();
+
+			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f3, global_frame_3, f3->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f4, global_frame_4, f4->getJoint("Hips"), glm::dmat4(1.0));
+
+			glm::dvec3 jerk = glm::dvec3();
+			double jerk_norm = 0;
+
+			jerk_vector.clear();
+
+			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+				glm::dvec3 vec1 = global_frame_1->getJoint(j)->getPositions();
+				glm::dvec3 vec2 = global_frame_2->getJoint(j)->getPositions();
+				glm::dvec3 vec3 = global_frame_3->getJoint(j)->getPositions();
+				glm::dvec3 vec4 = global_frame_4->getJoint(j)->getPositions();
+
+				jerk.x = (vec1.x - 2.0 * vec2.x + 2.0 * vec3.x - vec4.x) / (2.0 * pow(frame_time, 3) * 100.0);
+				jerk.y = (vec1.y - 2.0 * vec2.y + 2.0 * vec3.y - vec4.y) / (2.0 * pow(frame_time, 3) * 100.0);
+				jerk.z = (vec1.z - 2.0 * vec2.z + 2.0 * vec3.z - vec4.z) / (2.0 * pow(frame_time, 3) * 100.0);
+
+				jerk_norm = sqrt(pow(jerk.x, 2) + pow(jerk.y, 2) + pow(jerk.z, 2));
+				jerk_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), jerk_norm));
+			}
+
+			delete global_frame_1;
+			delete global_frame_2;
+			delete global_frame_3;
+			delete global_frame_4;
+		}
+
+		/* Compute the normalised (or not) jerk of the joints at a given point in time (t) along one axis.
+		* @param jerk_vector Output vector
+		* @param f1 First frame (t+2)
+		* @param f2 Second frame (t+1)
+		* @param f3 Third frame (t-1)
+		* @param f4 Fourth frame (t-2)
+		* @param frame_time Interframe time
+		* @param axis Axis along which the acceleration will be computed
+		* @param normalise Indicating if the values must be normalised or not  
+		* @return A vector containing the jerk
+		*/
+		void jointsJerkAxis(std::map<std::string, double>& jerk_vector, Frame* f1, Frame* f2, Frame* f3, Frame* f4, double frame_time, const std::string& axis, bool normalise) {
+			// f1 -> t+2
+			// f2 -> t+1
+			// f3 -> t-1
+			// f4 -> t-2
+			Frame* global_frame_1 = f1->duplicateFrame();
+			Frame* global_frame_2 = f2->duplicateFrame();
+			Frame* global_frame_3 = f3->duplicateFrame();
+			Frame* global_frame_4 = f4->duplicateFrame();
+
+			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f3, global_frame_3, f3->getJoint("Hips"), glm::dmat4(1.0));
+			getGlobalCoordinates(f4, global_frame_4, f4->getJoint("Hips"), glm::dmat4(1.0));
+
+			double jerk = 0.0;
+			glm::dvec3 jerk_vec;
+
+			jerk_vector.clear();
+
+			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+
+				if (normalise)
+					jerk_vec = glm::dvec3(0.0, 0.0, 0.0);
+
+				jerk = 0.0;
+
+				glm::dvec3 vec1 = global_frame_1->getJoint(j)->getPositions();
+				glm::dvec3 vec2 = global_frame_2->getJoint(j)->getPositions();
+				glm::dvec3 vec3 = global_frame_3->getJoint(j)->getPositions();
+				glm::dvec3 vec4 = global_frame_4->getJoint(j)->getPositions();
+
+				if (axis == "x")
+					jerk = (vec1.x - 2.0 * vec2.x + 2.0 * vec3.x - vec4.x) / (2.0 * pow(frame_time, 3) * 100.0);
+				if (axis == "y")
+					jerk = (vec1.y - 2.0 * vec2.y + 2.0 * vec3.y - vec4.y) / (2.0 * pow(frame_time, 3) * 100.0);
+				if (axis == "z")
+					jerk = (vec1.z - 2.0 * vec2.z + 2.0 * vec3.z - vec4.z) / (2.0 * pow(frame_time, 3) * 100.0);
+
+				if (normalise) {
+					jerk_vec.x = (vec1.x - 2.0 * vec2.x + 2.0 * vec3.x - vec4.x) / (2.0 * pow(frame_time, 3) * 100.0);
+					jerk_vec.y = (vec1.y - 2.0 * vec2.y + 2.0 * vec3.y - vec4.y) / (2.0 * pow(frame_time, 3) * 100.0);
+					jerk_vec.z = (vec1.z - 2.0 * vec2.z + 2.0 * vec3.z - vec4.z) / (2.0 * pow(frame_time, 3) * 100.0);
+
+					double norm = sqrt(pow(jerk_vec.x, 2) + pow(jerk_vec.y, 2) + pow(jerk_vec.z, 2));
+					if (norm != 0)
+						jerk = jerk / norm;
+				}
+
+				jerk_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), jerk));
+			}
+
+			delete global_frame_1;
+			delete global_frame_2;
+			delete global_frame_3;
+			delete global_frame_4;
+		}
+
+		/** Compute the bounding box (-x, +x, -y, +y, -z, +z) for one frame, on a set of given joints.
+		* @param bounding_box Output vector
+		* @param f1 the frame on which the bounding box will be computed
+		* @param joints_to_check the joints to check for the bouding box
+		* @return bouding_box the vector containing the 6 values for the bounding box
+		*/
+		void jointsBoundingBox(std::vector<double>& bounding_box, Frame* f1, std::vector<std::string>& joints_to_check) {
+			Frame* global_frame_1 = f1->duplicateFrame();
+
+			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
+
+			// Initialise the vector with six 0 values
+			bounding_box = std::vector<double>(6, 0);
+
+			for (auto j_it = joints_to_check.begin(); j_it != joints_to_check.end(); j_it++) {
+				glm::dvec3 vec = global_frame_1->getJoint(*j_it)->getPositions();
+				// If it's the first joint, the bounding box is its x, y, and z (bounding point ?)
+				if (j_it == joints_to_check.begin()) {
+					bounding_box[0] = vec[0];
+					bounding_box[1] = vec[0];
+					bounding_box[2] = vec[1];
+					bounding_box[3] = vec[1];
+					bounding_box[4] = vec[2];
+					bounding_box[5] = vec[2];
+				}
+
+				// Else we check each coordinates (-x, +x, -y, +y, -z, +z)
+				else {
+					if (vec[0] < bounding_box[0])
+						bounding_box[0] = vec[0];
+
+					if (vec[0] > bounding_box[1])
+						bounding_box[1] = vec[0];
+
+					if (vec[1] < bounding_box[2])
+						bounding_box[2] = vec[1];
+
+					if (vec[1] > bounding_box[3])
+						bounding_box[3] = vec[1];
+
+					if (vec[2] < bounding_box[4])
+						bounding_box[4] = vec[2];
+
+					if (vec[2] > bounding_box[5])
+						bounding_box[5] = vec[2];
+				}
+			}
+		}
 		
-		@return new_frame the interpolated frame
+		/** Return an interpolated frame from a motion, and a time
+		* @param motion Motion from which the frame will be interpolated
+		* @param time Time at which the frame will be interpolated
+		* @param Interframe_time from the initial motion
+		* @return The interpolated frame
 		*/
 		Frame* getFrameFromTime (Motion* motion, double current_time, double original_frame_time) {
 			Frame* returnFrame = nullptr;
@@ -465,11 +697,11 @@ namespace Mla {
 		}
 
 		/** Recursively transforms initial joints (and its childs) local coordinates to global coordinates.
-
-		@param local_frame the initial frame (local coordinates)
-		@param global_frame the (intially a copy of the local frame) frame containing global coordinates
-		@param current_joint the joint currently being processed (from the local_frame)
-		@param global_mat the modelview matrix (first call: identity matrix)
+		* @param local_frame Initial frame (local coordinates)
+		* @param global_frame Frame containing global coordinates (intially a copy of the local frame)
+		* @param current_joint Joint currently being processed (from the local_frame)
+		* @param global_mat Modelview matrix (first call: identity matrix)
+		* @return The frame in global coordinates
 		*/
 		void getGlobalCoordinates (Frame* local_frame, Frame* global_frame, Joint* current_joint, glm::dmat4 global_mat) {
 
@@ -484,7 +716,11 @@ namespace Mla {
 			}
 		}
 
-
+		/** Gives the global maximum of a serie of values.
+		* @param data Vector containing the data
+		* @param global_max Output pair
+		* @return The value and position of the global maximum
+		*/
 		void getGlobalMaximum(std::vector<double>& data, std::pair<double, unsigned int>& global_max) {
 			std::vector<double> sub_vector;
 			global_max = Mla::Utility::getMaxValue(data);
@@ -506,11 +742,9 @@ namespace Mla {
 		}
 
 		/** Find the next local minimum from the max value, if and only if this value is inferior to a threshold.
-
-		@param data the data to process
-		@param direction the direction in which the local minimum is to be found (negative for left, positive for right)
-
-		@return idx the index at which the local minimum is found
+		* @param data Vector containing the data
+		* @param direction Direction in which the local minimum is to be found (negative for left, positive for right)
+		* @return The index at which the local minimum is found
 		*/
 		int getLocalMinimumFromMaximum (std::vector<double>& data, int direction) {
 			// We fix a threshold, to avoid minimums that are " too high ".
@@ -551,12 +785,10 @@ namespace Mla {
 			return idx - direction;
 		}
 
-		/** Find the next local maximum in the data
-
-		@param data the data to process
-		@param direction the direction in which the local maximum is to be found (negative for left, positive for right)
-
-		@return idx the index at which the local minimum is found
+		/** Find the next local maximum in the data.
+		* @param data Vector containing the data
+		* @param direction Direction in which the local maximum is to be found (negative for left, positive for right)
+		* @return The index at which the local minimum is found
 		*/
 		int getLocalMaximum (std::vector<double>& data, int direction) {
 			if (direction == 0) {
@@ -592,12 +824,10 @@ namespace Mla {
 			return idx - direction;
 		}
 
-		/** Find the next local minmum in the data
-
-		@param data the data to process
-		@param direction the direction in which the local minimum is to be found (negative for left, positive for right)
-
-		@return idx the index at which the local minimum is found
+		/** Find the next local minmum in the data.
+		* @param data Vector containing the data
+		* @param direction Direction in which the local minimum is to be found (negative for left, positive for right)
+		* @return The index at which the local minimum is found
 		*/
 		int getLocalMinimum (std::vector<double>& data, int direction) {
 			if (direction == 0) {
@@ -629,13 +859,13 @@ namespace Mla {
 			return idx - direction;
 		}
 		
-		/** Segment the motion into n segments, from one local minimum to another
-
-		@param data the data to process
-		@param left_cut the number of segment to the left
-		@param right_cut the number of segment to the right
-		@param interframe_time the interframe time
-		@param cut_times the output vector, with a pair of (begin, end) for each segment of the motion
+		/** Segment the motion into n segments, from one local minimum to another.
+		* @param data Vector containing the data
+		* @param left_cut Number of segment to the left
+		* @param right_cut Number of segment to the right
+		* @param interframe_time Interframe time
+		* @param cut_times Output vector
+		* @return A vector of pair containing the beginning and the end indexes for each segment of the motion
 		*/
 		void FindIndexSeparation (std::vector<double>& data, unsigned int left_cut, unsigned int right_cut, std::vector<std::pair<int, int>>& cut_times) {
 			// Pair: idx begin, idx end
@@ -721,7 +951,7 @@ namespace Mla {
 			}
 		}
 
-		/*      */
+		/*  TODO:DOC    */
 		void FindThrowIndex (std::vector<double>& data, std::pair<int, int>& cut_time) {
 			// Pair: idx begin, idx end
 
@@ -804,11 +1034,11 @@ namespace Mla {
 			cut_time.second = right_idx;
 		}
 
-		/** Rebuild a motion from an initial one, with a new count of frames.
-
-		@param original_motion the original motion
-		@param new_motion the new motion, constructed from the original one
-		@param frames_number the new frames count	
+		/** Rebuild a motion from an initial one, with a new number of frames.
+		* @param original_motion Motion to rebuild
+		* @param new_motion Output motion
+		* @param frames_number New frames count
+		* @return A rebuilded motion
 		*/
 		void motionRebuilding (Motion* original_motion, Motion* new_motion, unsigned int frames_number) {
 			if (frames_number < 2) {
@@ -858,15 +1088,11 @@ namespace Mla {
 		}
 
 		/** Segment a motion into submotions.
-
-		@param initial_motion The motion to be segmented
-		@param left_cut The number of segment to the left of the global maximum
-		@param right_cut The number of segment to the right of the global maximum
-		@param savgol_window_size [SAVGOL] The window size for the savgol algorithm
-		@param savgol_polynom_order [SAVGOL] The polynom order for the savgol algorithm
-		@param frame_number_cut The final number of frame for each submotion
-		@param motion_segments The different segments returned
-		@param joint_to_segment The join tused to find the [mini/maxi]mums
+		* @param initial_motion Motion to be segmented
+		* @param seg_info Structure containing all the information needed for the segmentation (see SegmentationInformation)
+		* @param motion_segments Output vector
+		* @param joint_to_segment Joint used to find the [mini/maxi]mums
+		* @return The different segments of the motion
 		*/
 		void MotionSegmentation (Motion* initial_motion, SegmentationInformation& seg_info, std::vector<Motion*>& motion_segments, const std::string& joint_to_segment) {
 			Motion* sub_motion = nullptr;
@@ -915,16 +1141,12 @@ namespace Mla {
 
 		}
 
-		/** Segment a motion into submotions.
-
-		@param initial_motion The motion to be segmented
-		@param left_cut The number of segment to the left of the global maximum
-		@param right_cut The number of segment to the right of the global maximum
-		@param savgol_window_size [SAVGOL] The window size for the savgol algorithm
-		@param savgol_polynom_order [SAVGOL] The polynom order for the savgol algorithm
-		@param frame_number_cut The final number of frame for each submotion
-		@param motion_segments The different segments returned
-		@param joint_to_segment The join tused to find the [mini/maxi]mums
+		/** Extract the the throwing part of a motion (i.e. the part going from the left minimum local to the right minimum local of the highest speed value).
+		* @param initial_motion Motion to be segmented
+		* @param seg_info Structure containing all the information needed for the segmentation (see SegmentationInformation)
+		* @param motion_segments Output motion
+		* @param joint_to_segment Joint used to find the [mini/maxi]mums
+		* @return The different segments of the motion
 		*/
 		void MotionThrowSegmentation(Motion* initial_motion, SegmentationInformation& seg_info, Motion* result_motion, const std::string& joint_to_segment) {
 			Motion* sub_motion = nullptr;
@@ -969,10 +1191,14 @@ namespace Mla {
 			delete sub_motion;
 		}
 
-		/** TODO: doc
-		
+		/** Get the indexes of the beginning, max speed value and end of a throw, which correspond respectively to the left local minimum, maximum speed value and right local minimum.
+		* @param motion Motion from which the indexes will be retrieved
+		* @param seg_info Structure containing all the information needed for the segmentation (see SegmentationInformation)
+		* @param joint_to_segment Joint used to find the indexes
+		* @param throw_idx Output vector
+		* @return The 3 desired indexes 
 		*/
-		void getBegEndIndexes (Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<int>& throw_idx) {
+		void getBegMaxEndIndexes (Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<int>& throw_idx) {
 			SpeedData speed_data(motion->getFrames().size() - 1,
 				motion->getFrameTime(),
 				motion->getFrames().size());
@@ -992,47 +1218,17 @@ namespace Mla {
 			throw_idx.push_back(Mla::Utility::getMaxValue(savgoled).second);
 			throw_idx.push_back(getLocalMinimumFromMaximum(savgoled, 1));
 		}
-
-		/** TODO: doc
 		
-		*/
-		void BegMaxEndAcceleration (Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<std::map<std::string, glm::dvec3>>& speed_difference) {
-			std::vector<int> throw_idx;
-			getBegEndIndexes(motion, seg_info, joint_to_segment, throw_idx);
-
-			SpeedData speed_data(motion->getFrames().size() - 1,
-				motion->getFrameTime(),
-				motion->getFrames().size());
-
-			motionSpeedComputing(motion, speed_data);
-
-			std::map<std::string, glm::dvec3> diff_beg_max;
-			std::map<std::string, glm::dvec3> diff_max_end;
-			glm::dvec3 diff = glm::dvec3();
-
-			// For each joint, we're going to populate the vector of map
-			for (unsigned int j = 0; j < motion->getFrame(0)->getJoints().size(); ++j) {
-				// v2 - v1
-				diff = speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[1]) -
-					   speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[0]);
-				diff_beg_max.insert(std::pair<std::string, glm::dvec3>(motion->getFrame(0)->getJoint(j)->getName(), diff));
-
-				// v2 - v1
-				diff = speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[2]) -
-					   speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[1]);
-				diff_max_end.insert(std::pair<std::string, glm::dvec3>(motion->getFrame(0)->getJoint(j)->getName(), diff));
-			}
-
-			speed_difference.push_back(diff_beg_max);
-			speed_difference.push_back(diff_max_end);
-		}
-		
-		/** TODO: doc
-		
+		/** Get the values of the beginning, max speed value and end of a throw, which correspond respectively to the left local minimum, maximum speed value and right local minimum.
+		* @param motion Motion from which the values will be retrieved
+		* @param seg_info Structure containing all the information needed for the segmentation (see SegmentationInformation)
+		* @param joint_to_segment Joint used to find the values
+		* @param speed_values Output vector
+		* @return The 3 desired speed values
 		*/
 		void BegMaxEndSpeed (Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<std::map<std::string, glm::dvec3>>& speed_values) {
 			std::vector<int> throw_idx;
-			getBegEndIndexes(motion, seg_info, joint_to_segment, throw_idx);
+			getBegMaxEndIndexes(motion, seg_info, joint_to_segment, throw_idx);
 			
 			SpeedData speed_data(motion->getFrames().size() - 1,
 				motion->getFrameTime(),
@@ -1057,7 +1253,14 @@ namespace Mla {
 			speed_values.push_back(speed_end);
 		}
 
-		/*       */
+		/** Get the normalised (or not) values of the beginning, max speed value and end of a throw, which correspond respectively to the left local minimum, maximum speed value and right local minimum.
+		* @param motion Motion from which the values will be retrieved
+		* @param seg_info Structure containing all the information needed for the segmentation (see SegmentationInformation)
+		* @param joint_to_segment Joint used to find the values
+		* @param speed_values Output vector
+		* @param normalise Indicating if the values must be normalised or not 
+		* @return The 3 desired speed values
+		*/
 		void BegMaxEndSpeedThrow (Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<std::map<std::string, glm::dvec3>>& speed_values, bool normalise) {
 			// Check if maximum is to the left or to the right
 			// If it 's the case, redo the algorithm on the extracted part
@@ -1100,8 +1303,11 @@ namespace Mla {
 			speed_values.push_back(speed_end);
 		}
 
-		/** TODO: doc
-		
+		/** Computes the duration of the throw.
+		* @param motion Motion from which the values will be retrieved
+		* @param seg_info Structure containing all the information needed for the segmentation (see SegmentationInformation)
+		* @param joint_to_segment Joint used to find the values
+		* @return The indexes of the beginning and the end of the throw
 		*/
 		void ThrowDuration (Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment) {
 			SpeedData speed_data(motion->getFrames().size() - 1,
@@ -1128,8 +1334,9 @@ namespace Mla {
 		}
 
 		/** Compute the speed of the joints for a whole motion.
-
-			@param motion the motion
+		* @param motion Initial motion
+		* @param speed_data Output class (see SpeedData)
+		* @return The computed speed data in a class (see SpeedData)
 		*/
 		void motionSpeedComputing (Motion* motion, SpeedData& speed_data) {
 			std::map<std::string, glm::dvec3> lin_speed;
@@ -1149,10 +1356,9 @@ namespace Mla {
 		}
 
 		/** Compute the acceleration from a SpeedData class. The axis/normalisation is dependant on the way SpeedData has been computed.
-			
-			@param speed_data The speed data used to compute the acceleration
-			@param acc_vector The returned acceleration vector
-		
+		* @param speed_data The speed data used to compute the acceleration
+		* @param acc_vector Output class (see AccData)
+		* @return The computed acceleration data in a class (see AccData)
 		*/
 		void motionAccelerationComputing (Motion* motion, AccData& acc_data) {
 			std::map<std::string, glm::dvec3> lin_acc;
@@ -1172,10 +1378,9 @@ namespace Mla {
 		}
 
 		/** Compute the speed data for all segments of a motion.
-
-			@param motion_segments The segmented motion
-			@param speed_data_vector The returned speed data corresponding to the motion's segments
-		
+		* @param motion_segments The segmented motion
+		* @param speed_data_vector Output vector 
+		* @return The speed data corresponding to the motion's segments
 		*/
 		void ComputeSpeedData (std::vector<Motion*>& motion_segments, std::vector<SpeedData>& speed_data_vector) {
 			
@@ -1192,7 +1397,11 @@ namespace Mla {
 			}
 		}
 
-		/*      */
+		/** Compute the acceleration data for all segments of a motion.
+		* @param motion_segments The segmented motion
+		* @param speed_data_vector Output vector
+		* @return The acceleration data corresponding to the motion's segments
+		*/
 		void ComputeAccData (std::vector<Motion*>& motion_segments, std::vector<AccData>& acc_data_vector) {
 
 			acc_data_vector.clear();
@@ -1208,12 +1417,104 @@ namespace Mla {
 			}
 		}
 		
-		/** Compute a Savgol for a full motion speed values. Note that this is NOT reversible.
-			TODO: un-optimised af, do it
+		/** Computes the normalised (or not) jerk of a motion along an axis.
+		* @param motion Initial motion
+		* @param jerk_vec Output vector
+		* @param axis Axis along which the jerk will be computed
+		* @param normalise Indicating if the values must be normalised or not 
+		* @return The jerk values along one axis 
+		*/
+		void computeJerk(Motion* motion, std::vector<std::map<std::string, double>>& jerk_vec, std::string& axis, bool normalise) {
 			
-			@param speed_data The speed_data
-			@param data The savgol informations
+			if (axis != "x" && axis != "y" && axis != "z" && axis != "norm") {
+				std::cout << "computeJerk() error: axis parameter must be x, y, z or norm" << std::endl;
+					return;
+			}
+			
+			jerk_vec.clear();
+
+			std::map<std::string, double> frame_jerk;
+
+			Frame* f1 = nullptr;
+			Frame* f2 = nullptr;
+			Frame* f3 = nullptr;
+			Frame* f4 = nullptr;
+
+			// jerk = x(t+2) - 2x(t+1) + 2x(t-1) - x(t-2) / 2t^3 
+			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
+				frame_jerk.clear();
+
+				if (i == 0) {
+					f1 = motion->getFrame(i + 2);
+					f2 = motion->getFrame(i + 1);
+					f3 = motion->getFrame(i);
+					f4 = motion->getFrame(i);
+				}
+						
+				else if (i == 1) {
+					f1 = motion->getFrame(i + 2);
+					f2 = motion->getFrame(i + 1);
+					f3 = motion->getFrame(i - 1);
+					f4 = motion->getFrame(i);
+				}
+						
+				else if (i == motion->getFrames().size() - 2) {
+					f1 = motion->getFrame(i);
+					f2 = motion->getFrame(i + 1);
+					f3 = motion->getFrame(i - 1);
+					f4 = motion->getFrame(i - 2);
+				}
+
+				else if (i == motion->getFrames().size() - 1) {
+					f1 = motion->getFrame(i);
+					f2 = motion->getFrame(i);
+					f3 = motion->getFrame(i - 1);
+					f4 = motion->getFrame(i - 2);
+				}
+
+				else {
+					f1 = motion->getFrame(i + 2);
+					f2 = motion->getFrame(i + 1);
+					f3 = motion->getFrame(i - 1);
+					f4 = motion->getFrame(i - 2);
+				}
+
+				if (axis == "norm")
+					jointsJerkNorm(frame_jerk, f1, f2, f3, f4, motion->getFrameTime());
+
+				else if (axis == "x" || axis == "y" || axis == "z")
+					jointsJerkAxis(frame_jerk, f1, f2, f3, f4, motion->getFrameTime(), axis, normalise);
+
+				jerk_vec.push_back(frame_jerk);
+			}
+		}
+
+		/** Computes the bounding boxes for each frames of a motion for a given set of joints.
+		* @param motion Motion from which the bounding boxes will be extracted
+		* @param joints_to_check Joints on which the bounding boxes will be computed
+		* @param bounding_boxes Output vector
+		* @return A vector countaining all the bounding boxes
+		*/
+		void computeBoundingBoxes(Motion* motion, std::vector<std::vector<double>>& bounding_boxes, std::vector<std::string>& joints_to_check) {
+			if (joints_to_check.empty()) {
+				std::cout << "ERROR: please specify a set of joints to extract bounding boxes." << std::endl;
+				return;
+			}
+
+			bounding_boxes.clear();
+
+			std::vector<double> bb;
+
+			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
+				jointsBoundingBox(bb, motion->getFrame(i), joints_to_check);
+				bounding_boxes.push_back(bb);
+			}
+		}
 		
+		/** Compute a Savgol for a full motion speed values. Note that this is NOT reversible. TODO: un-optimised af, do it
+		* @param speed_data Class containing the speed informations
+		* @param data The savgol informations
+		* @return The SpeedData class Savgol'ed
 		*/
 		void ComputeSavgol (SpeedData& speed_data, SegmentationInformation& seg_info) {
 			
@@ -1254,8 +1555,12 @@ namespace Mla {
 
 		}
 
-		/*      */
-		void ComputeSavgol(AccData& acc_data, SegmentationInformation& seg_info) {
+		/** Compute a Savgol for a full motion acceleration values. Note that this is NOT reversible. TODO: un-optimised af, do it
+		* @param speed_data Class containing the acceleration informations
+		* @param data The savgol informations
+		* @return The AccData class Savgol'ed
+		*/
+		void ComputeSavgol (AccData& acc_data, SegmentationInformation& seg_info) {
 
 			// This vector will contain the extracted speed values (for 1 joint)
 			// from the SpeedData class
@@ -1295,8 +1600,8 @@ namespace Mla {
 		}
 
 		/** Filter a motion, by eliminating position variations.
-
-		@param motion the motion to be filtered
+		* @param motion the motion to be filtered
+		* @return The motion with fixed members lengths
 		*/
 		void motionFiltering (Motion* motion) {
 			// j = 1 because the first frame is the reference

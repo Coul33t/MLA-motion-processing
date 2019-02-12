@@ -1,9 +1,9 @@
 /**
-MotionOperation.h
-
-@author Quentin Couland
-@version 0.1
-
+* \file MlaMotionOperation.h
+* \brief This header file contains all the required declarations for the motion operations.
+* \author Quentin.C
+* \version 0.1
+* \date 12 February 2019
 */
 
 #ifndef __MLA_MOTIONOPERATION_H__ 
@@ -44,10 +44,15 @@ namespace Mla {
 		void jointsLinearAcc(std::map<std::string, glm::dvec3>&, Frame*, Frame*, Frame*, double, bool = false);
 		void jointLinearAccAxis(std::map<std::string, double>&, Frame*, Frame*, Frame*, double, const std::string&, bool = false);
 
+		void jointsJerk(std::map<std::string, glm::dvec3>&, Frame*, Frame*, Frame*, Frame*, double);
+		void jointsJerkNorm(std::map<std::string, double>&, Frame*, Frame*, Frame*, Frame*, double);
+		void jointsJerkAxis(std::map<std::string, double>&, Frame*, Frame*, Frame*, Frame*, double, const std::string&, bool = false);
+
+		void jointsBoundingBox(std::vector<double>&, Frame*, std::vector<std::string>&);
+
 		void MeanLinearSpeed(std::vector<std::map<std::string, double>>&, Motion*, unsigned int);
 		void MeanLinearSpeedAxis(std::vector<std::map<std::string, double>>&, Motion*, unsigned int, const std::string&, bool);
 		Frame* getFrameFromTime(Motion*, double, double);
-		Frame* getFrameFromIndex(Motion*, unsigned int, double);
 
 		void getGlobalCoordinates(Frame*, Frame*, Joint*, glm::dmat4);
 
@@ -62,7 +67,7 @@ namespace Mla {
 		void MotionSegmentation(Motion*, SegmentationInformation&, std::vector<Motion*>&, const std::string&);
 		void MotionThrowSegmentation(Motion*, SegmentationInformation&, Motion*, const std::string&);
 
-		void getBegEndIndexes(Motion*, SegmentationInformation&, const std::string&, std::vector<int>&);
+		void getBegMaxEndIndexes(Motion*, SegmentationInformation&, const std::string&, std::vector<int>&);
 		void BegMaxEndAcceleration(Motion*, SegmentationInformation&, const std::string&, std::vector<std::map<std::string, glm::dvec3>>&);
 		void BegMaxEndSpeed(Motion*, SegmentationInformation&, const std::string&, std::vector<std::map<std::string, glm::dvec3>>&);
 		void BegMaxEndSpeedThrow(Motion*, SegmentationInformation&, const std::string&, std::vector<std::map<std::string, glm::dvec3>>&, bool);
@@ -70,9 +75,12 @@ namespace Mla {
 
 		void motionSpeedComputing(Motion*, SpeedData&);
 		void motionAccelerationComputing(Motion*, AccData&);
-
-		void ComputeSpeedData(std::vector<Motion*>&, std::vector<SpeedData>&);
 		
+		void ComputeSpeedData(std::vector<Motion*>&, std::vector<SpeedData>&);
+		void ComputeAccData(std::vector<Motion*>&, std::vector<AccData>&);
+		void computeJerk(Motion*, std::vector<std::map<std::string, double>>&, std::string&, bool);
+		void computeBoundingBoxes(Motion*, std::vector<std::vector<double>>&, std::vector<std::string>&);
+
 		void ComputeSavgol(SpeedData&, SegmentationInformation&);
 		void ComputeSavgol(AccData&, SegmentationInformation&);
 
