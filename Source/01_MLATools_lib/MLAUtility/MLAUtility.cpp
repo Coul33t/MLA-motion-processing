@@ -38,6 +38,24 @@ namespace Mla {
 			}
 		}
 
+		void ExtractComponent(std::vector<std::map<std::string, std::vector<double>>>& vec_input, std::vector<std::map<std::string, double>>& vec_extracted, unsigned int idx) {
+			vec_extracted.clear();
+
+			std::map<std::string, double> copy_map;
+			// For each map
+			for (auto it = vec_input.begin(); it != vec_input.end(); ++it) {
+
+				copy_map.clear();
+
+				// For each joint
+				for (auto& kv : *it) {
+					copy_map[kv.first] = kv.second[idx];
+				}
+
+				vec_extracted.push_back(copy_map);
+			}
+		}
+
 		// See http://www.martinbroadhurst.com/list-the-files-in-a-directory-in-c.html
 		void readDirectory(const std::string& folder, std::vector<std::string>& file_names_vector) {
 			std::string pattern(folder);
