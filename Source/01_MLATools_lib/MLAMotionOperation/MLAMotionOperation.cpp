@@ -601,47 +601,56 @@ namespace Mla {
 		* @param joints_to_check the joints to check for the bouding box
 		* @return bouding_box the vector containing the 6 values for the bounding box
 		*/
-		void jointsBoundingBox(std::vector<double>& bounding_box, Frame* f1, std::vector<std::string>& joints_to_check) {
+		void jointsBoundingBox(std::map<std::string, std::vector<double>>& bounding_box, Frame* f1, std::vector<std::string>& joints_to_check) {
 			Frame* global_frame_1 = f1->duplicateFrame();
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 
 			// Initialise the vector with six 0 values
-			bounding_box = std::vector<double>(6, 0);
+			bounding_box = std::map<std::string, std::vector<double>>();
+			std::string final_name = "";
+			for (auto it = joints_to_check.begin(); it != joints_to_check.end(); it++) {
+				final_name += (*it);
+			}
+
+			std::vector<double> values = std::vector<double>(6, 0);
+			bounding_box[final_name] = std::vector<double>(6, 0);
 
 			for (auto j_it = joints_to_check.begin(); j_it != joints_to_check.end(); j_it++) {
 				glm::dvec3 vec = global_frame_1->getJoint(*j_it)->getPositions();
 				// If it's the first joint, the bounding box is its x, y, and z (bounding point ?)
 				if (j_it == joints_to_check.begin()) {
-					bounding_box[0] = vec[0];
-					bounding_box[1] = vec[0];
-					bounding_box[2] = vec[1];
-					bounding_box[3] = vec[1];
-					bounding_box[4] = vec[2];
-					bounding_box[5] = vec[2];
+					values[0] = vec[0];
+					values[1] = vec[0];
+					values[2] = vec[1];
+					values[3] = vec[1];
+					values[4] = vec[2];
+					values[5] = vec[2];
 				}
 
 				// Else we check each coordinates (-x, +x, -y, +y, -z, +z)
 				else {
-					if (vec[0] < bounding_box[0])
-						bounding_box[0] = vec[0];
+					if (vec[0] < values[0])
+						values[0] = vec[0];
 
-					if (vec[0] > bounding_box[1])
-						bounding_box[1] = vec[0];
+					if (vec[0] > values[1])
+						values[1] = vec[0];
 
-					if (vec[1] < bounding_box[2])
-						bounding_box[2] = vec[1];
+					if (vec[1] < values[2])
+						values[2] = vec[1];
 
-					if (vec[1] > bounding_box[3])
-						bounding_box[3] = vec[1];
+					if (vec[1] > values[3])
+						values[3] = vec[1];
 
-					if (vec[2] < bounding_box[4])
-						bounding_box[4] = vec[2];
+					if (vec[2] < values[4])
+						values[4] = vec[2];
 
-					if (vec[2] > bounding_box[5])
-						bounding_box[5] = vec[2];
+					if (vec[2] > values[5])
+						values[5] = vec[2];
 				}
 			}
+
+			bounding_box[final_name] = values;
 		}
 		
 		/** Return an interpolated frame from a motion, and a time
@@ -1495,7 +1504,7 @@ namespace Mla {
 		* @param bounding_boxes Output vector
 		* @return A vector countaining all the bounding boxes
 		*/
-		void computeBoundingBoxes(Motion* motion, std::vector<std::vector<double>>& bounding_boxes, std::vector<std::string>& joints_to_check) {
+		void computeBoundingBoxes(Motion* motion, std::vector<std::map<std::string, std::vector<double>>>& bounding_boxes, std::vector<std::string>& joints_to_check) {
 			if (joints_to_check.empty()) {
 				std::cout << "ERROR: please specify a set of joints to extract bounding boxes." << std::endl;
 				return;
@@ -1503,7 +1512,7 @@ namespace Mla {
 
 			bounding_boxes.clear();
 
-			std::vector<double> bb;
+			std::map<std::string, std::vector<double>> bb;
 
 			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
 				jointsBoundingBox(bb, motion->getFrame(i), joints_to_check);

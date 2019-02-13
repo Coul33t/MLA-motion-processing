@@ -48,7 +48,7 @@ namespace Mla {
 		void jointsJerkNorm(std::map<std::string, double>&, Frame*, Frame*, Frame*, Frame*, double);
 		void jointsJerkAxis(std::map<std::string, double>&, Frame*, Frame*, Frame*, Frame*, double, const std::string&, bool = false);
 
-		void jointsBoundingBox(std::vector<double>&, Frame*, std::vector<std::string>&);
+		void jointsBoundingBox(std::map<std::string, std::vector<double>>&, Frame*, std::vector<std::string>&);
 
 		void MeanLinearSpeed(std::vector<std::map<std::string, double>>&, Motion*, unsigned int);
 		void MeanLinearSpeedAxis(std::vector<std::map<std::string, double>>&, Motion*, unsigned int, const std::string&, bool);
@@ -79,7 +79,7 @@ namespace Mla {
 		void ComputeSpeedData(std::vector<Motion*>&, std::vector<SpeedData>&);
 		void ComputeAccData(std::vector<Motion*>&, std::vector<AccData>&);
 		void computeJerk(Motion*, std::vector<std::map<std::string, double>>&, std::string&, bool);
-		void computeBoundingBoxes(Motion*, std::vector<std::vector<double>>&, std::vector<std::string>&);
+		void computeBoundingBoxes(Motion*, std::vector<std::map<std::string, std::vector<double>>>&, std::vector<std::string>&);
 
 		void ComputeSavgol(SpeedData&, SegmentationInformation&);
 		void ComputeSavgol(AccData&, SegmentationInformation&);
