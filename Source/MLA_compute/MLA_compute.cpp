@@ -27,8 +27,8 @@ unsigned int FullDataTest(std::string&);
 unsigned int ThrowDataClassTest(std::string&, std::string&, std::string&);
 unsigned int FullThrowDataTest(std::string&, std::string&);
 unsigned int NewThrowExtraction(std::string&, std::string&);
-unsigned int BoudingBoxSolo(std::string&, std::string&);
-unsigned int BoudingBoxesMulti(std::string&, std::string&);
+unsigned int BoudingBoxSolo(std::string&, std::string&, std::vector<std::string>&);
+unsigned int BoudingBoxesMulti(std::string&, std::vector<std::string>&);
 
 unsigned int GlmFunctionsTest();
 unsigned int MemoryLeakChaser();
@@ -54,14 +54,23 @@ int main(int argc, char *argv[]) {
 	names.push_back("Yann");
 	//FullDataTest(folder);*/
 
-	names.push_back("Leo");
+	/*names.push_back("Leo");
 	for (auto it = names.begin(); it != names.end(); it++) {
 		BoudingBoxesMulti(folder + (*it) + "/", (*it));
-	}
+	}*/
 
+	// BOUNDING BOX TESTS 
+	folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/darts/fake_data/";
 	//BoudingBoxSolo(folder + "Leo/", file);
-	BoudingBoxesMulti(folder + "Leo/", file);
 
+	std::vector<std::string> joints_to_check;
+	joints_to_check.push_back("LeftArm");
+	joints_to_check.push_back("LeftForeArm");
+	joints_to_check.push_back("LeftHand");
+	joints_to_check.push_back("LeftShoulder");
+
+	BoudingBoxesMulti(folder, joints_to_check);
+	// END BB TESTS
 
 	
 
@@ -1182,7 +1191,7 @@ unsigned int NewThrowExtraction(std::string& motion_folder_name, std::string& mo
 	return 0;
 }
 
-unsigned int BoudingBoxSolo(std::string& motion_folder_name, std::string& motion_name) {
+unsigned int BoudingBoxSolo(std::string& motion_folder_name, std::string& motion_name, std::vector<std::string>& joints_to_check) {
 	Motion* motion = nullptr;
 
 	motion = Mla::BvhParser::parseBvh(motion_folder_name, motion_name);
@@ -1194,29 +1203,25 @@ unsigned int BoudingBoxSolo(std::string& motion_folder_name, std::string& motion
 		return 1;
 	}
 
-	std::vector<std::map<std::string, std::vector<double>>> bbs;
-	std::vector<std::string> joints_to_check;
-	joints_to_check.push_back("LeftArm");
-	joints_to_check.push_back("LeftForeArm");
-	joints_to_check.push_back("LeftHand");
-	joints_to_check.push_back("LeftShoulder");
-	Mla::MotionOperation::computeBoundingBoxes(motion, bbs, joints_to_check);
+	std::vector<std::map<std::string, std::vector<double>>> bb;
+
+	Mla::MotionOperation::computeFinalBoudingBox(motion, bb, joints_to_check);
 
 	std::vector<std::map<std::string, double>> extracted_component;
 
 	Data data;
 
-	Mla::Utility::ExtractComponent(bbs, extracted_component, 0);
+	Mla::Utility::ExtractComponent(bb, extracted_component, 0);
 	data.insertNewData("BoundingBoxMinusX", extracted_component);
-	Mla::Utility::ExtractComponent(bbs, extracted_component, 1);
+	Mla::Utility::ExtractComponent(bb, extracted_component, 1);
 	data.insertNewData("BoundingBoxPlusX", extracted_component);
-	Mla::Utility::ExtractComponent(bbs, extracted_component, 2);
+	Mla::Utility::ExtractComponent(bb, extracted_component, 2);
 	data.insertNewData("BoundingBoxMinusY", extracted_component);
-	Mla::Utility::ExtractComponent(bbs, extracted_component, 3);
+	Mla::Utility::ExtractComponent(bb, extracted_component, 3);
 	data.insertNewData("BoundingBoxPlusY", extracted_component);
-	Mla::Utility::ExtractComponent(bbs, extracted_component, 4);
+	Mla::Utility::ExtractComponent(bb, extracted_component, 4);
 	data.insertNewData("BoundingBoxMinusZ", extracted_component);
-	Mla::Utility::ExtractComponent(bbs, extracted_component, 5);
+	Mla::Utility::ExtractComponent(bb, extracted_component, 5);
 	data.insertNewData("BoundingBoxPlusZ", extracted_component);
 
 	// Name of the motion (-4, so that '.bvh' is erased)
@@ -1226,6 +1231,7 @@ unsigned int BoudingBoxSolo(std::string& motion_folder_name, std::string& motion
 	// Name of the lin_speed file (-4, so that '.bvh' is erased)
 	std::string file_name = motion_name.std::string::substr(0, motion_name.size() - 4);
 
+	Mla::JsonExport::ExportMotionInformations(motion->getMotionInformation(), motion->getFrame(0)->getJointsName(), folder_name, "motion_information");
 	Mla::JsonExport::ExportData(data, folder_name, subfolder_name, file_name);
 
 	delete motion;
@@ -1233,18 +1239,14 @@ unsigned int BoudingBoxSolo(std::string& motion_folder_name, std::string& motion
 	return 0;
 }
 
-unsigned int BoudingBoxesMulti(std::string& folder, std::string& name) {
+unsigned int BoudingBoxesMulti(std::string& folder, std::vector<std::string>& joints_to_check) {
 	std::vector<std::string> file_names;
-
-	std::string joint_to_segment = "RightHand";
-	if (name == "Aous" || name == "Damien")
-		joint_to_segment = "LeftHand";
 
 	Mla::Utility::readDirectory(folder, file_names);
 
 	for (auto it = file_names.begin(); it != file_names.end(); it++) {
 		std::cout << "\n\n\nProcessing " << *it << std::endl;
-		BoudingBoxSolo(folder, *it);
+		BoudingBoxSolo(folder, *it, joints_to_check);
 	}
 
 	return 0;
