@@ -651,6 +651,8 @@ namespace Mla {
 			}
 
 			bounding_box[final_name] = values;
+
+			delete global_frame_1;
 		}
 		
 		/** Return an interpolated frame from a motion, and a time
@@ -1519,7 +1521,64 @@ namespace Mla {
 				bounding_boxes.push_back(bb);
 			}
 		}
-		
+
+		/** Computes the total bounding boxes for one motion for a given set of joints.
+		* @param motion Motion from which the bounding box will be extracted
+		* @param joints_to_check Joints on which the bounding box will be computed
+		* @param bounding_boxes Output vector
+		* @return The final bouding box coordinates (-x, +x, -y, +y, -z, +z)
+		*/
+		void computeFinalBoudingBox(Motion* motion, std::vector<std::map<std::string, std::vector<double>>>& bounding_box, std::vector<std::string>& joints_to_check) {
+			if (joints_to_check.empty()) {
+				std::cout << "ERROR: please specify a set of joints to extract bounding boxes." << std::endl;
+				return;
+			}
+
+			bounding_box.clear();
+
+			std::vector<std::map<std::string, std::vector<double>>> bounding_boxes;
+			std::map<std::string, std::vector<double>> bb;
+
+			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
+				jointsBoundingBox(bb, motion->getFrame(i), joints_to_check);
+				bounding_boxes.push_back(bb);
+			}
+
+			bb.clear();
+
+			std::string final_name = "";
+			for (auto it = joints_to_check.begin(); it != joints_to_check.end(); it++) {
+				final_name += (*it);
+			}
+
+			for (auto it = bounding_boxes.begin(); it != bounding_boxes.end(); it++) {
+				if (it == bounding_boxes.begin()) {
+					bb[final_name] = (*it)[final_name];
+				}
+
+				else {
+					if ((*it)[final_name][0] < bb[final_name][0])
+						bb[final_name][0] = (*it)[final_name][0];
+
+					if ((*it)[final_name][1] > bb[final_name][1])
+						bb[final_name][1] = (*it)[final_name][1];
+
+					if ((*it)[final_name][2] < bb[final_name][2])
+						bb[final_name][2] = (*it)[final_name][2];
+
+					if ((*it)[final_name][3] > bb[final_name][3])
+						bb[final_name][3] = (*it)[final_name][3];
+
+					if ((*it)[final_name][4] < bb[final_name][4])
+						bb[final_name][4] = (*it)[final_name][4];
+
+					if ((*it)[final_name][5] > bb[final_name][5])
+						bb[final_name][5] = (*it)[final_name][5];
+				}
+			}
+
+			bounding_box.push_back(bb);
+		}
 		/** Compute a Savgol for a full motion speed values. Note that this is NOT reversible. TODO: un-optimised af, do it
 		* @param speed_data Class containing the speed informations
 		* @param data The savgol informations

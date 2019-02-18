@@ -80,6 +80,7 @@ namespace Mla {
 		void ComputeAccData(std::vector<Motion*>&, std::vector<AccData>&);
 		void computeJerk(Motion*, std::vector<std::map<std::string, double>>&, std::string&, bool);
 		void computeBoundingBoxes(Motion*, std::vector<std::map<std::string, std::vector<double>>>&, std::vector<std::string>&);
+		void computeFinalBoudingBox(Motion*, std::vector<std::map<std::string, std::vector<double>>>&, std::vector<std::string>&);
 
 		void ComputeSavgol(SpeedData&, SegmentationInformation&);
 		void ComputeSavgol(AccData&, SegmentationInformation&);
