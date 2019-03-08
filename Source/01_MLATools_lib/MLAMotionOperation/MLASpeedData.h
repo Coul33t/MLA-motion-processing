@@ -47,6 +47,7 @@ class SpeedData {
 
 		bool getJointSpeedVector(const std::string& joint_name, std::vector<glm::dvec3>& speed_vector) const;
 		bool getSpeedSetVector(std::vector<std::map<std::string, glm::dvec3>>& speed_set) const;
+		bool getMeanSpeed(std::map<std::string, double>& mean_speed_set) const;
 
 		const unsigned int getNbInterval() const;
 		const double getIntervalTime() const;

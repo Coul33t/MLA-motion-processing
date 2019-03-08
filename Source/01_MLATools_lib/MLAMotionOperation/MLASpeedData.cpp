@@ -233,6 +233,27 @@ bool SpeedData::getSpeedSetVector(std::vector<std::map<std::string, glm::dvec3>>
 	return true;
 }
 
+bool SpeedData::getMeanSpeed(std::map<std::string, double>& mean_speed_set) const {
+	mean_speed_set.clear();
+
+	if (m_speed_data.empty())
+		return false;
+
+	for (auto const& elem : m_speed_data[0].m_norm)
+		mean_speed_set.insert(std::pair<std::string, double>(elem.first, 0));
+
+	for (auto it = m_speed_data.begin(); it != m_speed_data.end(); it++) {
+		for (auto const& elem : (*it).m_norm)
+			mean_speed_set[elem.first] += elem.second;
+	}
+
+	int size = m_speed_data.size();
+
+	for (auto const& elem : mean_speed_set)
+		mean_speed_set[elem.first] = elem.second / size;
+
+	return true;
+}
 
 const unsigned int SpeedData::getNbInterval() const { 
 	return m_interval_number;
