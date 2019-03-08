@@ -41,7 +41,10 @@ namespace Mla {
 			std::ifstream infile((folder + input_file).c_str());
 
 			if (infile.fail()) {
-				return nullptr;
+				std::ifstream infile((folder + input_file +"/").c_str());
+				if (infile.fail()) {
+					return nullptr;
+				}
 			}
 
 			std::string current_word;
