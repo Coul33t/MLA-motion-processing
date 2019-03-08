@@ -5,12 +5,12 @@ namespace Mla {
 
 		bool ExportData(Data& data, const std::string& folder_name, const std::string& subfolder_name, const std::string& file_name) {
 			// 2 times, because the function can only create a directory, not the potential subdirectories.
-			if (!(CreateDirectory(("..\\..\\..\\Data\\Speed\\" + folder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS)) {
+			if (!(CreateDirectory(("..\\..\\..\\Data\\" + folder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS)) {
 				std::cout << "Failed to create the subfolder_name " + folder_name << std::endl;
 				return false;
 			}
 
-			if (!(CreateDirectory(("..\\..\\..\\Data\\Speed\\" + folder_name + "\\" + subfolder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS)) {
+			if (!(CreateDirectory(("..\\..\\..\\Data\\" + folder_name + "\\" + subfolder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS)) {
 				std::cout << "Failed to create the subfolder_name " + subfolder_name << std::endl;
 				return false;
 			}
@@ -35,10 +35,10 @@ namespace Mla {
 			std::ofstream outfile;
 
 			// Wipe any pre-existing file.
-			outfile.open("../../../Data/Speed/" + folder_name + "/" + subfolder_name + "/" + file_name + ".json", std::ios::out);
+			outfile.open("../../../Data/" + folder_name + "/" + subfolder_name + "/" + file_name + ".json", std::ios::out);
 			outfile.close();
 
-			outfile.open("../../../Data/Speed/" + folder_name + "/" + subfolder_name + "/" + file_name + ".json", std::ios::out | std::ios::app);
+			outfile.open("../../../Data/" + folder_name + "/" + subfolder_name + "/" + file_name + ".json", std::ios::out | std::ios::app);
 
 			if (outfile.fail()) {
 				std::cout << "Failed to open file " + file_name + ".json" << std::endl;
@@ -52,7 +52,7 @@ namespace Mla {
 
 		bool ExportMotionSegmentationInformations(const SegmentationInformation& seg_motion_info, const std::string& folder_name, const std::string& file_name) {
 			
-			if (!(CreateDirectory(("..\\..\\..\\Data\\Speed\\" + folder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS)) {
+			if (!(CreateDirectory(("..\\..\\..\\Data\\" + folder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS)) {
 				std::cout << "Failed to create the folder " + folder_name << std::endl;
 				return false;
 			}
@@ -69,10 +69,10 @@ namespace Mla {
 			std::ofstream outfile;
 
 			// Wipe any pre-existing file.
-			outfile.open("../../../Data/Speed/" + folder_name + "/" + file_name + ".json", std::ios::out);
+			outfile.open("../../../Data/" + folder_name + "/" + file_name + ".json", std::ios::out);
 			outfile.close();
 
-			outfile.open("../../../Data/Speed/" + folder_name + "/" + file_name + ".json", std::ios::out | std::ios::app);
+			outfile.open("../../../Data/" + folder_name + "/" + file_name + ".json", std::ios::out | std::ios::app);
 
 			if (outfile.fail()) {
 				std::cout << "Failed to open file " + file_name + ".json" << std::endl;
@@ -85,7 +85,7 @@ namespace Mla {
 		}
 
 		bool ExportMotionInformations(const MotionInformation& motion_info, std::vector<std::string> joints_names, const std::string& folder_name, const std::string& file_name) {
-			if (!(CreateDirectory(("..\\..\\..\\Data\\Speed\\" + folder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS)) {
+			if (!(CreateDirectory(("..\\..\\..\\Data\\" + folder_name).c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS)) {
 				std::cout << "Failed to create the folder " + folder_name << std::endl;
 				return false;
 			}
@@ -100,10 +100,10 @@ namespace Mla {
 			std::ofstream outfile;
 
 			// Wipe any pre-existing file.
-			outfile.open("../../../Data/Speed/" + folder_name + "/" + file_name + ".json", std::ios::out);
+			outfile.open("../../../Data/" + folder_name + "/" + file_name + ".json", std::ios::out);
 			outfile.close();
 
-			outfile.open("../../../Data/Speed/" + folder_name + "/" + file_name + ".json", std::ios::out | std::ios::app);
+			outfile.open("../../../Data/" + folder_name + "/" + file_name + ".json", std::ios::out | std::ios::app);
 
 			if (outfile.fail()) {
 				std::cout << "Failed to open file " + file_name + ".json" << std::endl;
