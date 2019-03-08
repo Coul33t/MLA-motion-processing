@@ -35,6 +35,9 @@ namespace Mla {
 		Joint* interpolateJoint(Joint*, Joint*, double);
 		Frame* interpolateFrame(Frame*, Frame*, double);
 
+		void jointsPositions(std::map<std::string, glm::dvec3>&, Frame*, const std::string&);
+		void jointsPositionsAxis(std::map<std::string, double>&, Frame*, const std::string&, const std::string&);
+
 		void jointsLinearSpeed(std::map<std::string, double>&, Frame*, Frame*, double);
 		void jointsLinearSpeed(std::map<std::string, glm::dvec3>&, Frame*, Frame*, double, bool = false);
 		void jointsLinearSpeedAxis(std::map<std::string, double>&, Frame*, Frame*, double, const std::string&, bool = false);
@@ -81,6 +84,7 @@ namespace Mla {
 		void computeJerk(Motion*, std::vector<std::map<std::string, double>>&, std::string&, bool);
 		void computeBoundingBoxes(Motion*, std::vector<std::map<std::string, std::vector<double>>>&, std::vector<std::string>&);
 		void computeFinalBoudingBox(Motion*, std::vector<std::map<std::string, std::vector<double>>>&, std::vector<std::string>&);
+		void computePositionBeforeThrow(Motion*, SegmentationInformation&, const std::string&, std::vector<std::map<std::string, glm::dvec3>>&, const std::string&);
 
 		void ComputeSavgol(SpeedData&, SegmentationInformation&);
 		void ComputeSavgol(AccData&, SegmentationInformation&);

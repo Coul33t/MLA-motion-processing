@@ -61,6 +61,89 @@ namespace Mla {
 			return interpolated_frame;
 		}
 
+		/** Returns the positions of the joints in a specific frame.
+		* @param pos_vector Output vector
+		* @param f1 Desired frame
+		* @param abs_or_rel Absolute or relative coordinates
+		* @return A vector containing the positions of all the joints
+		*/
+		void jointsPositions(std::map<std::string, glm::dvec3>& pos_vector, Frame* f1, const std::string& abs_or_rel) {
+			// I choose to put this here instead of a simple " else " at the end for code
+			// readability and avoid unnecessary initilisation and/or code duplication.
+			if (abs_or_rel != "abs" && abs_or_rel != "rel") {
+				std::cout << "ERROR: position must be absolute (abs) or relative (rel)." << std::endl;
+				return;
+			}
+
+			glm::dvec3 vec_pos;
+
+			if (abs_or_rel == "abs") {
+				Frame* global_frame_1 = f1->duplicateFrame();
+				getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
+
+				for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+					vec_pos = global_frame_1->getJoint(j)->getPositions();
+					pos_vector.insert(std::pair<std::string, glm::dvec3>(global_frame_1->getJoint(j)->getName(), vec_pos));
+				}
+
+				delete global_frame_1;
+			}
+	
+			else if (abs_or_rel == "rel") {
+				for (unsigned int j = 0; j < f1->getJoints().size(); j++) {
+					vec_pos = f1->getJoint(j)->getPositions();
+					pos_vector.insert(std::pair<std::string, glm::dvec3>(f1->getJoint(j)->getName(), vec_pos));
+				}
+			}
+		}
+		
+		/** Returns the positions of the joints in a specific frame along one axis.
+		* @param pos_vector Output vector
+		* @param f1 Desired frame
+		* @param abs_or_rel Absolute or relative coordinates
+		* @param axis Axis along which the positions values will be returned
+		* @return A vector containing the positions of all the joints
+		*/
+		void jointsPositionsAxis(std::map<std::string, double>& pos_vector, Frame* f1, const std::string& abs_or_rel, const std::string& axis) {
+			// I choose to put this here instead of a simple " else " at the end for code
+			// readability and avoid unnecessary initilisation and/or code duplication.
+			if (abs_or_rel != "abs" && abs_or_rel != "rel") {
+				std::cout << "ERROR: position must be absolute (abs) or relative (rel)." << std::endl;
+				return;
+			}
+
+			glm::dvec3 vec_pos;
+
+			if (abs_or_rel == "abs") {
+				Frame* global_frame_1 = f1->duplicateFrame();
+				getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
+
+				for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+					vec_pos = global_frame_1->getJoint(j)->getPositions();
+					if (axis == "x")
+						pos_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), vec_pos[0]));
+					else if (axis == "y")
+						pos_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), vec_pos[1]));
+					else if (axis == "z")
+						pos_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), vec_pos[2]));
+				}
+
+				delete global_frame_1;
+			}
+
+			else if (abs_or_rel == "rel") {
+				for (unsigned int j = 0; j < f1->getJoints().size(); j++) {
+					vec_pos = f1->getJoint(j)->getPositions();
+					if (axis == "x")
+						pos_vector.insert(std::pair<std::string, double>(f1->getJoint(j)->getName(), vec_pos[0]));
+					else if (axis == "y")
+						pos_vector.insert(std::pair<std::string, double>(f1->getJoint(j)->getName(), vec_pos[1]));
+					else if (axis == "z")
+						pos_vector.insert(std::pair<std::string, double>(f1->getJoint(j)->getName(), vec_pos[2]));
+				}
+			}
+		}
+
 		/** Compute the speed of the joints at a given point in time (t).
 		* @param lin_speed_vector Output vector
 		* @param f1 First frame (t-1)
@@ -141,6 +224,7 @@ namespace Mla {
 		* @param f1 First frame (t-1)
 		* @param f2 Second frame (t+1)
 		* @param frame_time Interframe time
+		* @param axis Axis along which the linear speed will be computed
 		* @return A vector containing the linear speed of all the joints
 		*/
 		void jointsLinearSpeedAxis (std::map<std::string, double>& lin_speed_vector, Frame* f1, Frame* f2, double frame_time, const std::string& axis, bool normalise) {
@@ -247,10 +331,11 @@ namespace Mla {
 			}
 		}
 
-		/** Compute the mean speed (on the 3 axis) on given intervals for the full motion between two frames, with skeleton interpolation.
+		/** Compute the mean speed on given intervals for the full motion between two frames, with skeleton interpolation.
 		* @param mean_lin_speed_inter Output vector
 		* @param motion Motion
 		* @param n Number of interval
+		* @param axis Axis along which the mean speed will be computed
 		* @return A vector containing the mean speed (on the 3 axis) for each joint on the frames, for each interval
 		*/
 		void MeanLinearSpeedAxis (std::vector<std::map<std::string, double>>& mean_lin_speed_inter, Motion* motion, unsigned int n, const std::string& axis, bool normalise) {
@@ -1579,6 +1664,37 @@ namespace Mla {
 
 			bounding_box.push_back(bb);
 		}
+		
+		/** Get the joints positions at the beginning of a throw (corresponding to the left local minimum next to the global maximum speed value).
+		* @param motion Motion from which the values will be retrieved
+		* @param seg_info Structure containing all the information needed for the segmentation (see SegmentationInformation)
+		* @param joint_to_segment Joint used to find the values
+		* @param pos_values Output vector
+		* @return The desired positions values for all joints for all frames
+		*/
+		void computePositionBeforeThrow(Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<std::map<std::string, glm::dvec3>>& pos_values, const std::string& abs_or_rel) {
+			pos_values.clear();
+
+			std::pair<int, int> throw_idx;
+
+			SpeedData speed_data(motion->getFrames().size() - 1,
+				motion->getFrameTime(),
+				motion->getFrames().size());
+
+			motionSpeedComputing(motion, speed_data);
+			ComputeSavgol(speed_data, seg_info);
+
+			std::vector<double> speed_norm;
+			speed_data.getNorm(speed_norm, joint_to_segment);
+			FindThrowIndex(speed_norm, throw_idx);
+
+			std::map<std::string, glm::dvec3> pos_beg;
+
+			jointsPositions(pos_beg, motion->getFrame(throw_idx.first), abs_or_rel);
+			pos_values.push_back(pos_beg);
+			
+		}
+
 		/** Compute a Savgol for a full motion speed values. Note that this is NOT reversible. TODO: un-optimised af, do it
 		* @param speed_data Class containing the speed informations
 		* @param data The savgol informations
