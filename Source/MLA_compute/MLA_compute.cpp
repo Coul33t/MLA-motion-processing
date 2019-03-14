@@ -75,16 +75,21 @@ int main(int argc, char *argv[]) {
 	// END BB TESTS
 
 	// Full darts test
-	folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/darts/true_data/aurelien/";
+	folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/darts/fake_data/";
 
+	// BE CAREFUL TO PUT THE JOINTS IN THE RIGHT ORDER (FROM ROOT TO EXTREMITY)
+	// FOR BOUNDING BOX NORMALISATION (the algorithm takes the front and back
+	// values of the vector as the root and the extremity respectively)
 	std::vector<std::string> joints_to_check;
-	joints_to_check.push_back("RightArm");
-	joints_to_check.push_back("RightForeArm");
-	joints_to_check.push_back("RightHand");
-	joints_to_check.push_back("RightShoulder");
+	joints_to_check.push_back("LeftShoulder");
+	joints_to_check.push_back("LeftArm");
+	joints_to_check.push_back("LeftForeArm");
+	joints_to_check.push_back("LeftHand");
 
 	AllDarts(folder, joints_to_check);
 	// END FULL DARTS TEST
+
+	//DartsDescriptors(folder, "aurel_1Char00.bvh", "RightHand", joints_to_check);
 
 	
 
@@ -1305,7 +1310,7 @@ unsigned int DartsDescriptors(const std::string& motion_folder_name, const std::
 	Mla::MotionOperation::motionSpeedComputing(motion, speed_data);
 
 	// Name of the motion (-4, so that '.bvh' is erased)
-	std::string folder_name = "alldartsdescriptors/" + motion_name.std::string::substr(0, motion_name.size() - 4);
+	std::string folder_name = "alldartsdescriptors/me/" + motion_name.std::string::substr(0, motion_name.size() - 4);
 	// Name of the segmentation (NB_SEG_X) HARDCODED FOR THE MOMENT
 	std::string subfolder_name = "data";
 	// Name of the lin_speed file (-4, so that '.bvh' is erased)
@@ -1353,7 +1358,7 @@ unsigned int DartsDescriptors(const std::string& motion_folder_name, const std::
 	std::cout << "Bounding Box computing..." << std::endl;
 	std::vector<std::map<std::string, std::vector<double>>> bb;
 
-	Mla::MotionOperation::computeFinalBoudingBox(motion, bb, joints_to_check);
+	Mla::MotionOperation::computeFinalBoudingBox(motion, bb, joints_to_check, true);
 
 	Mla::Utility::ExtractComponent(bb, values_to_store, 0);
 	data.insertNewData("BoundingBoxMinusX", values_to_store);
@@ -1382,6 +1387,7 @@ unsigned int DartsDescriptors(const std::string& motion_folder_name, const std::
 	Mla::Utility::ExtractComponent(pos_values, values_to_store, 2);
 	data.insertNewData("PosZ", values_to_store);
 
+	std::cout << "Data export..." << std::endl;
 	Mla::JsonExport::ExportData(data, folder_name, subfolder_name, file_name);
 
 	delete segmented_motion;
@@ -1392,7 +1398,7 @@ unsigned int DartsDescriptors(const std::string& motion_folder_name, const std::
 
 unsigned int AllDarts(std::string& folder, std::vector<std::string>& joints_to_check) {
 	std::vector<std::string> file_names;
-	std::string joint_to_seg = "RightHand";
+	std::string joint_to_seg = "LeftHand";
 	Mla::Utility::readDirectory(folder, file_names);
 
 	for (auto it = file_names.begin(); it != file_names.end(); it++) {

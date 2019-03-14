@@ -51,7 +51,7 @@ namespace Mla {
 		void jointsJerkNorm(std::map<std::string, double>&, Frame*, Frame*, Frame*, Frame*, double);
 		void jointsJerkAxis(std::map<std::string, double>&, Frame*, Frame*, Frame*, Frame*, double, const std::string&, bool = false);
 
-		void jointsBoundingBox(std::map<std::string, std::vector<double>>&, Frame*, std::vector<std::string>&);
+		void jointsBoundingBox(std::map<std::string, std::vector<double>>&, Frame*, std::vector<std::string>&, glm::dvec3&, bool = true);
 
 		void MeanLinearSpeed(std::vector<std::map<std::string, double>>&, Motion*, unsigned int);
 		void MeanLinearSpeedAxis(std::vector<std::map<std::string, double>>&, Motion*, unsigned int, const std::string&, bool);
@@ -83,7 +83,7 @@ namespace Mla {
 		void ComputeAccData(std::vector<Motion*>&, std::vector<AccData>&);
 		void computeJerk(Motion*, std::vector<std::map<std::string, double>>&, std::string&, bool);
 		void computeBoundingBoxes(Motion*, std::vector<std::map<std::string, std::vector<double>>>&, std::vector<std::string>&);
-		void computeFinalBoudingBox(Motion*, std::vector<std::map<std::string, std::vector<double>>>&, std::vector<std::string>&);
+		void computeFinalBoudingBox(Motion*, std::vector<std::map<std::string, std::vector<double>>>&, std::vector<std::string>&, bool = true);
 		void computePositionBeforeThrow(Motion*, SegmentationInformation&, const std::string&, std::vector<std::map<std::string, glm::dvec3>>&, const std::string&);
 
 		void ComputeSavgol(SpeedData&, SegmentationInformation&);

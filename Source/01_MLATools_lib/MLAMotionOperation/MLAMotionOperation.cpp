@@ -686,7 +686,7 @@ namespace Mla {
 		* @param joints_to_check the joints to check for the bouding box
 		* @return bouding_box the vector containing the 6 values for the bounding box
 		*/
-		void jointsBoundingBox(std::map<std::string, std::vector<double>>& bounding_box, Frame* f1, std::vector<std::string>& joints_to_check) {
+		void jointsBoundingBox(std::map<std::string, std::vector<double>>& bounding_box, Frame* f1, std::vector<std::string>& joints_to_check, glm::dvec3& global_root, bool normalise) {
 			Frame* global_frame_1 = f1->duplicateFrame();
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
@@ -698,40 +698,64 @@ namespace Mla {
 				final_name += (*it);
 			}
 
+			// Compute the coefficient
+			// The initial formula, for a kinematic chain KC is:
+			// nKC = distance(root, extremity) / sum(segments)
+			// We aren't interested into the value of nKC, but the
+			// coefficient by which we will multiply the coordinates
+			// to normalise them. This coefficient is defined by
+			// nKC/sumKC -> distance(root, extremity) / sum(segments)²
+			double n_coef = 1;
+
+			if (normalise) {
+				glm::dvec3 current_root = global_frame_1->getJoint(joints_to_check.front())->getPositions();
+				glm::dvec3 extremity = global_frame_1->getJoint(joints_to_check.back())->getPositions();
+				double dRE = glm::distance(current_root, extremity);
+				double sumKC = 0;
+				for (unsigned int i = 0; i < joints_to_check.size() - 1; i++) {
+					sumKC += glm::distance(global_frame_1->getJoint(joints_to_check[i])->getPositions(),
+						global_frame_1->getJoint(joints_to_check[i + 1])->getPositions());
+				}
+				n_coef = dRE / pow(sumKC, 2);
+			}
+
 			std::vector<double> values = std::vector<double>(6, 0);
 			bounding_box[final_name] = std::vector<double>(6, 0);
 
 			for (auto j_it = joints_to_check.begin(); j_it != joints_to_check.end(); j_it++) {
 				glm::dvec3 vec = global_frame_1->getJoint(*j_it)->getPositions();
 				// If it's the first joint, the bounding box is its x, y, and z (bounding point ?)
+				// n_coef = 1 if normalise is false (avoids code duplication and stuff)
+				// - root to recenter the origin to (0,0,0)
+				// root = (0,0,0) if normalise is false 
 				if (j_it == joints_to_check.begin()) {
-					values[0] = vec[0];
-					values[1] = vec[0];
-					values[2] = vec[1];
-					values[3] = vec[1];
-					values[4] = vec[2];
-					values[5] = vec[2];
+					values[0] = (vec[0] - global_root[0]) * n_coef;
+					values[1] = (vec[0] - global_root[0]) * n_coef;
+					values[2] = (vec[1] - global_root[1]) * n_coef;
+					values[3] = (vec[1] - global_root[1]) * n_coef;
+					values[4] = (vec[2] - global_root[2]) * n_coef;
+					values[5] = (vec[2] - global_root[2]) * n_coef;
 				}
 
 				// Else we check each coordinates (-x, +x, -y, +y, -z, +z)
 				else {
-					if (vec[0] < values[0])
-						values[0] = vec[0];
+					if ((vec[0] - global_root[0]) * n_coef < values[0])
+						values[0] = (vec[0] - global_root[0]) * n_coef;
 
-					if (vec[0] > values[1])
-						values[1] = vec[0];
+					if ((vec[0] - global_root[0]) * n_coef > values[1])
+						values[1] = (vec[0] - global_root[0]) * n_coef;
 
-					if (vec[1] < values[2])
-						values[2] = vec[1];
+					if ((vec[1] - global_root[1]) * n_coef < values[2])
+						values[2] = (vec[1] - global_root[1]) * n_coef;
 
-					if (vec[1] > values[3])
-						values[3] = vec[1];
+					if ((vec[1] - global_root[1]) * n_coef > values[3])
+						values[3] = (vec[1] - global_root[1]) * n_coef;
 
-					if (vec[2] < values[4])
-						values[4] = vec[2];
+					if ((vec[2] - global_root[2]) * n_coef < values[4])
+						values[4] = (vec[2] - global_root[2]) * n_coef;
 
-					if (vec[2] > values[5])
-						values[5] = vec[2];
+					if ((vec[2] - global_root[2]) * n_coef > values[5])
+						values[5] = (vec[2] - global_root[2]) * n_coef;
 				}
 			}
 
@@ -1600,9 +1624,10 @@ namespace Mla {
 			bounding_boxes.clear();
 
 			std::map<std::string, std::vector<double>> bb;
+			glm::dvec3 root = glm::dvec3(0, 0, 0);
 
 			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
-				jointsBoundingBox(bb, motion->getFrame(i), joints_to_check);
+				jointsBoundingBox(bb, motion->getFrame(i), joints_to_check, root);
 				bounding_boxes.push_back(bb);
 			}
 		}
@@ -1613,7 +1638,7 @@ namespace Mla {
 		* @param bounding_boxes Output vector
 		* @return The final bouding box coordinates (-x, +x, -y, +y, -z, +z)
 		*/
-		void computeFinalBoudingBox(Motion* motion, std::vector<std::map<std::string, std::vector<double>>>& bounding_box, std::vector<std::string>& joints_to_check) {
+		void computeFinalBoudingBox(Motion* motion, std::vector<std::map<std::string, std::vector<double>>>& bounding_box, std::vector<std::string>& joints_to_check, bool normalise) {
 			if (joints_to_check.empty()) {
 				std::cout << "ERROR: please specify a set of joints to extract bounding boxes." << std::endl;
 				return;
@@ -1624,10 +1649,14 @@ namespace Mla {
 			std::vector<std::map<std::string, std::vector<double>>> bounding_boxes;
 			std::map<std::string, std::vector<double>> bb;
 
+			glm::dvec3 root = glm::dvec3(0, 0, 0);
+			if (normalise)
+				root = motion->getFrame(0)->getJoint(joints_to_check.front())->getPositions();
+
 			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
-				jointsBoundingBox(bb, motion->getFrame(i), joints_to_check);
+				jointsBoundingBox(bb, motion->getFrame(i), joints_to_check, root, normalise);
 				bounding_boxes.push_back(bb);
-			}
+			}	
 
 			bb.clear();
 
