@@ -686,7 +686,7 @@ namespace Mla {
 		* @param joints_to_check the joints to check for the bouding box
 		* @return bouding_box the vector containing the 6 values for the bounding box
 		*/
-		void jointsBoundingBox(std::map<std::string, std::vector<double>>& bounding_box, Frame* f1, std::vector<std::string>& joints_to_check, glm::dvec3& global_root, bool normalise) {
+		void jointsBoundingBox(std::map<std::string, std::vector<double>>& bounding_box, Frame* f1, std::vector<std::string>& joints_to_check, bool normalise) {
 			Frame* global_frame_1 = f1->duplicateFrame();
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
@@ -729,33 +729,33 @@ namespace Mla {
 				// - root to recenter the origin to (0,0,0)
 				// root = (0,0,0) if normalise is false 
 				if (j_it == joints_to_check.begin()) {
-					values[0] = (vec[0] - global_root[0]) * n_coef;
-					values[1] = (vec[0] - global_root[0]) * n_coef;
-					values[2] = (vec[1] - global_root[1]) * n_coef;
-					values[3] = (vec[1] - global_root[1]) * n_coef;
-					values[4] = (vec[2] - global_root[2]) * n_coef;
-					values[5] = (vec[2] - global_root[2]) * n_coef;
+					values[0] = vec[0] * n_coef;
+					values[1] = vec[0] * n_coef;
+					values[2] = vec[1] * n_coef;
+					values[3] = vec[1] * n_coef;
+					values[4] = vec[2] * n_coef;
+					values[5] = vec[2] * n_coef;
 				}
 
 				// Else we check each coordinates (-x, +x, -y, +y, -z, +z)
 				else {
-					if ((vec[0] - global_root[0]) * n_coef < values[0])
-						values[0] = (vec[0] - global_root[0]) * n_coef;
+					if (vec[0] * n_coef < values[0])
+						values[0] = vec[0] * n_coef;
 
-					if ((vec[0] - global_root[0]) * n_coef > values[1])
-						values[1] = (vec[0] - global_root[0]) * n_coef;
+					if (vec[0] * n_coef > values[1])
+						values[1] = vec[0] * n_coef;
 
-					if ((vec[1] - global_root[1]) * n_coef < values[2])
-						values[2] = (vec[1] - global_root[1]) * n_coef;
+					if (vec[1] * n_coef < values[2])
+						values[2] = vec[1] * n_coef;
 
-					if ((vec[1] - global_root[1]) * n_coef > values[3])
-						values[3] = (vec[1] - global_root[1]) * n_coef;
+					if (vec[1] * n_coef > values[3])
+						values[3] = vec[1] * n_coef;
 
-					if ((vec[2] - global_root[2]) * n_coef < values[4])
-						values[4] = (vec[2] - global_root[2]) * n_coef;
+					if (vec[2] * n_coef < values[4])
+						values[4] = vec[2] * n_coef;
 
-					if ((vec[2] - global_root[2]) * n_coef > values[5])
-						values[5] = (vec[2] - global_root[2]) * n_coef;
+					if (vec[2] * n_coef > values[5])
+						values[5] = vec[2] * n_coef;
 				}
 			}
 
@@ -767,7 +767,7 @@ namespace Mla {
 		/** Return an interpolated frame from a motion, and a time
 		* @param motion Motion from which the frame will be interpolated
 		* @param time Time at which the frame will be interpolated
-		* @param Interframe_time from the initial motion
+		* @param Interframe_timeInterframe time from the initial motion
 		* @return The interpolated frame
 		*/
 		Frame* getFrameFromTime (Motion* motion, double current_time, double original_frame_time) {
@@ -1627,7 +1627,7 @@ namespace Mla {
 			glm::dvec3 root = glm::dvec3(0, 0, 0);
 
 			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
-				jointsBoundingBox(bb, motion->getFrame(i), joints_to_check, root);
+				jointsBoundingBox(bb, motion->getFrame(i), joints_to_check);
 				bounding_boxes.push_back(bb);
 			}
 		}
@@ -1649,12 +1649,8 @@ namespace Mla {
 			std::vector<std::map<std::string, std::vector<double>>> bounding_boxes;
 			std::map<std::string, std::vector<double>> bb;
 
-			glm::dvec3 root = glm::dvec3(0, 0, 0);
-			if (normalise)
-				root = motion->getFrame(0)->getJoint(joints_to_check.front())->getPositions();
-
 			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
-				jointsBoundingBox(bb, motion->getFrame(i), joints_to_check, root, normalise);
+				jointsBoundingBox(bb, motion->getFrame(i), joints_to_check, normalise);
 				bounding_boxes.push_back(bb);
 			}	
 
