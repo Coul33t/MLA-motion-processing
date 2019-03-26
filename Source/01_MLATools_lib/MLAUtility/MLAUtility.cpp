@@ -93,17 +93,16 @@ namespace Mla {
 				}
 				if (!dirExists(path_to_create)) {
 					if (!CreateDirectory(path_to_create.c_str(), NULL)) {
+						std::cout << "ERROR creating folder " << path_to_create << std::endl;
 						if (GetLastError() == ERROR_ALREADY_EXISTS)
 							std::cout << "WARNING: ALREADY EXISTS" << std::endl;
 						else if (GetLastError() == ERROR_PATH_NOT_FOUND)
 							std::cout << "ERROR: PATH NOT FOUND" << std::endl;
 						else if (GetLastError() == ERROR_ACCESS_DENIED)
 							std::cout << "ERROR: ACCESS DENIED" << std::endl;
-						std::cout << "ERROR creating folder " << path_to_create << std::endl;
+						else
+							std::cout << "ERROR: UNKNOWN ERROR" << std::endl;
 						return false;
-					}
-					else {
-						std::cout << "Created  " << path_to_create << std::endl;
 					}
 				}
 			}
