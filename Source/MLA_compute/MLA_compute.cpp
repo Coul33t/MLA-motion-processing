@@ -1,3 +1,7 @@
+// WARNING : this file is a mess. I'm using it to test my functions,
+// so old code in it (i.e. anything older than the last function created)
+// probably won't work anymore.
+
 #include "MLA.h"
 #include <algorithm>
 
@@ -30,79 +34,38 @@ unsigned int NewThrowExtraction(std::string&, std::string&);
 unsigned int BoudingBoxSolo(std::string&, std::string&, std::vector<std::string>&);
 unsigned int BoudingBoxesMulti(std::string&, std::vector<std::string>&);
 unsigned int DartsDescriptors(const std::string&, const std::string&, const std::string&, std::vector<std::string>&);
-unsigned int AllDarts(std::string&, std::vector<std::string>&);
+unsigned int AllDarts(std::string&, std::string&, std::vector<std::string>&);
+unsigned int ProcessForDarts(std::string&, std::string&, std::vector<std::string>&, std::string&);
+
+Data ExtractDarts(Motion*, const std::string&, std::vector<std::string>&, SegmentationInformation&);
+
+unsigned int DartsExtraction(const std::string&, const std::string&, 
+							 const std::string&, const std::string&, 
+							 std::vector<std::string>&, std::string&);
+
+unsigned int DartsExtractionFromFolder(const std::string&, const std::string&,
+									   const std::string&, std::vector<std::string>&,
+									   const std::string&);
 
 unsigned int GlmFunctionsTest();
 unsigned int MemoryLeakChaser();
 
 int main(int argc, char *argv[]) {
-	//MultipleMotionExportTest();
-	std::string folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/throw_ball_";
-	std::string file = "Leo_1Char00.bvh";
-	//DataClassTest(folder, file);
-	std::vector<std::string> names;
-	/*names.push_back("Aous");
-	names.push_back("Damien");
-	names.push_back("Esteban");
-	names.push_back("Guillaume");
-	names.push_back("Ines");
-	names.push_back("Iza");
-	names.push_back("Ludovic");
-	names.push_back("Marc");
-	names.push_back("Oussema");
-	names.push_back("Pierre");
-	names.push_back("Sebastien");
-	names.push_back("Vincent");
-	names.push_back("Yann");
-	//FullDataTest(folder);*/
-
-	/*names.push_back("Leo");
-	for (auto it = names.begin(); it != names.end(); it++) {
-		BoudingBoxesMulti(folder + (*it) + "/", (*it));
-	}*/
-
-	// BOUNDING BOX TESTS 
-	/*folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/darts/fake_data/";
-	//BoudingBoxSolo(folder + "Leo/", file);
-
-	std::vector<std::string> joints_to_check;
-	joints_to_check.push_back("LeftArm");
-	joints_to_check.push_back("LeftForeArm");
-	joints_to_check.push_back("LeftHand");
-	joints_to_check.push_back("LeftShoulder");
-
-	BoudingBoxesMulti(folder, joints_to_check);*/
-	// END BB TESTS
-
-	// Full darts test
-	folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/darts/fake_data/";
+	std::string input_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/darts/fake_data/";
+	std::string output_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/alldartsdescriptors/test_folder/re_test/";
 
 	// BE CAREFUL TO PUT THE JOINTS IN THE RIGHT ORDER (FROM ROOT TO EXTREMITY)
 	// FOR BOUNDING BOX NORMALISATION (the algorithm takes the front and back
 	// values of the vector as the root and the extremity respectively)
 	std::vector<std::string> joints_to_check;
-	joints_to_check.push_back("LeftShoulder");
-	joints_to_check.push_back("LeftArm");
-	joints_to_check.push_back("LeftForeArm");
-	joints_to_check.push_back("LeftHand");
-
-	AllDarts(folder, joints_to_check);
-	// END FULL DARTS TEST
-
-	//DartsDescriptors(folder, "aurel_1Char00.bvh", "RightHand", joints_to_check);
-
+	joints_to_check.push_back("Shoulder");
+	joints_to_check.push_back("Arm");
+	joints_to_check.push_back("ForeArm");
+	joints_to_check.push_back("Hand");
+	std::string laterality = "Left";
+	std::string joint_to_seg = "Hand";
 	
-
-	/*std::string joint = "LeftHand";
-	ThrowDataClassTest(folder, file, joint);*/
-
-	//ThrowDataClassTest(folder, file, std::string(JOINT_OF_INTEREST));
-
-	//NewThrowExtraction(folder, file);
-	
-	//DataClassTest(folder, file);
-	//TestSpeed(folder, file);
-	//GlmFunctionsTest();	
+	DartsExtractionFromFolder(input_folder, output_folder, joint_to_seg, joints_to_check, laterality);
 
 	std::cout << std::endl << "Press any key to quit...";
 	std::cin.get();
@@ -1031,7 +994,8 @@ unsigned int ThrowDataClassTest(std::string& motion_folder_name, std::string& mo
 	Mla::MotionOperation::computeJerk(motion, values_to_store, std::string("x"), false);
 	data.insertNewData("BoundingBox", values_to_store);*/
 
-	Mla::JsonExport::ExportData(data, folder_name, subfolder_name, file_name);
+	// Commented because ExportData has been changed
+	//Mla::JsonExport::ExportData(data, folder_name, subfolder_name, file_name);
 
 	delete segmented_motion;
 	delete motion;
@@ -1118,7 +1082,8 @@ unsigned int SavgolSpeedComparison(std::string& motion_folder_name, std::string&
 
 	Mla::JsonExport::ExportMotionInformations(motion->getMotionInformation(), motion->getFrame(0)->getJointsName(), "TEST_VIS", "motion_information");
 	Mla::JsonExport::ExportMotionSegmentationInformations(seg_info, "TEST_VIS", "segmentation_information");
-	Mla::JsonExport::ExportData(data, "TEST_VIS", "dontcare", "data");
+	// Commented because ExportData has been changed
+	//Mla::JsonExport::ExportData(data, "TEST_VIS", "dontcare", "data");
 	
 	delete new_motion;
 	
@@ -1203,7 +1168,8 @@ unsigned int NewThrowExtraction(std::string& motion_folder_name, std::string& mo
 
 	Mla::JsonExport::ExportMotionInformations(motion->getMotionInformation(), motion->getFrame(0)->getJointsName(), "TEST_VIS", "motion_information");
 	Mla::JsonExport::ExportMotionSegmentationInformations(seg_info, "TEST_VIS", "segmentation_information");
-	Mla::JsonExport::ExportData(data, "TEST_VIS", "dontcare", "data");
+	// Commented because ExportData has been changed
+	//Mla::JsonExport::ExportData(data, "TEST_VIS", "dontcare", "data");
 
 	delete new_motion;
 
@@ -1251,7 +1217,8 @@ unsigned int BoudingBoxSolo(std::string& motion_folder_name, std::string& motion
 	std::string file_name = motion_name.std::string::substr(0, motion_name.size() - 4);
 
 	Mla::JsonExport::ExportMotionInformations(motion->getMotionInformation(), motion->getFrame(0)->getJointsName(), folder_name, "motion_information");
-	Mla::JsonExport::ExportData(data, folder_name, subfolder_name, file_name);
+	// Commented because ExportData has been changed
+	//Mla::JsonExport::ExportData(data, folder_name, subfolder_name, file_name);
 
 	delete motion;
 
@@ -1310,7 +1277,7 @@ unsigned int DartsDescriptors(const std::string& motion_folder_name, const std::
 	Mla::MotionOperation::motionSpeedComputing(motion, speed_data);
 
 	// Name of the motion (-4, so that '.bvh' is erased)
-	std::string folder_name = "alldartsdescriptors/me/" + motion_name.std::string::substr(0, motion_name.size() - 4);
+	std::string folder_name = "alldartsdescriptors/Laval_Virtual/1/" + motion_name.std::string::substr(0, motion_name.size() - 4);
 	// Name of the segmentation (NB_SEG_X) HARDCODED FOR THE MOMENT
 	std::string subfolder_name = "data";
 	// Name of the lin_speed file (-4, so that '.bvh' is erased)
@@ -1352,6 +1319,28 @@ unsigned int DartsDescriptors(const std::string& motion_folder_name, const std::
 
 	values_to_store.clear();
 
+	// Extracting the norm of the speed
+	speed_data.getNorm(values_to_store);
+	data.insertNewData("SpeedNorm", values_to_store);
+
+	// Storing x speed and directions values (savgoled)
+	speed_data.getAllValues(values_to_store, "x", false);
+	data.insertNewData("Speedx", values_to_store);
+	speed_data.getAllValues(values_to_store, "x", true);
+	data.insertNewData("SpeedDirx", values_to_store);
+
+	// Storing y speed and directions values (savgoled)
+	speed_data.getAllValues(values_to_store, "y", false);
+	data.insertNewData("Speedy", values_to_store);
+	speed_data.getAllValues(values_to_store, "y", true);
+	data.insertNewData("SpeedDiry", values_to_store);
+
+	// Storing z speed and directions values (savgoled)
+	speed_data.getAllValues(values_to_store, "z", false);
+	data.insertNewData("Speedz", values_to_store);
+	speed_data.getAllValues(values_to_store, "z", true);
+	data.insertNewData("SpeedDirz", values_to_store);
+
 	// BOUNDING BOX
 	std::map<std::string, double> norm_map;
 
@@ -1388,7 +1377,8 @@ unsigned int DartsDescriptors(const std::string& motion_folder_name, const std::
 	data.insertNewData("PosZ", values_to_store);
 
 	std::cout << "Data export..." << std::endl;
-	Mla::JsonExport::ExportData(data, folder_name, subfolder_name, file_name);
+	// Commented because ExportData has been changed
+	//Mla::JsonExport::ExportData(data, folder_name, subfolder_name, file_name);
 
 	delete segmented_motion;
 	delete motion;
@@ -1396,14 +1386,202 @@ unsigned int DartsDescriptors(const std::string& motion_folder_name, const std::
 	return 0;
 }
 
-unsigned int AllDarts(std::string& folder, std::vector<std::string>& joints_to_check) {
+unsigned int AllDarts(std::string& folder, std::string& joint_to_seg, std::vector<std::string>& joints_to_check) {
 	std::vector<std::string> file_names;
-	std::string joint_to_seg = "LeftHand";
 	Mla::Utility::readDirectory(folder, file_names);
 
 	for (auto it = file_names.begin(); it != file_names.end(); it++) {
 		std::cout << "\n\n\nProcessing " << *it << std::endl;
 		DartsDescriptors(folder, *it, joint_to_seg, joints_to_check);
+	}
+
+	return 0;
+}
+
+unsigned int ProcessForDarts(std::string& folder, std::string& joint_to_seg, std::vector<std::string>& joints_to_check, std::string& laterality) {
+	std::string final_joint_to_seg = laterality + joint_to_seg;
+	std::vector<std::string> final_joints_to_check;
+	
+	for (auto it = joints_to_check.begin(); it != joints_to_check.end(); it++) {
+		final_joints_to_check.push_back(laterality + *it);
+	}
+
+	return AllDarts(folder, final_joint_to_seg, final_joints_to_check);
+}
+
+
+Data ExtractDarts(Motion* motion, const std::string& joint_to_segment, 
+	std::vector<std::string>& joints_to_check, SegmentationInformation& seg_info) {
+
+	std::cout << "Motion filtering..." << std::endl;
+	Mla::MotionOperation::motionFiltering(motion);
+
+	Motion* segmented_motion = new Motion();
+
+	seg_info.final_frame_number = motion->getFrames().size();
+	seg_info.final_interframe_time = motion->getFrames().size() * motion->getFrameTime() / static_cast<double>(seg_info.final_frame_number - 1);
+
+	// Computing speed
+	std::cout << "Speed computing..." << std::endl;
+
+	SpeedData speed_data(motion->getFrames().size() - 1,
+		motion->getFrameTime(),
+		motion->getFrames().size());
+
+	Mla::MotionOperation::motionSpeedComputing(motion, speed_data);
+
+	std::vector<std::map<std::string, double>> values_to_store = std::vector<std::map<std::string, double>>();
+
+	// Instanciating the data class, which will hold all the data (wow rly?)
+	Data data;
+
+	// Experimental (setting the savgol window size)
+	seg_info.savgol_window_size = seg_info.final_frame_number / 4;
+
+	// Window size must be odd
+	if (seg_info.savgol_window_size % 2 == 0)
+		seg_info.savgol_window_size++;
+
+	// Computing the savgol on the data
+	std::cout << "Savgol computing..." << std::endl;
+	Mla::MotionOperation::ComputeSavgol(speed_data, seg_info);
+
+	// --------------------------------------------
+	// From here, the speed_data is now savgoled,
+	// which means that every subsequent operation
+	// is done on a savgoled signal
+	// --------------------------------------------
+
+	// Extracting the norm of the speed
+	std::cout << "Mean Speed extraction..." << std::endl;
+	std::map<std::string, double> tmp_vec;
+	speed_data.getMeanSpeed(tmp_vec);
+	values_to_store.push_back(tmp_vec);
+	data.insertNewData("MeanSpeed", values_to_store);
+
+	values_to_store.clear();
+
+	// Extracting the norm of the speed
+	speed_data.getNorm(values_to_store);
+	data.insertNewData("SpeedNorm", values_to_store);
+
+	// Storing x speed and directions values (savgoled)
+	speed_data.getAllValues(values_to_store, "x", false);
+	data.insertNewData("Speedx", values_to_store);
+	speed_data.getAllValues(values_to_store, "x", true);
+	data.insertNewData("SpeedDirx", values_to_store);
+
+	// Storing y speed and directions values (savgoled)
+	speed_data.getAllValues(values_to_store, "y", false);
+	data.insertNewData("Speedy", values_to_store);
+	speed_data.getAllValues(values_to_store, "y", true);
+	data.insertNewData("SpeedDiry", values_to_store);
+
+	// Storing z speed and directions values (savgoled)
+	speed_data.getAllValues(values_to_store, "z", false);
+	data.insertNewData("Speedz", values_to_store);
+	speed_data.getAllValues(values_to_store, "z", true);
+	data.insertNewData("SpeedDirz", values_to_store);
+
+	// BOUNDING BOX
+	std::map<std::string, double> norm_map;
+
+	std::cout << "Bounding Box computing..." << std::endl;
+	std::vector<std::map<std::string, std::vector<double>>> bb;
+
+	Mla::MotionOperation::computeFinalBoudingBox(motion, bb, joints_to_check, true);
+
+	Mla::Utility::ExtractComponent(bb, values_to_store, 0);
+	data.insertNewData("BoundingBoxMinusX", values_to_store);
+	Mla::Utility::ExtractComponent(bb, values_to_store, 1);
+	data.insertNewData("BoundingBoxPlusX", values_to_store);
+	Mla::Utility::ExtractComponent(bb, values_to_store, 2);
+	data.insertNewData("BoundingBoxMinusY", values_to_store);
+	Mla::Utility::ExtractComponent(bb, values_to_store, 3);
+	data.insertNewData("BoundingBoxPlusY", values_to_store);
+	Mla::Utility::ExtractComponent(bb, values_to_store, 4);
+	data.insertNewData("BoundingBoxMinusZ", values_to_store);
+	Mla::Utility::ExtractComponent(bb, values_to_store, 5);
+	data.insertNewData("BoundingBoxPlusZ", values_to_store);
+
+	// POSITION
+	std::cout << "Position extraction..." << std::endl;
+	std::vector<std::map<std::string, glm::dvec3>> pos_values;
+	std::string abs_or_rel = "abs";
+
+	Mla::MotionOperation::computePositionBeforeThrow(motion, seg_info, joint_to_segment, pos_values, abs_or_rel);
+
+	Mla::Utility::ExtractComponent(pos_values, values_to_store, 0);
+	data.insertNewData("PosX", values_to_store);
+	Mla::Utility::ExtractComponent(pos_values, values_to_store, 1);
+	data.insertNewData("PosY", values_to_store);
+	Mla::Utility::ExtractComponent(pos_values, values_to_store, 2);
+	data.insertNewData("PosZ", values_to_store);
+
+	std::cout << "Data export..." << std::endl;
+
+	delete segmented_motion;
+
+	return data;
+}
+
+unsigned int DartsExtraction(const std::string& motion_folder_name, const std::string& motion_name,
+							 const std::string& output_folder, const std::string& joint_to_segment,
+							 std::vector<std::string>& joints_to_check, const std::string& laterality) {
+	
+	Motion* motion = nullptr;
+
+	motion = Mla::BvhParser::parseBvh(motion_folder_name, motion_name);
+
+	if (motion == nullptr) {
+		std::cout << "Error reading motion (make sure the name and folder are correct)." << std::endl;
+		std::cout << "File name: " << motion_name << std::endl;
+		std::cout << "Folder name: " << motion_folder_name << std::endl;
+		std::cout << "Final path: " << motion_folder_name << "(/)" << motion_name << std::endl;
+		return 1;
+	}
+	
+	SegmentationInformation seg_info = {
+		0,	// left cut
+		0,  // right cut
+		51, // window size
+		3,  // polynom order
+		20, // final frame number
+	};
+
+	std::string final_joint_to_seg = laterality + joint_to_segment;
+	std::vector<std::string> final_joints_to_check;
+
+	for (auto it = joints_to_check.begin(); it != joints_to_check.end(); it++) {
+		final_joints_to_check.push_back(laterality + *it);
+	}
+
+	Data data = ExtractDarts(motion, final_joint_to_seg, final_joints_to_check, seg_info);
+
+	// Name of the motion -4, so that '.bvh' is erased
+	std::string folder_name = output_folder + motion_name.std::string::substr(0, motion_name.size() - 4);
+
+	std::string subfolder_name = "data/";
+	// Name of the  file : motion name -4, so that '.bvh' is erased
+	std::string file_name = motion_name.std::string::substr(0, motion_name.size() - 4);
+
+	Mla::JsonExport::ExportMotionInformations(motion->getMotionInformation(), motion->getFrame(0)->getJointsName(), folder_name, "motion_information");
+	Mla::JsonExport::ExportMotionSegmentationInformations(seg_info, folder_name, "segmentation_information");
+	Mla::JsonExport::ExportData(data, folder_name + "/" + subfolder_name, file_name);
+
+	delete motion;
+	return 0;
+}
+
+unsigned int DartsExtractionFromFolder(const std::string& input_folder, const std::string& output_folder, 
+									   const std::string& joint_to_segment, std::vector<std::string>& joints_to_check, 
+									   const std::string& laterality) {
+	std::vector<std::string> file_names;
+	Mla::Utility::readDirectory(input_folder, file_names);
+
+	for (auto it = file_names.begin(); it != file_names.end(); it++) {
+		std::cout << "\n\n\nProcessing " << *it << std::endl;
+		DartsExtraction(input_folder, *it, output_folder, joint_to_segment, joints_to_check, laterality);
 	}
 
 	return 0;
