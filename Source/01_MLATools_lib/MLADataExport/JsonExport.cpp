@@ -5,10 +5,8 @@ namespace Mla {
 
 		bool ExportData(Data& data, const std::string& path, const std::string& file_name) {
 
-			if (Mla::Utility::createDirectoryRecursively(path) != 0) {
-				std::cout << "ERROR creating the folder " << path << "." << std::endl;
+			if (!Mla::Utility::createDirectoryRecursively(path))
 				return false;
-			}
 
 			json json_file;
 			std::vector<DataType> data_contents = data.getData();
@@ -47,10 +45,8 @@ namespace Mla {
 
 		bool ExportMotionSegmentationInformations(const SegmentationInformation& seg_motion_info, const std::string& path, const std::string& file_name) {
 			
-			if (Mla::Utility::createDirectoryRecursively(path) != 0) {
-				std::cout << "ERROR creating the folder " << path << "." << std::endl;
+			if (!Mla::Utility::createDirectoryRecursively(path))
 				return false;
-			}
 
 			json json_file;
 			json_file["desired left cut number"] = seg_motion_info.left_cut;
@@ -80,10 +76,8 @@ namespace Mla {
 		}
 
 		bool ExportMotionInformations(const MotionInformation& motion_info, std::vector<std::string> joints_names, const std::string& path, const std::string& file_name) {
-			if (Mla::Utility::createDirectoryRecursively(path) != 0) {
-				std::cout << "ERROR creating the folder " << path << "." << std::endl;
+			if (!Mla::Utility::createDirectoryRecursively(path))
 				return false;
-			}
 
 			json json_file;
 			json_file["motion name"] = motion_info.motion_name;
