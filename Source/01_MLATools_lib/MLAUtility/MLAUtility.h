@@ -34,6 +34,10 @@ namespace Mla {
 
 		void readDirectory(const std::string&, std::vector<std::string>&);
 
+		bool createDirectoryRecursively(std::string);
+
+		bool dirExists(const std::string&);
+
 	};
 };
 

@@ -71,5 +71,56 @@ namespace Mla {
 			}
 		}
 
+		/** Creates a folder recursively.
+		* @param path The path to create
+		* @return 0 if all went well, 1 if the creation failed		
+		*/
+		bool createDirectoryRecursively(std::string path) {
+			std::vector<std::string> sub_path;
+			std::string token;
+			size_t pos = 0;
+			const std::string delimiter = "/";
+			std::string path_to_create = "";
+
+			while (path.length() > 0) {
+				token = path.substr(0, path.find(delimiter));
+				sub_path.push_back(token);
+				pos = token.length();
+				path.erase(0, pos + delimiter.length());
+				path_to_create = "";
+				for (auto it = sub_path.begin(); it != sub_path.end(); it++) {
+					path_to_create += (*it) + "/";
+				}
+				if (!dirExists(path_to_create)) {
+					if (!CreateDirectory(path_to_create.c_str(), NULL)) {
+						if (GetLastError() == ERROR_ALREADY_EXISTS)
+							std::cout << "WARNING: ALREADY EXISTS" << std::endl;
+						else if (GetLastError() == ERROR_PATH_NOT_FOUND)
+							std::cout << "ERROR: PATH NOT FOUND" << std::endl;
+						else if (GetLastError() == ERROR_ACCESS_DENIED)
+							std::cout << "ERROR: ACCESS DENIED" << std::endl;
+						std::cout << "ERROR creating folder " << path_to_create << std::endl;
+						return false;
+					}
+					else {
+						std::cout << "Created  " << path_to_create << std::endl;
+					}
+				}
+			}
+
+			return true;
+		}
+
+		// See https://stackoverflow.com/questions/8233842/how-to-check-if-directory-exist-using-c-and-winapi
+		bool dirExists(const std::string& dirName_in) {
+			DWORD ftyp = GetFileAttributesA(dirName_in.c_str());
+			if (ftyp == INVALID_FILE_ATTRIBUTES)
+				return false;  //something is wrong with your path!
+
+			if (ftyp & FILE_ATTRIBUTE_DIRECTORY)
+				return true;   // this is a directory!
+
+			return false;    // this is not a directory!
+		}
 	}
 }
