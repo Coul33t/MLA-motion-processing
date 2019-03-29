@@ -67,6 +67,35 @@ namespace Mla {
 		* @param abs_or_rel Absolute or relative coordinates
 		* @return A vector containing the positions of all the joints
 		*/
+		void jointsPositions(std::map<std::string, glm::dvec3>& pos_vector, Frame* f1, std::vector<std::string>& KC) {
+			// I choose to put this here instead of a simple " else " at the end for code
+			// readability and avoid unnecessary initilisation and/or code duplication.
+
+			Frame* global_frame_1 = f1->duplicateFrame();
+			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
+
+			glm::dvec3 vec_pos;
+
+			double n_coef = 0.0;
+			glm::dvec3 current_root = global_frame_1->getJoint(KC.front())->getPositions();
+			glm::dvec3 extremity = global_frame_1->getJoint(KC.back())->getPositions();
+			double dRE = glm::distance(current_root, extremity);
+			double sumKC = 0;
+			for (unsigned int i = 0; i < KC.size() - 1; i++) {
+				sumKC += glm::distance(global_frame_1->getJoint(KC[i])->getPositions(),
+					global_frame_1->getJoint(KC[i + 1])->getPositions());
+			}
+			n_coef = dRE / pow(sumKC, 2);
+
+			for (unsigned int j = 0; j < f1->getJoints().size(); j++) {
+				vec_pos = global_frame_1->getJoint(j)->getPositions();
+				vec_pos[0] = vec_pos[0] * n_coef;
+				vec_pos[1] = vec_pos[1] * n_coef;
+				vec_pos[2] = vec_pos[2] * n_coef;
+				pos_vector.insert(std::pair<std::string, glm::dvec3>(global_frame_1->getJoint(j)->getName(), vec_pos));
+			}
+		}
+
 		void jointsPositions(std::map<std::string, glm::dvec3>& pos_vector, Frame* f1, const std::string& abs_or_rel) {
 			// I choose to put this here instead of a simple " else " at the end for code
 			// readability and avoid unnecessary initilisation and/or code duplication.
@@ -88,7 +117,7 @@ namespace Mla {
 
 				delete global_frame_1;
 			}
-	
+
 			else if (abs_or_rel == "rel") {
 				for (unsigned int j = 0; j < f1->getJoints().size(); j++) {
 					vec_pos = f1->getJoint(j)->getPositions();
@@ -143,6 +172,7 @@ namespace Mla {
 				}
 			}
 		}
+
 
 		/** Compute the speed of the joints at a given point in time (t).
 		* @param lin_speed_vector Output vector
@@ -1638,8 +1668,8 @@ namespace Mla {
 		* @param bounding_boxes Output vector
 		* @return The final bouding box coordinates (-x, +x, -y, +y, -z, +z)
 		*/
-		void computeFinalBoudingBox(Motion* motion, std::vector<std::map<std::string, std::vector<double>>>& bounding_box, std::vector<std::string>& joints_to_check, bool normalise) {
-			if (joints_to_check.empty()) {
+		void computeFinalBoudingBox(Motion* motion, std::vector<std::map<std::string, std::vector<double>>>& bounding_box, std::vector<std::string>& KC, bool normalise) {
+			if (KC.empty()) {
 				std::cout << "ERROR: please specify a set of joints to extract bounding boxes." << std::endl;
 				return;
 			}
@@ -1650,14 +1680,14 @@ namespace Mla {
 			std::map<std::string, std::vector<double>> bb;
 
 			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
-				jointsBoundingBox(bb, motion->getFrame(i), joints_to_check, normalise);
+				jointsBoundingBox(bb, motion->getFrame(i), KC, normalise);
 				bounding_boxes.push_back(bb);
 			}	
 
 			bb.clear();
 
 			std::string final_name = "";
-			for (auto it = joints_to_check.begin(); it != joints_to_check.end(); it++) {
+			for (auto it = KC.begin(); it != KC.end(); it++) {
 				final_name += (*it);
 			}
 
@@ -1697,7 +1727,8 @@ namespace Mla {
 		* @param pos_values Output vector
 		* @return The desired positions values for all joints for all frames
 		*/
-		void computePositionBeforeThrow(Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<std::map<std::string, glm::dvec3>>& pos_values, const std::string& abs_or_rel) {
+		void computePositionBeforeThrow(Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, 
+			std::vector<std::map<std::string, glm::dvec3>>& pos_values, const std::string& abs_or_rel) {
 			pos_values.clear();
 
 			std::pair<int, int> throw_idx;
@@ -1718,6 +1749,31 @@ namespace Mla {
 			jointsPositions(pos_beg, motion->getFrame(throw_idx.first), abs_or_rel);
 			pos_values.push_back(pos_beg);
 			
+		}
+
+		
+		void computePositionBeforeThrow(Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment,
+			std::vector<std::map<std::string, glm::dvec3>>& pos_values, std::vector<std::string>& KC) {
+			pos_values.clear();
+
+			std::pair<int, int> throw_idx;
+
+			SpeedData speed_data(motion->getFrames().size() - 1,
+				motion->getFrameTime(),
+				motion->getFrames().size());
+
+			motionSpeedComputing(motion, speed_data);
+			ComputeSavgol(speed_data, seg_info);
+
+			std::vector<double> speed_norm;
+			speed_data.getNorm(speed_norm, joint_to_segment);
+			FindThrowIndex(speed_norm, throw_idx);
+
+			std::map<std::string, glm::dvec3> pos_beg;
+
+			jointsPositions(pos_beg, motion->getFrame(throw_idx.first), KC);
+			pos_values.push_back(pos_beg);
+
 		}
 
 		/** Compute a Savgol for a full motion speed values. Note that this is NOT reversible. TODO: un-optimised af, do it

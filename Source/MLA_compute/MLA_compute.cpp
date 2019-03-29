@@ -13,31 +13,21 @@ Data ExtractDarts(Motion*, const std::string&, std::vector<std::string>&, Segmen
 
 unsigned int DartsExtraction(const std::string&, const std::string&, 
 							 const std::string&, const std::string&, 
-							 std::vector<std::string>&, std::string&);
+							 std::vector<std::string>&,
+							 std::map <std::string, std::vector<std::string>>&,
+							 std::string&);
 
-unsigned int DartsExtractionFromFolder(const std::string&, const std::string&,
-									   const std::string&, std::vector<std::string>&,
-									   const std::string&);
+unsigned int DartsExtractionFromFolder(const std::string&, const std::string&, const std::string&);
 
 unsigned int GlmFunctionsTest();
 unsigned int MemoryLeakChaser();
 
 int main(int argc, char *argv[]) {
 	std::string input_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/darts/fake_data/";
-	std::string output_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/alldartsdescriptors/test_folder/re_test/";
+	std::string output_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/alldartsdescriptors/pos_normalisation/me/";
 
-	// BE CAREFUL TO PUT THE JOINTS IN THE RIGHT ORDER (FROM ROOT TO EXTREMITY)
-	// FOR BOUNDING BOX NORMALISATION (the algorithm takes the front and back
-	// values of the vector as the root and the extremity respectively)
-	std::vector<std::string> joints_to_check;
-	joints_to_check.push_back("Shoulder");
-	joints_to_check.push_back("Arm");
-	joints_to_check.push_back("ForeArm");
-	joints_to_check.push_back("Hand");
 	std::string laterality = "Left";
-	std::string joint_to_seg = "Hand";
-	
-	DartsExtractionFromFolder(input_folder, output_folder, joint_to_seg, joints_to_check, laterality);
+	DartsExtractionFromFolder(input_folder, output_folder, laterality);
 
 	std::cout << std::endl << "Press any key to quit...";
 	std::cin.get();
@@ -45,7 +35,7 @@ int main(int argc, char *argv[]) {
 }
 
 Data ExtractDarts(Motion* motion, const std::string& joint_to_segment, 
-	std::vector<std::string>& joints_to_check, SegmentationInformation& seg_info) {
+	std::map<std::string, std::vector<std::string>>& KCs, SegmentationInformation& seg_info) {
 
 	std::cout << "Motion filtering..." << std::endl;
 	Mla::MotionOperation::motionFiltering(motion);
@@ -123,7 +113,7 @@ Data ExtractDarts(Motion* motion, const std::string& joint_to_segment,
 	std::cout << "Bounding Box computing..." << std::endl;
 	std::vector<std::map<std::string, std::vector<double>>> bb;
 
-	Mla::MotionOperation::computeFinalBoudingBox(motion, bb, joints_to_check, true);
+	Mla::MotionOperation::computeFinalBoudingBox(motion, bb, KCs.at("arm_KC"), true);
 
 	Mla::Utility::ExtractComponent(bb, values_to_store, 0);
 	data.insertNewData("BoundingBoxMinusX", values_to_store);
@@ -143,7 +133,7 @@ Data ExtractDarts(Motion* motion, const std::string& joint_to_segment,
 	std::vector<std::map<std::string, glm::dvec3>> pos_values;
 	std::string abs_or_rel = "abs";
 
-	Mla::MotionOperation::computePositionBeforeThrow(motion, seg_info, joint_to_segment, pos_values, abs_or_rel);
+	Mla::MotionOperation::computePositionBeforeThrow(motion, seg_info, joint_to_segment, pos_values, KCs.at("hand_pos_KC"));
 
 	Mla::Utility::ExtractComponent(pos_values, values_to_store, 0);
 	data.insertNewData("PosX", values_to_store);
@@ -161,7 +151,8 @@ Data ExtractDarts(Motion* motion, const std::string& joint_to_segment,
 
 unsigned int DartsExtraction(const std::string& motion_folder_name, const std::string& motion_name,
 							 const std::string& output_folder, const std::string& joint_to_segment,
-							 std::vector<std::string>& joints_to_check, const std::string& laterality) {
+							 std::map <std::string, std::vector<std::string>>& KCs,
+							 const std::string& laterality) {
 	
 	Motion* motion = nullptr;
 
@@ -183,14 +174,8 @@ unsigned int DartsExtraction(const std::string& motion_folder_name, const std::s
 		20, // final frame number
 	};
 
-	std::string final_joint_to_seg = laterality + joint_to_segment;
-	std::vector<std::string> final_joints_to_check;
 
-	for (auto it = joints_to_check.begin(); it != joints_to_check.end(); it++) {
-		final_joints_to_check.push_back(laterality + *it);
-	}
-
-	Data data = ExtractDarts(motion, final_joint_to_seg, final_joints_to_check, seg_info);
+	Data data = ExtractDarts(motion, joint_to_segment, KCs, seg_info);
 
 	// Name of the motion -4, so that '.bvh' is erased
 	std::string folder_name = output_folder + motion_name.std::string::substr(0, motion_name.size() - 4);
@@ -207,15 +192,50 @@ unsigned int DartsExtraction(const std::string& motion_folder_name, const std::s
 	return 0;
 }
 
-unsigned int DartsExtractionFromFolder(const std::string& input_folder, const std::string& output_folder, 
-									   const std::string& joint_to_segment, std::vector<std::string>& joints_to_check, 
+unsigned int DartsExtractionFromFolder(const std::string& input_folder, const std::string& output_folder,
 									   const std::string& laterality) {
 	std::vector<std::string> file_names;
 	Mla::Utility::readDirectory(input_folder, file_names);
 
+	std::vector<std::string> laterality_joints;
+	laterality_joints.push_back("Shoulder");
+	laterality_joints.push_back("Arm");
+	laterality_joints.push_back("ForeArm");
+	laterality_joints.push_back("Hand");
+
+	// BE CAREFUL TO PUT THE JOINTS IN THE RIGHT ORDER (FROM ROOT TO EXTREMITY)
+	// FOR BOUNDING BOX NORMALISATION (the algorithm takes the front and back
+	// values of the vector as the root and the extremity respectively)
+	std::map<std::string, std::vector<std::string>> algos_KC;
+	std::vector<std::string> arm_KC;
+	arm_KC.push_back("Shoulder");
+	arm_KC.push_back("Arm");
+	arm_KC.push_back("ForeArm");
+	arm_KC.push_back("Hand");
+	algos_KC.insert(std::pair<std::string, std::vector<std::string>>("arm_KC", arm_KC));
+	std::vector<std::string> hand_pos_KC;
+	hand_pos_KC.push_back("Head");
+	hand_pos_KC.push_back("Neck");
+	hand_pos_KC.push_back("Shoulder");
+	hand_pos_KC.push_back("Arm");
+	hand_pos_KC.push_back("ForeArm");
+	hand_pos_KC.push_back("Hand");
+	algos_KC.insert(std::pair<std::string, std::vector<std::string>>("hand_pos_KC", hand_pos_KC));
+	// Speed extraction and sub-motion cut
+	std::string joint_to_segment = "Hand";
+
+	joint_to_segment = laterality + joint_to_segment;
+
+	for (auto it = algos_KC.begin(); it != algos_KC.end(); ++it) {
+		for (auto i = 0; i < algos_KC[(it)->first].size(); i++) {
+			if (std::find(laterality_joints.begin(), laterality_joints.end(), algos_KC[it->first][i]) != laterality_joints.end())
+				algos_KC[it->first][i] = laterality + algos_KC[it->first][i];
+		}
+	}
+
 	for (auto it = file_names.begin(); it != file_names.end(); it++) {
 		std::cout << "\n\n\nProcessing " << *it << std::endl;
-		DartsExtraction(input_folder, *it, output_folder, joint_to_segment, joints_to_check, laterality);
+		DartsExtraction(input_folder, *it, output_folder, joint_to_segment, algos_KC, laterality);
 	}
 
 	return 0;
