@@ -9,12 +9,17 @@
 //       with the highest speed
 #define JOINT_OF_INTEREST "RightHand"
 
-Data ExtractDarts(Motion*, const std::string&, std::vector<std::string>&, SegmentationInformation&);
+Data ExtractDarts(Motion*, 
+				  SegmentationInformation&, 
+				  const std::string&,
+				  std::map<std::string, std::vector<std::string>>&,
+				  const std::vector<std::pair<std::string, std::string>>&);
 
 unsigned int DartsExtraction(const std::string&, const std::string&, 
 							 const std::string&, const std::string&, 
 							 std::vector<std::string>&,
-							 std::map <std::string, std::vector<std::string>>&,
+							 std::map<std::string, std::vector<std::string>>&,
+							 std::vector<std::pair<std::string, std::string>>&,
 							 std::string&);
 
 unsigned int DartsExtractionFromFolder(const std::string&, const std::string&, const std::string&);
@@ -23,10 +28,10 @@ unsigned int GlmFunctionsTest();
 unsigned int MemoryLeakChaser();
 
 int main(int argc, char *argv[]) {
-	std::string input_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/darts/fake_data/";
-	std::string output_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/alldartsdescriptors/pos_normalisation/me/";
+	std::string input_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/darts/true_data/aurelien_rotated_cut_all/";
+	std::string output_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/alldartsdescriptors/aurelien_rotated_cut_all_new_descriptors/";
 
-	std::string laterality = "Left";
+	std::string laterality = "Right";
 	DartsExtractionFromFolder(input_folder, output_folder, laterality);
 
 	std::cout << std::endl << "Press any key to quit...";
@@ -34,8 +39,8 @@ int main(int argc, char *argv[]) {
 	return 0;
 }
 
-Data ExtractDarts(Motion* motion, const std::string& joint_to_segment, 
-	std::map<std::string, std::vector<std::string>>& KCs, SegmentationInformation& seg_info) {
+Data ExtractDarts(Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment,
+	std::map<std::string, std::vector<std::string>>& KCs, const std::vector<std::pair<std::string, std::string>>& distances_to_compute) {
 
 	std::cout << "Motion filtering..." << std::endl;
 	Mla::MotionOperation::motionFiltering(motion);
@@ -142,6 +147,31 @@ Data ExtractDarts(Motion* motion, const std::string& joint_to_segment,
 	Mla::Utility::ExtractComponent(pos_values, values_to_store, 2);
 	data.insertNewData("PosZ", values_to_store);
 
+	std::cout << "Distances computation..." << std::endl;
+	Mla::MotionOperation::computeDistancesBeforeThrow(motion, seg_info, joint_to_segment, values_to_store, distances_to_compute, KCs.at("new_arm_KC"), true);
+	data.insertNewData("Distances", values_to_store);
+
+	// TODO: REDO THE COMPUTEBOUNDINGBOXWIDTH
+	std::map<std::string, double> bb_mean_and_std;
+
+	std::string final_name = "";
+	for (auto it = KCs.at("new_arm_KC").begin(); it != KCs.at("new_arm_KC").end(); it++) {
+		final_name += (*it);
+	}
+
+	// TODO: change the way it works so that we won't have to do these extra steps to insert the datas
+	Mla::MotionOperation::computeBoundingBoxWidth(motion, bb_mean_and_std, KCs.at("new_arm_KC"));
+	values_to_store.clear();
+	std::map<std::string, double> tmp;
+	tmp[final_name] = bb_mean_and_std["mean"];
+	values_to_store.push_back(tmp);
+	data.insertNewData("BoundingBoxWidthMean", values_to_store);
+	values_to_store.clear();
+	tmp.clear();
+	tmp[final_name] = bb_mean_and_std["std"];
+	values_to_store.push_back(tmp);
+	data.insertNewData("BoundingBoxWidthStd", values_to_store);
+
 	std::cout << "Data export..." << std::endl;
 
 	delete segmented_motion;
@@ -152,6 +182,7 @@ Data ExtractDarts(Motion* motion, const std::string& joint_to_segment,
 unsigned int DartsExtraction(const std::string& motion_folder_name, const std::string& motion_name,
 							 const std::string& output_folder, const std::string& joint_to_segment,
 							 std::map <std::string, std::vector<std::string>>& KCs,
+							 std::vector<std::pair<std::string, std::string>> distances_to_compute,
 							 const std::string& laterality) {
 	
 	Motion* motion = nullptr;
@@ -175,7 +206,7 @@ unsigned int DartsExtraction(const std::string& motion_folder_name, const std::s
 	};
 
 
-	Data data = ExtractDarts(motion, joint_to_segment, KCs, seg_info);
+	Data data = ExtractDarts(motion, seg_info, joint_to_segment, KCs, distances_to_compute);
 
 	// Name of the motion -4, so that '.bvh' is erased
 	std::string folder_name = output_folder + motion_name.std::string::substr(0, motion_name.size() - 4);
@@ -213,6 +244,15 @@ unsigned int DartsExtractionFromFolder(const std::string& input_folder, const st
 	arm_KC.push_back("ForeArm");
 	arm_KC.push_back("Hand");
 	algos_KC.insert(std::pair<std::string, std::vector<std::string>>("arm_KC", arm_KC));
+
+	std::vector<std::string> new_arm_KC;
+	new_arm_KC.push_back("Head");
+	new_arm_KC.push_back("Shoulder");
+	new_arm_KC.push_back("Arm");
+	new_arm_KC.push_back("ForeArm");
+	new_arm_KC.push_back("Hand");
+	algos_KC.insert(std::pair<std::string, std::vector<std::string>>("new_arm_KC", new_arm_KC));
+
 	std::vector<std::string> hand_pos_KC;
 	hand_pos_KC.push_back("Head");
 	hand_pos_KC.push_back("Neck");
@@ -221,10 +261,22 @@ unsigned int DartsExtractionFromFolder(const std::string& input_folder, const st
 	hand_pos_KC.push_back("ForeArm");
 	hand_pos_KC.push_back("Hand");
 	algos_KC.insert(std::pair<std::string, std::vector<std::string>>("hand_pos_KC", hand_pos_KC));
+
+	std::vector<std::pair<std::string, std::string>> distances_to_compute;
+	distances_to_compute.push_back(std::pair<std::string, std::string>("Hand", "Head"));
+
 	// Speed extraction and sub-motion cut
 	std::string joint_to_segment = "Hand";
 
 	joint_to_segment = laterality + joint_to_segment;
+
+	//TODO: check
+	for (auto it = distances_to_compute.begin(); it != distances_to_compute.end(); ++it) {
+		if (std::find(laterality_joints.begin(), laterality_joints.end(), (*it).first) != laterality_joints.end())
+			(*it).first = laterality + (*it).first;
+		if (std::find(laterality_joints.begin(), laterality_joints.end(), (*it).second) != laterality_joints.end())
+			(*it).second = laterality + (*it).second;
+	}
 
 	for (auto it = algos_KC.begin(); it != algos_KC.end(); ++it) {
 		for (auto i = 0; i < algos_KC[(it)->first].size(); i++) {
@@ -235,7 +287,7 @@ unsigned int DartsExtractionFromFolder(const std::string& input_folder, const st
 
 	for (auto it = file_names.begin(); it != file_names.end(); it++) {
 		std::cout << "\n\n\nProcessing " << *it << std::endl;
-		DartsExtraction(input_folder, *it, output_folder, joint_to_segment, algos_KC, laterality);
+		DartsExtraction(input_folder, *it, output_folder, joint_to_segment, algos_KC, distances_to_compute, laterality);
 	}
 
 	return 0;

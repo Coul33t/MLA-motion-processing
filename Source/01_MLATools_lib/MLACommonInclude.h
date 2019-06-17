@@ -59,6 +59,7 @@
 #include "gtx/transform.hpp"
 #include "gtc/type_ptr.hpp"
 #include "gtc/quaternion.hpp"
+#include "gtx/euler_angles.hpp"
 #pragma warning(pop)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////

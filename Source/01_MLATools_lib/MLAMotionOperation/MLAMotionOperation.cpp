@@ -81,10 +81,12 @@ namespace Mla {
 			glm::dvec3 extremity = global_frame_1->getJoint(KC.back())->getPositions();
 			double dRE = glm::distance(current_root, extremity);
 			double sumKC = 0;
+
 			for (unsigned int i = 0; i < KC.size() - 1; i++) {
 				sumKC += glm::distance(global_frame_1->getJoint(KC[i])->getPositions(),
 					global_frame_1->getJoint(KC[i + 1])->getPositions());
 			}
+
 			n_coef = dRE / pow(sumKC, 2);
 
 			for (unsigned int j = 0; j < f1->getJoints().size(); j++) {
@@ -794,6 +796,111 @@ namespace Mla {
 			delete global_frame_1;
 		}
 		
+		void jointsBoundingBoxReframed(std::vector<double>& bounding_box, 
+			Frame* f1, std::vector<std::string>& joints_to_check, bool normalise, unsigned int vertical_axis) {
+
+			Frame* global_frame_1 = f1->duplicateFrame();
+
+			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
+
+			// The root of the KC
+			glm::dvec3 current_root_pos = global_frame_1->getJoint(joints_to_check.front())->getPositions();
+			// Since we're rotation on only one axis (the vertical one), no need to bother with quaternions
+			glm::dquat ya = f1->getJoint(joints_to_check.front())->getOrientations();
+			glm::dvec3 yo = glm::eulerAngles(ya);
+
+			/*for (int i = 0; i < 3; i++)
+				if (i == vertical_axis)
+					yo[i] = glm::degrees(yo[i]);
+				else
+					yo[i] = 0.0;*/
+			
+			glm::mat3 rot_matrix = glm::orientate3(yo);
+			
+			// Normalisation coefficient (= 1 if normalise == false)
+			double n_coef = 1;
+
+			// Compute the normalisation coefficient (the sum of the KC members)
+			if (normalise) {
+
+				n_coef = 0;
+				for (unsigned int i = 0; i < joints_to_check.size() - 1; i++) {
+					n_coef += glm::distance(global_frame_1->getJoint(joints_to_check[i])->getPositions(),
+						global_frame_1->getJoint(joints_to_check[i + 1])->getPositions());
+				}
+			}
+
+			bounding_box = std::vector<double>(2, 0);
+
+			glm::dvec3 joint_coordinates;
+			// TODO: detect it uh
+			int width_axis = 2;
+
+			for (auto j_it = joints_to_check.begin(); j_it != joints_to_check.end(); j_it++) {
+				joint_coordinates = global_frame_1->getJoint(*j_it)->getPositions();
+				joint_coordinates -= current_root_pos;
+				
+				joint_coordinates = joint_coordinates * rot_matrix;
+
+				if (j_it == joints_to_check.begin()) {
+					bounding_box[0] = joint_coordinates[width_axis] / n_coef;
+					bounding_box[1] = joint_coordinates[width_axis] / n_coef;
+				}
+
+				else {
+					if (joint_coordinates[width_axis] / n_coef < bounding_box[0])
+						bounding_box[0] = joint_coordinates[width_axis] / n_coef;
+					if (joint_coordinates[width_axis] / n_coef > bounding_box[1])
+						bounding_box[1] = joint_coordinates[width_axis] / n_coef;
+				}
+				
+			}
+
+			delete global_frame_1;
+
+		}
+
+		/** Compute the distance for a set of given joints pairs, for one frame.
+		* @param distances output vector
+		* @param f1 the frame on which the distances will be computed
+		* @param joints the joints pairs on which the distances will be computed
+		* @return distances the map containing all the computed distances
+		*/
+		void jointsDistance(std::map<std::string, double>& distances, Frame* f1, std::vector<std::string>& joints_to_check, 
+			const std::vector<std::pair<std::string, std::string>>& joints, bool normalise) {
+			if (joints.empty())
+				return;
+
+			glm::dvec3 p1;
+			glm::dvec3 p2;
+
+			Frame* global_frame_1 = f1->duplicateFrame();
+			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
+			std::string name;
+
+			// Normalisation coefficient (= 1 if normalise == false)
+			double n_coef = 1;
+
+			// Compute the normalisation coefficient (the sum of the KC members)
+			if (normalise) {
+
+				n_coef = 0;
+				for (unsigned int i = 0; i < joints_to_check.size() - 1; i++) {
+					n_coef += glm::distance(global_frame_1->getJoint(joints_to_check[i])->getPositions(),
+						global_frame_1->getJoint(joints_to_check[i + 1])->getPositions());
+				}
+			}
+
+			for (auto it = joints.begin(); it != joints.end(); it++) {
+				p1 = global_frame_1->getJoint((*it).first)->getPositions();
+				p2 = global_frame_1->getJoint((*it).second)->getPositions();
+				name = "distance" + (*it).first + (*it).second;
+				distances[name] = glm::distance(p1, p2) / n_coef;
+			}
+
+			delete global_frame_1;
+		}
+
 		/** Return an interpolated frame from a motion, and a time
 		* @param motion Motion from which the frame will be interpolated
 		* @param time Time at which the frame will be interpolated
@@ -1720,6 +1827,36 @@ namespace Mla {
 			bounding_box.push_back(bb);
 		}
 		
+		void computeDistancesBeforeThrow(Motion* motion, SegmentationInformation& seg_info, 
+			const std::string& joint_to_segment, std::vector<std::map<std::string, double>>& distances, 
+			const std::vector<std::pair<std::string, std::string>>& joints, std::vector<std::string>& KC,
+			bool normalise) {
+			if (joints.empty()) {
+				std::cout << "ERROR: joints list is empty." << std::endl;
+				return;
+			}
+
+			distances.clear();
+
+			std::pair<int, int> throw_idx;
+
+			SpeedData speed_data(motion->getFrames().size() - 1,
+				motion->getFrameTime(),
+				motion->getFrames().size());
+
+			motionSpeedComputing(motion, speed_data);
+			ComputeSavgol(speed_data, seg_info);
+
+			std::vector<double> speed_norm;
+			speed_data.getNorm(speed_norm, joint_to_segment);
+			FindThrowIndex(speed_norm, throw_idx);
+
+			std::map<std::string, double> distance;
+
+			jointsDistance(distance, motion->getFrame(throw_idx.first), KC, joints, true);
+			distances.push_back(distance);
+		}
+
 		/** Get the joints positions at the beginning of a throw (corresponding to the left local minimum next to the global maximum speed value).
 		* @param motion Motion from which the values will be retrieved
 		* @param seg_info Structure containing all the information needed for the segmentation (see SegmentationInformation)
@@ -1774,6 +1911,58 @@ namespace Mla {
 			jointsPositions(pos_beg, motion->getFrame(throw_idx.first), KC);
 			pos_values.push_back(pos_beg);
 
+		}
+
+		// TODO: either split in two, or change something (because it forces to do some additional processing on the main)
+		void computeBoundingBoxWidth(Motion* motion, std::map<std::string, double>& bb_mean_and_std,
+			std::vector<std::string>& KC) {
+			
+			bb_mean_and_std.clear();
+
+			// Get the vertical axis
+			// The vertical axis will be the one where the distance 
+			// between the head and the hips is the biggest
+			glm::dvec3 root = motion->getFrame(0)->getRoot()->getPositions();
+			glm::dvec3 head = motion->getFrame(0)->getJoint("Head")->getPositions();
+
+			int vertical_axis = -1;
+			double biggest_distance = -1;
+
+			for (int i = 0; i < 3; i++) {
+				if (glm::distance(root[i], head[i]) > biggest_distance) {
+					biggest_distance = glm::distance(root[i], head[i]);
+					vertical_axis = i;
+				}
+			}
+
+			// Final name of the descriptor (contatening all joints name)
+			std::string final_name = "";
+			for (auto it = KC.begin(); it != KC.end(); it++) {
+				final_name += (*it);
+			}
+
+			std::vector<std::vector<double>> all_bounding_boxes;
+			std::vector<double> current_bouding_box;
+
+			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
+				current_bouding_box.clear();
+				jointsBoundingBoxReframed(current_bouding_box, motion->getFrame(i), KC, true, vertical_axis);
+				all_bounding_boxes.push_back(current_bouding_box);
+			}
+
+			std::vector<double> sizes;
+			for (auto it = all_bounding_boxes.begin(); it != all_bounding_boxes.end(); it++)
+				sizes.push_back(abs((*it)[0]) + abs((*it)[1]));
+
+			// Mean
+			double mean_bb_size = std::accumulate(sizes.begin(), sizes.end(), 0.0) / sizes.size();
+
+			// Std
+			double sq_sum = std::inner_product(sizes.begin(), sizes.end(), sizes.begin(), 0.0);
+			double stdev_bb_size = std::sqrt(sq_sum / sizes.size() - mean_bb_size * mean_bb_size);
+
+			bb_mean_and_std["mean"] = mean_bb_size;
+			bb_mean_and_std["std"] = stdev_bb_size;
 		}
 
 		/** Compute a Savgol for a full motion speed values. Note that this is NOT reversible. TODO: un-optimised af, do it
