@@ -796,8 +796,10 @@ namespace Mla {
 			delete global_frame_1;
 		}
 		
+		// TODO: doc
 		void jointsBoundingBoxReframed(std::vector<double>& bounding_box, 
-			Frame* f1, std::vector<std::string>& joints_to_check, bool normalise, unsigned int vertical_axis) {
+			Frame* f1, std::vector<std::string>& joints_to_check, 
+			unsigned int vertical_axis, unsigned int width_axis, bool normalise) {
 
 			Frame* global_frame_1 = f1->duplicateFrame();
 
@@ -806,16 +808,30 @@ namespace Mla {
 			// The root of the KC
 			glm::dvec3 current_root_pos = global_frame_1->getJoint(joints_to_check.front())->getPositions();
 			// Since we're rotation on only one axis (the vertical one), no need to bother with quaternions
-			glm::dquat ya = f1->getJoint(joints_to_check.front())->getOrientations();
-			glm::dvec3 yo = glm::eulerAngles(ya);
+			// Returns angles (X, Y, Z) from a quaternion
+			glm::dvec3 euler_angles = glm::eulerAngles(f1->getJoint(joints_to_check.front())->getOrientations());
 
-			/*for (int i = 0; i < 3; i++)
-				if (i == vertical_axis)
-					yo[i] = glm::degrees(yo[i]);
-				else
-					yo[i] = 0.0;*/
-			
-			glm::mat3 rot_matrix = glm::orientate3(yo);
+			for (unsigned int i = 0; i < 3; i++)
+				if (i != vertical_axis)
+					euler_angles[i] = 0.0;
+
+			glm::dvec3 rotation_axis(0.0, 0.0, 0.0);
+			rotation_axis[vertical_axis] = 1.0;
+
+			/* Test glm::rotate vs glm::orientate
+			glm::dvec4 pos(0, 0, 1, 0);
+			glm::dvec3 rotation_axis(0, 1, 0);
+
+			glm::dmat4 matrot_test = glm::rotate(glm::radians(180.0), rotation_axis);
+			glm::dvec4 final_pos = pos * matrot_test;*/
+
+			// glm::orientate3 takes angles (Y, X, Z) and output a rotation matrix
+			// glm::mat3 rot_matrix = glm::orientate3(yo);
+
+			/*glm::dvec3 pos2(0, 0, 1);
+			glm::dvec3 vec_rot(0.0, 180.0, 0.0);
+			glm::mat3 rot_mat_test_orientate = glm::orientate3(vec_rot);
+			glm::dvec3 final_pos_2 = pos2 * rot_mat_test_orientate;*/
 			
 			// Normalisation coefficient (= 1 if normalise == false)
 			double n_coef = 1;
@@ -833,25 +849,34 @@ namespace Mla {
 			bounding_box = std::vector<double>(2, 0);
 
 			glm::dvec3 joint_coordinates;
-			// TODO: detect it uh
-			int width_axis = 2;
-
+			
 			for (auto j_it = joints_to_check.begin(); j_it != joints_to_check.end(); j_it++) {
 				joint_coordinates = global_frame_1->getJoint(*j_it)->getPositions();
+
 				joint_coordinates -= current_root_pos;
-				
-				joint_coordinates = joint_coordinates * rot_matrix;
+
+				glm::dvec4 tmp_joint(0, 0, 0, 0);
+				tmp_joint[0] = joint_coordinates[0];
+				tmp_joint[1] = joint_coordinates[1];
+				tmp_joint[2] = joint_coordinates[2];
+
+				// It seems that glm::rotate actually compute the rotation 
+				// matrix for -radian, and not radian
+				// https://gamedev.stackexchange.com/questions/153700/why-is-my-model-rotating-opposite-direction-around-the-y-axis
+				tmp_joint = tmp_joint * glm::rotate(-euler_angles[vertical_axis], rotation_axis);
+					
+				//joint_coordinates = joint_coordinates * rot_matrix;
 
 				if (j_it == joints_to_check.begin()) {
-					bounding_box[0] = joint_coordinates[width_axis] / n_coef;
-					bounding_box[1] = joint_coordinates[width_axis] / n_coef;
+					bounding_box[0] = tmp_joint[width_axis] / n_coef;
+					bounding_box[1] = tmp_joint[width_axis] / n_coef;
 				}
 
 				else {
-					if (joint_coordinates[width_axis] / n_coef < bounding_box[0])
-						bounding_box[0] = joint_coordinates[width_axis] / n_coef;
-					if (joint_coordinates[width_axis] / n_coef > bounding_box[1])
-						bounding_box[1] = joint_coordinates[width_axis] / n_coef;
+					if (tmp_joint[width_axis] / n_coef < bounding_box[0])
+						bounding_box[0] = tmp_joint[width_axis] / n_coef;
+					if (tmp_joint[width_axis] / n_coef > bounding_box[1])
+						bounding_box[1] = tmp_joint[width_axis] / n_coef;
 				}
 				
 			}
@@ -868,8 +893,11 @@ namespace Mla {
 		*/
 		void jointsDistance(std::map<std::string, double>& distances, Frame* f1, std::vector<std::string>& joints_to_check, 
 			const std::vector<std::pair<std::string, std::string>>& joints, bool normalise) {
-			if (joints.empty())
+			
+			if (joints.empty()) {
+				std::cout << "WARNING in " << __func__ << ": joints list empty (no distance computed)." << std::endl;
 				return;
+			}
 
 			glm::dvec3 p1;
 			glm::dvec3 p2;
@@ -896,6 +924,55 @@ namespace Mla {
 				p2 = global_frame_1->getJoint((*it).second)->getPositions();
 				name = "distance" + (*it).first + (*it).second;
 				distances[name] = glm::distance(p1, p2) / n_coef;
+			}
+
+			delete global_frame_1;
+		}
+
+		/** Compute the distances on all axis for a set of given joints pairs, for one frame.
+		* @param distances output vector
+		* @param f1 the frame on which the distances will be computed
+		* @param joints the joints pairs on which the distances will be computed
+		* @return distances the map containing all the computed distances
+		*/
+		void jointsDistanceAxis(std::map<std::string, std::vector<double>>& distances, Frame* f1, std::vector<std::string>& joints_to_check,
+			const std::vector<std::pair<std::string, std::string>>& joints, bool normalise) {
+			
+			if (joints.empty()) {
+				std::cout << "WARNING in " << __func__ << ": joints list empty (no distance computed)." << std::endl;
+				return;
+			}
+
+			glm::dvec3 p1;
+			glm::dvec3 p2;
+
+			Frame* global_frame_1 = f1->duplicateFrame();
+			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
+			std::string name;
+
+			// Normalisation coefficient (= 1 if normalise == false)
+			double n_coef = 1;
+
+			// Compute the normalisation coefficient (the sum of the KC members)
+			if (normalise) {
+
+				n_coef = 0;
+				for (unsigned int i = 0; i < joints_to_check.size() - 1; i++) {
+					n_coef += glm::distance(global_frame_1->getJoint(joints_to_check[i])->getPositions(),
+						global_frame_1->getJoint(joints_to_check[i + 1])->getPositions());
+				}
+			}
+
+			std::vector<double> distance;
+
+			for (auto it = joints.begin(); it != joints.end(); it++) {
+				distance.clear();
+				p1 = global_frame_1->getJoint((*it).first)->getPositions();
+				p2 = global_frame_1->getJoint((*it).second)->getPositions();
+				name = "distance" + (*it).first + (*it).second;
+				for (int i = 0; i < 3; i++)
+					distance.push_back(glm::distance(p1[i], p2[i]) / n_coef);
+				distances[name] = distance;
 			}
 
 			delete global_frame_1;
@@ -1827,12 +1904,14 @@ namespace Mla {
 			bounding_box.push_back(bb);
 		}
 		
+		// TODO: doc
 		void computeDistancesBeforeThrow(Motion* motion, SegmentationInformation& seg_info, 
 			const std::string& joint_to_segment, std::vector<std::map<std::string, double>>& distances, 
 			const std::vector<std::pair<std::string, std::string>>& joints, std::vector<std::string>& KC,
 			bool normalise) {
+			
 			if (joints.empty()) {
-				std::cout << "ERROR: joints list is empty." << std::endl;
+				std::cout << "WARNING in " << __func__ << ": joints list empty (no distance computed)." << std::endl;
 				return;
 			}
 
@@ -1854,6 +1933,38 @@ namespace Mla {
 			std::map<std::string, double> distance;
 
 			jointsDistance(distance, motion->getFrame(throw_idx.first), KC, joints, true);
+			distances.push_back(distance);
+		}
+
+		// TODO: doc
+		void computeDistancesAxisBeforeThrow(Motion* motion, SegmentationInformation& seg_info,
+			const std::string& joint_to_segment, std::vector<std::map<std::string, std::vector<double>>>& distances,
+			const std::vector<std::pair<std::string, std::string>>& joints, std::vector<std::string>& KC,
+			bool normalise) {
+
+			if (joints.empty()) {
+				std::cout << "WARNING in " << __func__ << ": joints list empty (no distance computed)." << std::endl;
+				return;
+			}
+
+			distances.clear();
+
+			std::pair<int, int> throw_idx;
+
+			SpeedData speed_data(motion->getFrames().size() - 1,
+				motion->getFrameTime(),
+				motion->getFrames().size());
+
+			motionSpeedComputing(motion, speed_data);
+			ComputeSavgol(speed_data, seg_info);
+
+			std::vector<double> speed_norm;
+			speed_data.getNorm(speed_norm, joint_to_segment);
+			FindThrowIndex(speed_norm, throw_idx);
+
+			std::map<std::string, std::vector<double>> distance;
+
+			jointsDistanceAxis(distance, motion->getFrame(throw_idx.first), KC, joints, true);
 			distances.push_back(distance);
 		}
 
@@ -1919,26 +2030,70 @@ namespace Mla {
 			
 			bb_mean_and_std.clear();
 
-			// Get the vertical axis
+			Frame* global_frame_1 = motion->getFrame(0)->duplicateFrame();
+
+			getGlobalCoordinates(motion->getFrame(0), global_frame_1, motion->getFrame(0)->getJoint("Hips"), glm::dmat4(1.0));
+
+			// Get the vertical axis and facing axis
 			// The vertical axis will be the one where the distance 
 			// between the head and the hips is the biggest
-			glm::dvec3 root = motion->getFrame(0)->getRoot()->getPositions();
-			glm::dvec3 head = motion->getFrame(0)->getJoint("Head")->getPositions();
+			// The facing axis will be the one where the distance
+			// between the feet is the biggest (it works because
+			// the position requires that the feet are perpendicular
+			// to the target)
+			// We get the width axis from these two
+			glm::dvec3 root = global_frame_1->getRoot()->getPositions();
+			glm::dvec3 head = global_frame_1->getJoint("Head")->getPositions();
+			glm::dvec3 right_foot = global_frame_1->getJoint("RightFoot")->getPositions();
+			glm::dvec3 left_foot = global_frame_1->getJoint("LeftFoot")->getPositions();
+
 
 			int vertical_axis = -1;
-			double biggest_distance = -1;
+			int facing_axis = -1;
+			int width_axis = -1;
+			double biggest_distance_vertical = -1;
+			double biggest_distance_facing = -1;
 
 			for (int i = 0; i < 3; i++) {
-				if (glm::distance(root[i], head[i]) > biggest_distance) {
-					biggest_distance = glm::distance(root[i], head[i]);
+				if (glm::distance(root[i], head[i]) > biggest_distance_vertical) {
+					biggest_distance_vertical = glm::distance(root[i], head[i]);
 					vertical_axis = i;
+				}
+
+				if (i == 0) {
+					biggest_distance_facing = glm::distance(left_foot[i], right_foot[i]);
+					facing_axis = i;
+				}
+
+				else if (glm::distance(left_foot[i], right_foot[i]) > biggest_distance_facing) {
+					biggest_distance_facing = glm::distance(left_foot[i], right_foot[i]);
+					facing_axis = i;
 				}
 			}
 
-			// Final name of the descriptor (contatening all joints name)
-			std::string final_name = "";
-			for (auto it = KC.begin(); it != KC.end(); it++) {
-				final_name += (*it);
+			
+			delete global_frame_1;
+
+			// Ugly, but it works
+			if (vertical_axis == 0) {
+				if (facing_axis == 1)
+					width_axis = 2;
+				else
+					width_axis = 1;
+			}
+
+			else if (vertical_axis == 1) {
+				if (facing_axis == 0)
+					width_axis = 2;
+				else
+					width_axis = 0;
+			}
+
+			else if (vertical_axis == 2) {
+				if (facing_axis == 0)
+					width_axis = 1;
+				else
+					width_axis = 0;
 			}
 
 			std::vector<std::vector<double>> all_bounding_boxes;
@@ -1946,13 +2101,13 @@ namespace Mla {
 
 			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
 				current_bouding_box.clear();
-				jointsBoundingBoxReframed(current_bouding_box, motion->getFrame(i), KC, true, vertical_axis);
+				jointsBoundingBoxReframed(current_bouding_box, motion->getFrame(i), KC, vertical_axis, width_axis, true);
 				all_bounding_boxes.push_back(current_bouding_box);
 			}
 
 			std::vector<double> sizes;
 			for (auto it = all_bounding_boxes.begin(); it != all_bounding_boxes.end(); it++)
-				sizes.push_back(abs((*it)[0]) + abs((*it)[1]));
+				sizes.push_back(abs((*it)[0] + (*it)[1]));
 
 			// Mean
 			double mean_bb_size = std::accumulate(sizes.begin(), sizes.end(), 0.0) / sizes.size();

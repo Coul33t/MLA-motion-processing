@@ -53,12 +53,14 @@ namespace Mla {
 		void jointsJerkAxis(std::map<std::string, double>&, Frame*, Frame*, Frame*, Frame*, double, const std::string&, bool = false);
 
 		void jointsBoundingBox(std::map<std::string, std::vector<double>>&, Frame*, std::vector<std::string>&, bool = true);
-		void jointsBoundingBoxReframed(std::vector<double>&, Frame*, std::vector<std::string>&, bool, unsigned int);
+		void jointsBoundingBoxReframed(std::vector<double>&, Frame*, std::vector<std::string>&, unsigned int, unsigned int, bool = true);
 
 		void MeanLinearSpeed(std::vector<std::map<std::string, double>>&, Motion*, unsigned int);
 		void MeanLinearSpeedAxis(std::vector<std::map<std::string, double>>&, Motion*, unsigned int, const std::string&, bool);
 
 		void jointsDistance(std::map<std::string, double>&, Frame*, std::vector<std::string>&,
+			const std::vector<std::pair<std::string, std::string>>&, bool = true);
+		void jointsDistanceAxis(std::map<std::string, std::vector<double>>&, Frame*, std::vector<std::string>&,
 			const std::vector<std::pair<std::string, std::string>>&, bool = true);
 		Frame* getFrameFromTime(Motion*, double, double);
 
@@ -94,6 +96,9 @@ namespace Mla {
 
 		void computeDistancesBeforeThrow(Motion*, SegmentationInformation&, const std::string&,
 			std::vector<std::map<std::string, double>>&, const std::vector<std::pair<std::string, std::string>>&,
+			std::vector<std::string>&, bool = true);
+		void computeDistancesAxisBeforeThrow(Motion*, SegmentationInformation&, const std::string&,
+			std::vector<std::map<std::string, std::vector<double>>>&, const std::vector<std::pair<std::string, std::string>>&,
 			std::vector<std::string>&, bool = true);
 		void computePositionBeforeThrow(Motion*, SegmentationInformation&, const std::string&, 
 			std::vector<std::map<std::string, glm::dvec3>>&, const std::string&);
