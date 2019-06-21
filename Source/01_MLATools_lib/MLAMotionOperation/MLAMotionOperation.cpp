@@ -817,21 +817,6 @@ namespace Mla {
 
 			glm::dvec3 rotation_axis(0.0, 0.0, 0.0);
 			rotation_axis[vertical_axis] = 1.0;
-
-			/* Test glm::rotate vs glm::orientate
-			glm::dvec4 pos(0, 0, 1, 0);
-			glm::dvec3 rotation_axis(0, 1, 0);
-
-			glm::dmat4 matrot_test = glm::rotate(glm::radians(180.0), rotation_axis);
-			glm::dvec4 final_pos = pos * matrot_test;*/
-
-			// glm::orientate3 takes angles (Y, X, Z) and output a rotation matrix
-			// glm::mat3 rot_matrix = glm::orientate3(yo);
-
-			/*glm::dvec3 pos2(0, 0, 1);
-			glm::dvec3 vec_rot(0.0, 180.0, 0.0);
-			glm::mat3 rot_mat_test_orientate = glm::orientate3(vec_rot);
-			glm::dvec3 final_pos_2 = pos2 * rot_mat_test_orientate;*/
 			
 			// Normalisation coefficient (= 1 if normalise == false)
 			double n_coef = 1;
