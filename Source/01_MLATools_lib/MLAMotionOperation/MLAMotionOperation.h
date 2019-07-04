@@ -61,7 +61,7 @@ namespace Mla {
 		void jointsDistance(std::map<std::string, double>&, Frame*, std::vector<std::string>&,
 			const std::vector<std::pair<std::string, std::string>>&, bool = true);
 		void jointsDistanceAxis(std::map<std::string, std::vector<double>>&, Frame*, std::vector<std::string>&,
-			const std::vector<std::pair<std::string, std::string>>&, bool = true);
+			const std::vector<std::pair<std::string, std::string>>&, unsigned int, bool = true);
 		Frame* getFrameFromTime(Motion*, double, double);
 
 		void getGlobalCoordinates(Frame*, Frame*, Joint*, glm::dmat4);

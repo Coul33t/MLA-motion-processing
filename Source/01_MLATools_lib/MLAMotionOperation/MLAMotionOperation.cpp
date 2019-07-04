@@ -921,7 +921,7 @@ namespace Mla {
 		* @return distances the map containing all the computed distances
 		*/
 		void jointsDistanceAxis(std::map<std::string, std::vector<double>>& distances, Frame* f1, std::vector<std::string>& joints_to_check,
-			const std::vector<std::pair<std::string, std::string>>& joints, bool normalise) {
+			const std::vector<std::pair<std::string, std::string>>& joints, unsigned int vertical_axis, bool normalise) {
 			
 			if (joints.empty()) {
 				std::cout << "WARNING in " << __func__ << ": joints list empty (no distance computed)." << std::endl;
@@ -934,6 +934,17 @@ namespace Mla {
 			Frame* global_frame_1 = f1->duplicateFrame();
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 			std::string name;
+
+			// Since we're rotation on only one axis (the vertical one), no need to bother with quaternions
+			// Returns angles (X, Y, Z) from a quaternion
+			glm::dvec3 euler_angles = glm::eulerAngles(f1->getJoint(joints_to_check.front())->getOrientations());
+
+			for (unsigned int i = 0; i < 3; i++)
+				if (i != vertical_axis)
+					euler_angles[i] = 0.0;
+
+			glm::dvec3 rotation_axis(0.0, 0.0, 0.0);
+			rotation_axis[vertical_axis] = 1.0;
 
 			// Normalisation coefficient (= 1 if normalise == false)
 			double n_coef = 1;
@@ -949,14 +960,33 @@ namespace Mla {
 			}
 
 			std::vector<double> distance;
+			glm::dvec3 current_root_pos = global_frame_1->getJoint(joints_to_check.front())->getPositions();
 
 			for (auto it = joints.begin(); it != joints.end(); it++) {
 				distance.clear();
 				p1 = global_frame_1->getJoint((*it).first)->getPositions();
 				p2 = global_frame_1->getJoint((*it).second)->getPositions();
+
+				p1 -= current_root_pos;
+				p2 -= current_root_pos;
+
+				glm::dvec4 tmp_joint_1(0, 0, 0, 0);
+				glm::dvec4 tmp_joint_2(0, 0, 0, 0);
+				
+				tmp_joint_1[0] = p1[0];
+				tmp_joint_1[1] = p1[1];
+				tmp_joint_1[2] = p1[2];
+
+				tmp_joint_2[0] = p2[0];
+				tmp_joint_2[1] = p2[1];
+				tmp_joint_2[2] = p2[2];
+
+				tmp_joint_1 = tmp_joint_1 * glm::rotate(-euler_angles[vertical_axis], rotation_axis);
+				tmp_joint_2 = tmp_joint_2 * glm::rotate(-euler_angles[vertical_axis], rotation_axis);
+
 				name = "distance" + (*it).first + (*it).second;
 				for (int i = 0; i < 3; i++)
-					distance.push_back(glm::distance(p1[i], p2[i]) / n_coef);
+					distance.push_back(glm::distance(tmp_joint_1[i], tmp_joint_2[i]) / n_coef);
 				distances[name] = distance;
 			}
 
