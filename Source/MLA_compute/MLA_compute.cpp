@@ -28,13 +28,66 @@ unsigned int GlmFunctionsTest();
 unsigned int MemoryLeakChaser();
 
 int main(int argc, char *argv[]) {
-	std::string input_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/darts/true_data/aurelien_rotated_cut_all/";
-	std::string output_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/alldartsdescriptors/aurelien_rotated_cut_all_new_descriptors/";
+	std::vector<std::string> all_names;
+	all_names.push_back("Aubert_Julian");
+	all_names.push_back("Audrezet_Remi");
+	all_names.push_back("Beaussier_Simon");
+	all_names.push_back("Bellon_Gregoire");
+	all_names.push_back("Bettenfeld_Vincent");
+	all_names.push_back("Blanchard_Axel");
+	all_names.push_back("Bouligand_Colin");
+	all_names.push_back("Boussard_Clement");
+	all_names.push_back("Brouard_Samuel");
+	all_names.push_back("Brunet_Leo");
+	all_names.push_back("Caillon_Charles");
+	all_names.push_back("Clouet_Alexandre");
+	all_names.push_back("Corgniard_Antoine");
+	all_names.push_back("Coulon_Axel");
+	all_names.push_back("Delhommais_Tony");
+	all_names.push_back("Dizel_Corentin");
+	all_names.push_back("Doneau_Rafael");
+	all_names.push_back("Duchemin_Thomas");
+	all_names.push_back("Duporge_Adrien");
+	all_names.push_back("Durand_Nicolas");
+	all_names.push_back("Euvrard_Louis");
+	all_names.push_back("Griveau_Timothee");
+	all_names.push_back("Guideau_Lucas");
+	all_names.push_back("Huet_Loic");
+	all_names.push_back("Jamet_Baptiste");
+	all_names.push_back("Jonard_Antoine");
+	all_names.push_back("Kherrati_Yazid");
+	all_names.push_back("Laghouaouta_Youness");
+	all_names.push_back("Leborgne_Alex");
+	all_names.push_back("Lechat_William");
+	all_names.push_back("Lefort_Nathan");
+	all_names.push_back("Livain_Corentin");
+	all_names.push_back("Malet_Leo");
+	all_names.push_back("Maurin_Maxime");
+	all_names.push_back("Pechin_Salome");
+	all_names.push_back("Pege_Charly");
+	all_names.push_back("Plaut_Florian");
+	all_names.push_back("Poissonneau_Theo");
+	all_names.push_back("Ponroy_Loris");
+	all_names.push_back("Robert_Flavien");
+	all_names.push_back("Rouxel_Valentin");
+	all_names.push_back("Salles_Wilhelm");
+	all_names.push_back("Saupin_Yanis");
+	all_names.push_back("Sicard_Teddy");
+	all_names.push_back("Valadon_Hugo");
 
-	std::string laterality = "Right";
-	DartsExtractionFromFolder(input_folder, output_folder, laterality);
+	for (auto it = all_names.begin(); it != all_names.end(); it++) {
+		//std::string input_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/darts/true_data/students/Jonard/";
+		std::string input_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/darts_batch/" + *it + "/";
+		std::string output_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/alldartsdescriptors/new_students/" + *it + "/";
+		//std::string output_folder = "C:/Users/quentin/Documents/These/Databases/Darts/Aurelien_rotated_new_descriptors/";
 
-	std::cout << std::endl << "Press any key to quit...";
+		std::string laterality = "Right";
+		if (*it == "Plaut_Florian" || *it == "Durand_Nicolas" || *it == "Robert_Flavien" || *it == "Salles_Wilhelm")
+			laterality = "Left";
+		DartsExtractionFromFolder(input_folder, output_folder, laterality);
+
+		std::cout << std::endl << "Press any key to quit...";
+	}
 	std::cin.get();
 	return 0;
 }
@@ -149,7 +202,16 @@ Data ExtractDarts(Motion* motion, SegmentationInformation& seg_info, const std::
 
 	std::cout << "Distances computation..." << std::endl;
 	Mla::MotionOperation::computeDistancesBeforeThrow(motion, seg_info, joint_to_segment, values_to_store, distances_to_compute, KCs.at("new_arm_KC"), true);
-	data.insertNewData("Distances", values_to_store);
+	data.insertNewData("DistanceNorm", values_to_store);
+
+	std::vector<std::map<std::string, std::vector<double>>> distance_values;
+	Mla::MotionOperation::computeDistancesAxisBeforeThrow(motion, seg_info, joint_to_segment, distance_values, distances_to_compute, KCs.at("new_arm_KC"), true);
+	Mla::Utility::ExtractComponent(distance_values, values_to_store, 0);
+	data.insertNewData("DistanceX", values_to_store);
+	Mla::Utility::ExtractComponent(distance_values, values_to_store, 1);
+	data.insertNewData("DistanceY", values_to_store);
+	Mla::Utility::ExtractComponent(distance_values, values_to_store, 2);
+	data.insertNewData("DistanceZ", values_to_store);
 
 	// TODO: REDO THE COMPUTEBOUNDINGBOXWIDTH
 	std::map<std::string, double> bb_mean_and_std;
@@ -270,7 +332,6 @@ unsigned int DartsExtractionFromFolder(const std::string& input_folder, const st
 
 	joint_to_segment = laterality + joint_to_segment;
 
-	//TODO: check
 	for (auto it = distances_to_compute.begin(); it != distances_to_compute.end(); ++it) {
 		if (std::find(laterality_joints.begin(), laterality_joints.end(), (*it).first) != laterality_joints.end())
 			(*it).first = laterality + (*it).first;
