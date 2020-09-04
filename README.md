@@ -2,11 +2,10 @@
 
 ### What is this repository for? ###
 
-* This is the official repo for the Motion Learning Analytic platform. 
+* This is the official repo for the Motion Learning Analytic platform. See https://github.com/Coul33t/MLA-motion-analysis for the motion analysis part.
 * Version: 0.?
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
 
-### How do I get set up? ###
+### Requierments ###
 
 Dependencies:
 	- GLM 0.9.8.5
