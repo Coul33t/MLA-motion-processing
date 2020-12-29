@@ -8,7 +8,7 @@
 *.so
 *.lib
 *.a
- 
+
 # Packages #
 ############
 # it's better to unpack these files and commit the raw source
@@ -21,7 +21,7 @@
 *.rar
 *.tar
 *.zip
- 
+
 # Logs and databases #
 ######################
 *.log
@@ -32,7 +32,7 @@
 # Licence #
 ######################
 *.key
- 
+
 # Folders #
 ######################
 Bin/
@@ -41,6 +41,7 @@ Lib/
 Project/
 Project_VS17/
 ThirdParty/
+VS2019/
 
 
 # OS generated files #

@@ -27,13 +27,13 @@ ADD_LIBRARY(04_MLAGui_lib STATIC
     MLAMainWindow/MLAMainWindow.cpp
 )
 
-SOURCE_GROUP("Fichiers d'en-tete" FILES MLAGui_lib.h)
+SOURCE_GROUP("headers" FILES MLAGui_lib.h)
 
-SOURCE_GROUP("MLACamera\\Fichiers d'en-tete"    FILES MLACamera/MLACamera.h)
-SOURCE_GROUP("MLACamera\\Fichiers sources"      FILES MLACamera/MLACamera.cpp)
+SOURCE_GROUP("MLACamera\\headers"    FILES MLACamera/MLACamera.h)
+SOURCE_GROUP("MLACamera\\src"      FILES MLACamera/MLACamera.cpp)
 
-SOURCE_GROUP("MLAInput\\Fichiers d'en-tete"    FILES MLAInput/MLAInput.h)
-SOURCE_GROUP("MLAInput\\Fichiers sources"      FILES MLAInput/MLAInput.cpp)
+SOURCE_GROUP("MLAInput\\headers"    FILES MLAInput/MLAInput.h)
+SOURCE_GROUP("MLAInput\\src"      FILES MLAInput/MLAInput.cpp)
 
-SOURCE_GROUP("MLAMainWindow\\Fichiers d'en-tete"    FILES MLAMainWindow/MLAMainWindow.h)
-SOURCE_GROUP("MLAMainWindow\\Fichiers sources"      FILES MLAMainWindow/MLAMainWindow.cpp)
+SOURCE_GROUP("MLAMainWindow\\headers"    FILES MLAMainWindow/MLAMainWindow.h)
+SOURCE_GROUP("MLAMainWindow\\src"      FILES MLAMainWindow/MLAMainWindow.cpp)

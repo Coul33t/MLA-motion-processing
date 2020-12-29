@@ -36,7 +36,7 @@ namespace Mla {
 		}
 
 		//TODO: use return value of searchForward()
-		Motion* parseBvh(const std::string& folder, const std::string& input_file) {
+		std::unique_ptr<Motion> parseBvh(const std::string& folder, const std::string& input_file) {
 
 			std::ifstream infile((folder + input_file).c_str());
 
@@ -63,7 +63,7 @@ namespace Mla {
 			std::map<std::string, std::vector<std::string>> channels;
 
 			//creating the first frame, which will hold the offsets
-			Frame* initial_frame = new Frame();
+			std::shared_ptr<Frame> initial_frame = std::make_shared<Frame>();
 
 			// Declaration for the frames part
 			unsigned int frame_number;
@@ -107,7 +107,7 @@ namespace Mla {
 					parent = parent_names.back();
 				}
 
-				Joint* current_joint = new Joint();
+				std::shared_ptr<Joint> current_joint = std::make_shared<Joint>();
 				current_joint->setName(joint_list.back());
 				current_joint->setPositions(glm::dvec3(tmp_offsets[0], tmp_offsets[1], tmp_offsets[2]));
 				current_joint->setOrientations(glm::quat());
@@ -142,7 +142,7 @@ namespace Mla {
 						infile >> current_word;
 					}
 
-					Joint* end_joint = new Joint();
+					std::shared_ptr<Joint> end_joint = std::make_shared<Joint>();
 					end_joint->setName("End" + joint_list.back());
 					end_joint->setPositions(glm::dvec3(tmp_offsets[0], tmp_offsets[1], tmp_offsets[2]));
 					end_joint->setOrientations(glm::quat());
@@ -179,7 +179,7 @@ namespace Mla {
 			// Now that the skeleton is built, we build the motion
 			std::cout << "Building motion ..." << std::endl;
 
-			Motion* motion = new Motion();
+			std::unique_ptr<Motion> motion = std::make_unique<Motion>();
 
 			// Ugly way to remove .bvh at the end of the string
 			motion->setName(input_file.substr(0, input_file.size() - 4));
@@ -229,7 +229,7 @@ namespace Mla {
 				percentage = 100 * i / frame_number;
 				std::cout << percentage << " % (" << i << "/" << frame_number << ")" << "\r";
 
-				Frame* copied_frame = initial_frame->duplicateFrame();
+				std::shared_ptr<Frame> copied_frame = initial_frame->duplicateFrame();
 
 				motion->addFrame(copied_frame);
 			}

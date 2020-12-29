@@ -17,7 +17,7 @@
 #include <numeric> // std::accumulate
 #include <cmath> // std::round
 
-#define EPSILON 0.0001
+#define EPSILON 0.0001 // Floating point precision
 
 struct SegmentationInformation {
 	int left_cut;
@@ -32,39 +32,52 @@ struct SegmentationInformation {
 namespace Mla {
 	namespace MotionOperation {
 
-		Joint* interpolateJoint(Joint*, Joint*, double);
-		Frame* interpolateFrame(Frame*, Frame*, double);
+		std::shared_ptr<Joint> interpolateJoint(std::shared_ptr<Joint>, std::shared_ptr<Joint>, double);
+		std::shared_ptr<Frame> interpolateFrame(std::shared_ptr<Frame>, std::shared_ptr<Frame>, double);
 
-		void jointsPositions(std::map<std::string, glm::dvec3>&, Frame*, const std::string&);
-		void jointsPositions(std::map<std::string, glm::dvec3>&, Frame*, std::vector<std::string>&);
-		void jointsPositionsAxis(std::map<std::string, double>&, Frame*, const std::string&, const std::string&);
+		void jointsPositions(std::map<std::string, glm::dvec3>&, std::shared_ptr<Frame>, const std::string&);
+		void jointsPositions(std::map<std::string, glm::dvec3>&, std::shared_ptr<Frame>, std::vector<std::string>&);
+		void jointsPositionsAxis(std::map<std::string, double>&, std::shared_ptr<Frame>, const std::string&, 
+			const std::string&);
 
-		void jointsLinearSpeed(std::map<std::string, double>&, Frame*, Frame*, double);
-		void jointsLinearSpeed(std::map<std::string, glm::dvec3>&, Frame*, Frame*, double, bool = false);
-		void jointsLinearSpeedAxis(std::map<std::string, double>&, Frame*, Frame*, double, const std::string&, bool = false);
-		void jointsAngularSpeed(std::map<std::string, double>&, Frame*, Frame*, double);
+		void jointsLinearSpeed(std::map<std::string, double>&, std::shared_ptr<Frame>, std::shared_ptr<Frame>, double);
+		void jointsLinearSpeed(std::map<std::string, glm::dvec3>&, std::shared_ptr<Frame>, std::shared_ptr<Frame>, 
+			double, bool = false);
+		void jointsLinearSpeedAxis(std::map<std::string, double>&, std::shared_ptr<Frame>, std::shared_ptr<Frame>, 
+			double, const std::string&, bool = false);
+		void jointsAngularSpeed(std::map<std::string, double>&, std::shared_ptr<Frame>, std::shared_ptr<Frame>, double);
 
-		void jointsLinearAcc(std::map<std::string, double>&, Frame*, Frame*, Frame*, double);
-		void jointsLinearAcc(std::map<std::string, glm::dvec3>&, Frame*, Frame*, Frame*, double, bool = false);
-		void jointLinearAccAxis(std::map<std::string, double>&, Frame*, Frame*, Frame*, double, const std::string&, bool = false);
+		void jointsLinearAcc(std::map<std::string, double>&, std::shared_ptr<Frame>, std::shared_ptr<Frame>, 
+			std::shared_ptr<Frame>, double);
+		void jointsLinearAcc(std::map<std::string, glm::dvec3>&, std::shared_ptr<Frame>, std::shared_ptr<Frame>, 
+			std::shared_ptr<Frame>, double, bool = false);
+		void jointLinearAccAxis(std::map<std::string, double>&, std::shared_ptr<Frame>, std::shared_ptr<Frame>,
+			std::shared_ptr<Frame>, double, const std::string&, bool = false);
 
-		void jointsJerk(std::map<std::string, glm::dvec3>&, Frame*, Frame*, Frame*, Frame*, double);
-		void jointsJerkNorm(std::map<std::string, double>&, Frame*, Frame*, Frame*, Frame*, double);
-		void jointsJerkAxis(std::map<std::string, double>&, Frame*, Frame*, Frame*, Frame*, double, const std::string&, bool = false);
+		void jointsJerk(std::map<std::string, glm::dvec3>&, std::shared_ptr<Frame>, std::shared_ptr<Frame>, 
+			std::shared_ptr<Frame>, std::shared_ptr<Frame>, double);
+		void jointsJerkNorm(std::map<std::string, double>&, std::shared_ptr<Frame>, std::shared_ptr<Frame>,
+			std::shared_ptr<Frame>, std::shared_ptr<Frame>, double);
+		void jointsJerkAxis(std::map<std::string, double>&, std::shared_ptr<Frame>, std::shared_ptr<Frame>,
+			std::shared_ptr<Frame>, std::shared_ptr<Frame>, double, const std::string&, bool = false);
 
-		void jointsBoundingBox(std::map<std::string, std::vector<double>>&, Frame*, std::vector<std::string>&, bool = true);
-		void jointsBoundingBoxReframed(std::vector<double>&, Frame*, std::vector<std::string>&, unsigned int, unsigned int, bool = true);
+		void jointsBoundingBox(std::map<std::string, std::vector<double>>&, std::shared_ptr<Frame>, std::vector<std::string>&,
+			bool = true);
+		void jointsBoundingBoxReframed(std::vector<double>&, std::shared_ptr<Frame>, std::vector<std::string>&, 
+			unsigned int, unsigned int, bool = true);
 
-		void MeanLinearSpeed(std::vector<std::map<std::string, double>>&, Motion*, unsigned int);
-		void MeanLinearSpeedAxis(std::vector<std::map<std::string, double>>&, Motion*, unsigned int, const std::string&, bool);
+		void MeanLinearSpeed(std::vector<std::map<std::string, double>>&, std::shared_ptr<Motion>, unsigned int);
+		void MeanLinearSpeedAxis(std::vector<std::map<std::string, double>>&, std::shared_ptr<Motion>, unsigned int, 
+			const std::string&, bool);
 
-		void jointsDistance(std::map<std::string, double>&, Frame*, std::vector<std::string>&,
+		void jointsDistance(std::map<std::string, double>&, std::shared_ptr<Frame>, std::vector<std::string>&,
 			const std::vector<std::pair<std::string, std::string>>&, bool = true);
-		void jointsDistanceAxis(std::map<std::string, std::vector<double>>&, Frame*, std::vector<std::string>&,
-			const std::vector<std::pair<std::string, std::string>>&, unsigned int, bool = true);
-		Frame* getFrameFromTime(Motion*, double, double);
+		void jointsDistanceAxis(std::map<std::string, std::vector<double>>&, std::shared_ptr<Frame>,
+			std::vector<std::string>&, const std::vector<std::pair<std::string, std::string>>&, unsigned int, bool = true);
+		
+		std::shared_ptr<Frame> getFrameFromTime(std::shared_ptr<Motion>, double, double);
 
-		void getGlobalCoordinates(Frame*, Frame*, Joint*, glm::dmat4);
+		void getGlobalCoordinates(std::shared_ptr<Frame>, std::shared_ptr<Frame>, std::shared_ptr<Joint>, glm::dmat4);
 
 		void getGlobalMaximum(std::vector<double>&, std::pair<double, unsigned int>&);
 		int getLocalMinimumFromMaximum(std::vector<double>&, int);
@@ -74,43 +87,50 @@ namespace Mla {
 		void FindIndexSeparation(std::vector<double>&, unsigned int, unsigned int, std::vector<std::pair<int, int>>&);
 		void FindThrowIndex(std::vector<double>&, std::pair<int, int>&);
 
-		void MotionSegmentation(Motion*, SegmentationInformation&, std::vector<Motion*>&, const std::string&);
-		void MotionThrowSegmentation(Motion*, SegmentationInformation&, Motion*, const std::string&);
+		void MotionSegmentation(std::shared_ptr<Motion>, SegmentationInformation&, std::vector<std::shared_ptr<Motion>>&,
+			const std::string&);
+		void MotionThrowSegmentation(std::shared_ptr<Motion>, SegmentationInformation&, std::shared_ptr<Motion>,
+			const std::string&);
 
-		void getBegMaxEndIndexes(Motion*, SegmentationInformation&, const std::string&, std::vector<int>&);
-		void BegMaxEndAcceleration(Motion*, SegmentationInformation&, const std::string&, std::vector<std::map<std::string, glm::dvec3>>&);
-		void BegMaxEndSpeed(Motion*, SegmentationInformation&, const std::string&, std::vector<std::map<std::string, glm::dvec3>>&);
-		void BegMaxEndSpeedThrow(Motion*, SegmentationInformation&, const std::string&, std::vector<std::map<std::string, glm::dvec3>>&, bool);
-		void ThrowDuration(Motion*, SegmentationInformation&, const std::string&);
+		void getBegMaxEndIndexes(std::shared_ptr<Motion>, SegmentationInformation&, const std::string&, std::vector<int>&);
+		void BegMaxEndAcceleration(std::shared_ptr<Motion>, SegmentationInformation&, const std::string&,
+			std::vector<std::map<std::string, glm::dvec3>>&);
+		void BegMaxEndSpeed(std::shared_ptr<Motion>, SegmentationInformation&, const std::string&,
+			std::vector<std::map<std::string, glm::dvec3>>&);
+		void BegMaxEndSpeedThrow(std::shared_ptr<Motion>, SegmentationInformation&, const std::string&,
+			std::vector<std::map<std::string, glm::dvec3>>&, bool);
+		void ThrowDuration(std::shared_ptr<Motion>, SegmentationInformation&, const std::string&);
 
-		void motionSpeedComputing(Motion*, SpeedData&);
-		void motionAccelerationComputing(Motion*, AccData&);
+		void motionSpeedComputing(std::shared_ptr<Motion>, SpeedData&);
+		void motionAccelerationComputing(std::shared_ptr<Motion>, AccData&);
 		
-		void ComputeSpeedData(std::vector<Motion*>&, std::vector<SpeedData>&);
-		void ComputeAccData(std::vector<Motion*>&, std::vector<AccData>&);
-		void computeJerk(Motion*, std::vector<std::map<std::string, double>>&, std::string&, bool);
-		void computeBoundingBoxes(Motion*, std::vector<std::map<std::string, std::vector<double>>>&, std::vector<std::string>&);
-		void computeFinalBoudingBox(Motion*, std::vector<std::map<std::string, std::vector<double>>>&, std::vector<std::string>&, bool = true);
-		void computeBoundingBoxWidth(Motion*, std::map<std::string, double>&, std::vector<std::string>&);
+		void ComputeSpeedData(std::vector<std::shared_ptr<Motion>>&, std::vector<SpeedData>&);
+		void ComputeAccData(std::vector<std::shared_ptr<Motion>>&, std::vector<AccData>&);
+		void computeJerk(std::shared_ptr<Motion>, std::vector<std::map<std::string, double>>&, std::string&, bool);
+		void computeBoundingBoxes(std::shared_ptr<Motion>, std::vector<std::map<std::string, std::vector<double>>>&,
+			std::vector<std::string>&);
+		void computeFinalBoudingBox(std::shared_ptr<Motion>, std::vector<std::map<std::string, std::vector<double>>>&,
+			std::vector<std::string>&, bool = true);
+		void computeBoundingBoxWidth(std::shared_ptr<Motion>, std::map<std::string, double>&, std::vector<std::string>&);
 
 
-		void computeDistancesBeforeThrow(Motion*, SegmentationInformation&, const std::string&,
+		void computeDistancesBeforeThrow(std::shared_ptr<Motion>, SegmentationInformation&, const std::string&,
 			std::vector<std::map<std::string, double>>&, const std::vector<std::pair<std::string, std::string>>&,
 			std::vector<std::string>&, bool = true);
-		void computeDistancesAxisBeforeThrow(Motion*, SegmentationInformation&, const std::string&,
+		void computeDistancesAxisBeforeThrow(std::shared_ptr<Motion>, SegmentationInformation&, const std::string&,
 			std::vector<std::map<std::string, std::vector<double>>>&, const std::vector<std::pair<std::string, std::string>>&,
 			std::vector<std::string>&, bool = true);
-		void computePositionBeforeThrow(Motion*, SegmentationInformation&, const std::string&, 
+		void computePositionBeforeThrow(std::shared_ptr<Motion>, SegmentationInformation&, const std::string&,
 			std::vector<std::map<std::string, glm::dvec3>>&, const std::string&);
-		void computePositionBeforeThrow(Motion*, SegmentationInformation&, const std::string&,
+		void computePositionBeforeThrow(std::shared_ptr<Motion>, SegmentationInformation&, const std::string&,
 			std::vector<std::map<std::string, glm::dvec3>>&, std::vector<std::string>&);
 
 		void ComputeSavgol(SpeedData&, SegmentationInformation&);
 		void ComputeSavgol(AccData&, SegmentationInformation&);
 
-		void motionRebuilding(Motion*, Motion*, unsigned int);
+		void motionRebuilding(std::shared_ptr<Motion>, std::shared_ptr<Motion>, unsigned int);
 
-		void motionFiltering(Motion*);
+		void motionFiltering(std::shared_ptr<Motion>);
 
 	};
 };

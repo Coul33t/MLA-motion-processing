@@ -18,9 +18,11 @@ class Joint {
 public:
 	Joint();
 	~Joint();
-	Joint(const Joint& Joint);
+	Joint(const Joint& joint);
+	//Joint(const std::shared_ptr<Joint> joint);
 
 	Joint& operator=(const Joint& joint);
+	//std::shared_ptr<Joint> operator=(const std::shared_ptr<Joint> joint);
 
 	void setName(const std::string& jointName);
 	void setPositions(const glm::dvec3& positions);
@@ -30,11 +32,11 @@ public:
 	const glm::dvec3& getPositions() const;
 	const glm::dquat& getOrientations() const;
 
-	void setParent(Joint* parent);
-	void addChild(Joint* child);
+	void setParent(std::shared_ptr<Joint> parent);
+	void addChild(std::shared_ptr<Joint> child);
 
-	const std::vector<Joint*>& getChilds() const;
-	Joint* getParent() const;
+	const std::vector<std::shared_ptr<Joint>>& getChilds() const;
+	std::shared_ptr<Joint> getParent() const;
 
 private:
 	// TODO: char* instead of std::string (performance related in getName())
@@ -46,8 +48,8 @@ private:
 	// a quaternion holding the orientation for the frame
 	glm::dquat m_orientations;
 
-	Joint* m_parent;
-	std::vector<Joint*> m_child;
+	std::shared_ptr<Joint> m_parent;
+	std::vector<std::shared_ptr<Joint>> m_child;
 };
 
 #endif //__MLA_Joint_H__

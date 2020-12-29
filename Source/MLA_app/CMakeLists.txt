@@ -6,7 +6,7 @@ project(MLA_app)
 		${03_MLAParser_lib_SOURCE_DIR}
         ${04_MLAGui_lib_SOURCE_DIR}
         ${05_MLANeuron_lib_SOURCE_DIR}
-        ${06_MLARender_lib_SOURCE_DIR}  
+        ${06_MLARender_lib_SOURCE_DIR}
 		${SDL_INCLUDE_DIR}
         ${GLEW_INCLUDE_DIR}
         ${GLM_INCLUDE_DIR}
@@ -23,14 +23,14 @@ project(MLA_app)
 
 
 
-    #Create exe 
+    #Create exe
     add_executable(MLA_app
         ../MLA.h
         MLA_app.cpp
     )
 
-    SOURCE_GROUP("Fichiers d'en-tete" REGULAR_EXPRESSION "[.]h$")
-    SOURCE_GROUP("Fichiers sources" REGULAR_EXPRESSION "[.]cpp$")
+    SOURCE_GROUP("headers" REGULAR_EXPRESSION "[.]h$")
+    SOURCE_GROUP("src" REGULAR_EXPRESSION "[.]cpp$")
 
 
     IF(WIN_OS)
@@ -41,7 +41,7 @@ project(MLA_app)
             04_MLAGui_lib.lib
 			03_MLAParser_lib.lib
             02_MLAMotion_lib.lib
-            01_MLATools_lib.lib 
+            01_MLATools_lib.lib
             ${SDL_LIB}
             ${GLEW_LIB}
             ${OPENGL_LIB}
@@ -77,10 +77,10 @@ project(MLA_app)
 
 
 
-                    
+
     IF(LINUX_OS)
 
-    
+
         TARGET_LINK_LIBRARIES(MLA_app
                 06_MLARender_lib.a
                 05_MLANeuron_lib.a
@@ -92,14 +92,14 @@ project(MLA_app)
                 ${GLEW_LIB}
                 ${OPENGL_LIB}
                 ${THREAD_LIBRARY}
-                ${CMAKE_DL_LIBS}                    
+                ${CMAKE_DL_LIBS}
         )
 
     ENDIF(LINUX_OS)
 
 
     IF(APPLE_OS)
-    
+
         TARGET_LINK_LIBRARIES(MLA_app
                 06_MLARender_lib.a
                 05_MLANeuron_lib.a

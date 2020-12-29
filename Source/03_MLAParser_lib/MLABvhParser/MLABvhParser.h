@@ -15,7 +15,7 @@ MLABvhParser.h
 namespace Mla {
 	namespace BvhParser {
 
-		Motion* parseBvh(const std::string&, const std::string&);
+		std::unique_ptr<Motion> parseBvh(const std::string&, const std::string&);
 
 	};
 };

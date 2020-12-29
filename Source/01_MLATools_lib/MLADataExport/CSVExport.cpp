@@ -199,9 +199,6 @@ namespace Mla {
 		}
 
 		bool ExportData(const std::vector<SpeedData>& data, const MotionInformation& motion_info, const SegmentationInformation& seg_info, const std::string& folder_name, const std::string& subfolder_name, const std::string& file_name) {
-			
-			//ExportMotionInformations(motion_info, folder_name, "motion_information");
-			//ExportMotionSegmentationInformations(seg_info, folder_name, "segmentation_information");
 
 			for (unsigned int i = 0; i < data.size(); i++) {
 				ExportData(data[i], folder_name, subfolder_name + std::to_string(i), file_name);

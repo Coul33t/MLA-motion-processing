@@ -20,26 +20,28 @@ public:
 	Frame();
 	~Frame();
 	Frame(const Frame& frame);
+	//Frame(const std::shared_ptr<Frame> frame);
 
 	Frame& operator=(const Frame& frame);
+	//std::shared_ptr<Frame> operator=(const std::shared_ptr<Frame> frame);
 
-	void setJoints(const std::vector<Joint*>&);
-	const std::vector<Joint*>& getJoints() const;
+	void setJoints(const std::vector<std::shared_ptr<Joint>>&);
+	const std::vector<std::shared_ptr<Joint>>& getJoints() const;
 	std::vector<std::string> getJointsName() const;
 
-	Joint* getJoint(const std::string&);
-	Joint* getJoint(const unsigned int);
-	void insertJoint(Joint*);
+	std::shared_ptr<Joint> getJoint(const std::string&);
+	std::shared_ptr<Joint> getJoint(const unsigned int);
+	void insertJoint(std::shared_ptr<Joint>);
 
-	Joint* getRoot() const;
-	void setRoot(Joint*);
+	std::shared_ptr<Joint> getRoot() const;
+	void setRoot(std::shared_ptr<Joint>);
 
-	Frame* duplicateFrame();
+	std::shared_ptr<Frame> duplicateFrame();
 
 private:
-	std::vector<Joint*> m_joints;
+	std::vector<std::shared_ptr<Joint>> m_joints;
 	// A pointer to the root (in m_joints)
-	Joint* m_root;
+	std::shared_ptr<Joint> m_root;
 };
 
 #endif //__MLA_FRAME_H__

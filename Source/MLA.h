@@ -10,7 +10,7 @@
 
 #if defined PLATFORM_WIN32
 //adresses pour le lecture des fichiers
-#define	MLA_INPUT_PATH "../../../Data/"
+#define	MLA_INPUT_PATH "../../Data/"
 #endif
 
 #if defined PLATFORM_LINUX || defined PLATFORM_MACOSX

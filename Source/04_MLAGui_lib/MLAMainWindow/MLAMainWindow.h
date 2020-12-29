@@ -26,10 +26,10 @@ public:
 	int WindowInit();
 	bool GLinit();
 	bool LoadShader(const std::string, const std::string);
-	void MainLoop(Motion*);
+	void MainLoop(std::shared_ptr<Motion>);
 
-	void DrawStaticMotion(Motion*);
-	void Animate(Motion*, const double, const double);
+	void DrawStaticMotion(std::shared_ptr<Motion>);
+	void Animate(std::shared_ptr<Motion>, const double, const double);
 	
 
 private:

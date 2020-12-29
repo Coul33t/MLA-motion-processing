@@ -13,12 +13,25 @@ Joint::Joint(const Joint& joint) {
 	m_orientations = joint.m_orientations;
 }
 
+/*Joint::Joint(const std::shared_ptr<Joint> joint) {
+	m_joint_name = joint->m_joint_name;
+	m_positions = joint->m_positions;
+	m_orientations = joint->m_orientations;
+}*/
+
 Joint& Joint::operator=(const Joint& joint) {
 	m_joint_name = joint.m_joint_name;
 	m_positions = joint.m_positions;
 	m_orientations = joint.m_orientations;
 	return *this;
 }
+
+/*std::shared_ptr<Joint> Joint::operator=(const std::shared_ptr<Joint> joint) {
+	m_joint_name = joint->m_joint_name;
+	m_positions = joint->m_positions;
+	m_orientations = joint->m_orientations;
+	return std::make_shared<Joint>(this);
+}*/
 
 void Joint::setName(const std::string& joint_name) {
 	m_joint_name = joint_name;
@@ -44,18 +57,18 @@ const glm::dquat& Joint::getOrientations() const {
 	return m_orientations;
 }
 
-void Joint::setParent(Joint* parent) {
+void Joint::setParent(std::shared_ptr<Joint> parent) {
 	m_parent = parent;
 }
 
-void Joint::addChild(Joint* child) {
+void Joint::addChild(std::shared_ptr<Joint> child) {
 	m_child.push_back(child);
 }
 
-const std::vector<Joint*>& Joint::getChilds() const {
+const std::vector<std::shared_ptr<Joint>>& Joint::getChilds() const {
 	return m_child;
 }
 
-Joint* Joint::getParent() const {
+std::shared_ptr<Joint> Joint::getParent() const {
 	return m_parent;
 }

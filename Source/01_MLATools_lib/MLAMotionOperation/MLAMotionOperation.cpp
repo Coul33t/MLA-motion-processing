@@ -17,8 +17,8 @@ namespace Mla {
 		* @param mixFactor Mix factor between the 2 joints
 		* @return An interpolated joint
 		*/
-		Joint* interpolateJoint (Joint* j1, Joint* j2, double mix_factor) {
-			Joint* interpolated_joint = new Joint();
+		std::shared_ptr<Joint> interpolateJoint (std::shared_ptr<Joint> j1, std::shared_ptr<Joint> j2, double mix_factor) {
+			std::shared_ptr<Joint> interpolated_joint = std::make_shared<Joint>();
 
 			glm::dvec3 pos1 = j1->getPositions();
 			glm::dvec3 pos2 = j2->getPositions();
@@ -37,12 +37,12 @@ namespace Mla {
 		* @param mixFactor Mix factor between the 2 frames
 		* @return An interpolated frame
 		*/
-		Frame* interpolateFrame (Frame* f1, Frame* f2, double mix_factor) {
+		std::shared_ptr<Frame> interpolateFrame (std::shared_ptr<Frame> f1, std::shared_ptr<Frame> f2, double mix_factor) {
 
-			Frame* interpolated_frame = new Frame();
+			std::shared_ptr<Frame> interpolated_frame = std::make_shared<Frame>();
 
 			for (unsigned int i = 0; i < f1->getJoints().size(); i++) {
-				Joint* new_joint = interpolateJoint(f1->getJoint(i), f2->getJoint(i), mix_factor);
+				std::shared_ptr<Joint> new_joint = interpolateJoint(f1->getJoint(i), f2->getJoint(i), mix_factor);
 
 				new_joint->setName(f1->getJoint(i)->getName());
 
@@ -67,11 +67,12 @@ namespace Mla {
 		* @param abs_or_rel Absolute or relative coordinates
 		* @return A vector containing the positions of all the joints
 		*/
-		void jointsPositions(std::map<std::string, glm::dvec3>& pos_vector, Frame* f1, std::vector<std::string>& KC) {
+		void jointsPositions(std::map<std::string, glm::dvec3>& pos_vector, std::shared_ptr<Frame> f1, 
+			std::vector<std::string>& KC) {
 			// I choose to put this here instead of a simple " else " at the end for code
 			// readability and avoid unnecessary initilisation and/or code duplication.
 
-			Frame* global_frame_1 = f1->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_1 = f1->duplicateFrame();
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 
 			glm::dvec3 vec_pos;
@@ -98,7 +99,8 @@ namespace Mla {
 			}
 		}
 
-		void jointsPositions(std::map<std::string, glm::dvec3>& pos_vector, Frame* f1, const std::string& abs_or_rel) {
+		void jointsPositions(std::map<std::string, glm::dvec3>& pos_vector, std::shared_ptr<Frame> f1, 
+			const std::string& abs_or_rel) {
 			// I choose to put this here instead of a simple " else " at the end for code
 			// readability and avoid unnecessary initilisation and/or code duplication.
 			if (abs_or_rel != "abs" && abs_or_rel != "rel") {
@@ -109,7 +111,7 @@ namespace Mla {
 			glm::dvec3 vec_pos;
 
 			if (abs_or_rel == "abs") {
-				Frame* global_frame_1 = f1->duplicateFrame();
+				std::shared_ptr<Frame> global_frame_1 = f1->duplicateFrame();
 				getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 
 				for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
@@ -117,7 +119,7 @@ namespace Mla {
 					pos_vector.insert(std::pair<std::string, glm::dvec3>(global_frame_1->getJoint(j)->getName(), vec_pos));
 				}
 
-				delete global_frame_1;
+				//delete global_frame_1;
 			}
 
 			else if (abs_or_rel == "rel") {
@@ -135,7 +137,8 @@ namespace Mla {
 		* @param axis Axis along which the positions values will be returned
 		* @return A vector containing the positions of all the joints
 		*/
-		void jointsPositionsAxis(std::map<std::string, double>& pos_vector, Frame* f1, const std::string& abs_or_rel, const std::string& axis) {
+		void jointsPositionsAxis(std::map<std::string, double>& pos_vector, std::shared_ptr<Frame> f1, 
+			const std::string& abs_or_rel, const std::string& axis) {
 			// I choose to put this here instead of a simple " else " at the end for code
 			// readability and avoid unnecessary initilisation and/or code duplication.
 			if (abs_or_rel != "abs" && abs_or_rel != "rel") {
@@ -146,7 +149,7 @@ namespace Mla {
 			glm::dvec3 vec_pos;
 
 			if (abs_or_rel == "abs") {
-				Frame* global_frame_1 = f1->duplicateFrame();
+				std::shared_ptr<Frame> global_frame_1 = f1->duplicateFrame();
 				getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 
 				for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
@@ -159,7 +162,7 @@ namespace Mla {
 						pos_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), vec_pos[2]));
 				}
 
-				delete global_frame_1;
+				// delete global_frame_1;
 			}
 
 			else if (abs_or_rel == "rel") {
@@ -183,10 +186,11 @@ namespace Mla {
 		* @param frame_time Interframe time
 		* @return A vector containing the linear speed of all the joints
 		*/
-		void jointsLinearSpeed (std::map<std::string, double>& lin_speed_vector, Frame* f1, Frame* f2, double frame_time) {
+		void jointsLinearSpeed (std::map<std::string, double>& lin_speed_vector, std::shared_ptr<Frame> f1, 
+			std::shared_ptr<Frame> f2, double frame_time) {
 			
-			Frame* global_frame_1 = f1->duplicateFrame();
-			Frame* global_frame_2 = f2->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_1 = f1->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_2 = f2->duplicateFrame();
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
@@ -203,8 +207,8 @@ namespace Mla {
 				lin_speed_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), linear_speed));
 			}
 
-			delete global_frame_1;
-			delete global_frame_2;
+			//delete global_frame_1;
+			//delete global_frame_2;
 
 		}
 
@@ -215,9 +219,10 @@ namespace Mla {
 		* @param frame_time Interframe time
 		* @return A vector containing the linear speed of the joints
 		*/
-		void jointsLinearSpeed (std::map<std::string, glm::dvec3>& lin_speed_vector, Frame* f1, Frame* f2, double frame_time, bool normalise) {
-			Frame* global_frame_1 = f1->duplicateFrame();
-			Frame* global_frame_2 = f2->duplicateFrame();
+		void jointsLinearSpeed (std::map<std::string, glm::dvec3>& lin_speed_vector, std::shared_ptr<Frame> f1, 
+			std::shared_ptr<Frame> f2, double frame_time, bool normalise) {
+			std::shared_ptr<Frame> global_frame_1 = f1->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_2 = f2->duplicateFrame();
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
@@ -247,8 +252,8 @@ namespace Mla {
 				lin_speed_vector.insert(std::pair<std::string, glm::dvec3>(global_frame_1->getJoint(j)->getName(), linear_speed));
 			}
 
-			delete global_frame_1;
-			delete global_frame_2;
+			//delete global_frame_1;
+			//delete global_frame_2;
 		}
 
 		/** Compute the normalised (or not) speed of the joints at a given point in time (t) along one axis.
@@ -259,10 +264,11 @@ namespace Mla {
 		* @param axis Axis along which the linear speed will be computed
 		* @return A vector containing the linear speed of all the joints
 		*/
-		void jointsLinearSpeedAxis (std::map<std::string, double>& lin_speed_vector, Frame* f1, Frame* f2, double frame_time, const std::string& axis, bool normalise) {
+		void jointsLinearSpeedAxis (std::map<std::string, double>& lin_speed_vector, std::shared_ptr<Frame> f1, 
+			std::shared_ptr<Frame> f2, double frame_time, const std::string& axis, bool normalise) {
 
-			Frame* global_frame_1 = f1->duplicateFrame();
-			Frame* global_frame_2 = f2->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_1 = f1->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_2 = f2->duplicateFrame();
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
@@ -289,8 +295,8 @@ namespace Mla {
 				lin_speed_vector.insert(std::pair<std::string,double>(global_frame_1->getJoint(j)->getName(), linear_speed));
 			}
 
-			delete global_frame_1;
-			delete global_frame_2;
+			//delete global_frame_1;
+			//delete global_frame_2;
 
 		}
 
@@ -301,10 +307,11 @@ namespace Mla {
 		* @param frame_time Interframe time
 		* @return A vector containing the angular speed of all the joints
 		*/
-		void jointsAngularSpeed (std::map<std::string, double>& ang_speed_vector, Frame* f1, Frame* f2, double frame_time) {
+		void jointsAngularSpeed (std::map<std::string, double>& ang_speed_vector, std::shared_ptr<Frame> f1,
+			std::shared_ptr<Frame> f2, double frame_time) {
 			
-			Frame* global_frame_1 = f1->duplicateFrame();
-			Frame* global_frame_2 = f2->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_1 = f1->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_2 = f2->duplicateFrame();
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
@@ -333,10 +340,11 @@ namespace Mla {
 		@param n Number of interval
 		@return A vector containing the mean speed for each joint on the frames, for each interval
 		*/
-		void MeanLinearSpeed (std::vector<std::map<std::string, double>>& mean_lin_speed_inter, Motion* motion, unsigned int n) {
+		void MeanLinearSpeed (std::vector<std::map<std::string, double>>& mean_lin_speed_inter,
+			std::shared_ptr<Motion> motion, unsigned int n) {
 
-			Frame* beg_frame = nullptr;
-			Frame* end_frame = nullptr;
+			std::shared_ptr<Frame> beg_frame = nullptr;
+			std::shared_ptr<Frame> end_frame = nullptr;
 
 			double frame_time = motion->getFrameTime();
 
@@ -358,8 +366,8 @@ namespace Mla {
 				first_frame_time = end_frame_time;
 				end_frame_time += interval;
 
-				delete beg_frame;
-				delete end_frame;
+				//delete beg_frame;
+				//delete end_frame;
 			}
 		}
 
@@ -370,10 +378,11 @@ namespace Mla {
 		* @param axis Axis along which the mean speed will be computed
 		* @return A vector containing the mean speed (on the 3 axis) for each joint on the frames, for each interval
 		*/
-		void MeanLinearSpeedAxis (std::vector<std::map<std::string, double>>& mean_lin_speed_inter, Motion* motion, unsigned int n, const std::string& axis, bool normalise) {
+		void MeanLinearSpeedAxis (std::vector<std::map<std::string, double>>& mean_lin_speed_inter, 
+			std::shared_ptr<Motion> motion, unsigned int n, const std::string& axis, bool normalise) {
 
-			Frame* beg_frame = nullptr;
-			Frame* end_frame = nullptr;
+			std::shared_ptr<Frame> beg_frame = nullptr;
+			std::shared_ptr<Frame> end_frame = nullptr;
 
 			double frame_time = motion->getFrameTime();
 
@@ -395,8 +404,8 @@ namespace Mla {
 				first_frame_time = end_frame_time;
 				end_frame_time += interval;
 
-				delete beg_frame;
-				delete end_frame;
+				//delete beg_frame;
+				//delete end_frame;
 			}
 		}
 		
@@ -408,10 +417,12 @@ namespace Mla {
 		* @param frame_time Interframe time
 		* @return A vector containing the acceleration
 		*/
-		void jointsLinearAcc(std::map<std::string, double>& lin_acc_vector, Frame* f1, Frame* f2, Frame* f3, double frame_time) {
-			Frame* global_frame_1 = f1->duplicateFrame();
-			Frame* global_frame_2 = f2->duplicateFrame();
-			Frame* global_frame_3 = f3->duplicateFrame();
+		void jointsLinearAcc(std::map<std::string, double>& lin_acc_vector, std::shared_ptr<Frame> f1, 
+			std::shared_ptr<Frame> f2, std::shared_ptr<Frame> f3, double frame_time) {
+
+			std::shared_ptr<Frame> global_frame_1 = f1->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_2 = f2->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_3 = f3->duplicateFrame();
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
@@ -437,9 +448,9 @@ namespace Mla {
 				lin_acc_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), linear_acc));
 			}
 
-			delete global_frame_1;
-			delete global_frame_2;
-			delete global_frame_3;
+			//delete global_frame_1;
+			//delete global_frame_2;
+			//delete global_frame_3;
 		}
 
 		/* Compute the normalised (or not) acceleration of the joints at a given point in time (t).
@@ -451,10 +462,12 @@ namespace Mla {
 		* @param normalise Indicating if the values must be normalised or not 
 		* @return A vector containing the acceleration
 		*/
-		void jointsLinearAcc(std::map<std::string, glm::dvec3>& lin_acc_vector, Frame* f1, Frame* f2, Frame* f3, double frame_time, bool normalise) {
-			Frame* global_frame_1 = f1->duplicateFrame();
-			Frame* global_frame_2 = f2->duplicateFrame();
-			Frame* global_frame_3 = f3->duplicateFrame();
+		void jointsLinearAcc(std::map<std::string, glm::dvec3>& lin_acc_vector, std::shared_ptr<Frame> f1, 
+			std::shared_ptr<Frame> f2, std::shared_ptr<Frame> f3, double frame_time, bool normalise) {
+
+			std::shared_ptr<Frame> global_frame_1 = f1->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_2 = f2->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_3 = f3->duplicateFrame();
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
@@ -486,9 +499,9 @@ namespace Mla {
 				lin_acc_vector.insert(std::pair<std::string, glm::dvec3>(global_frame_1->getJoint(j)->getName(), linear_acc));
 			}
 
-			delete global_frame_1;
-			delete global_frame_2;
-			delete global_frame_3;
+			//delete global_frame_1;
+			//delete global_frame_2;
+			//delete global_frame_3;
 		}
 
 		/* Compute the normalised (or not) acceleration of the joints at a given point in time (t) along one axis.
@@ -501,11 +514,13 @@ namespace Mla {
 		* @param normalise Indicating if the values must be normalised or not
 		* @return A vector containing the acceleration
 		*/
-		void jointLinearAccAxis(std::map<std::string, double>& lin_acc_vector, Frame* f1, Frame* f2, Frame* f3, double frame_time, const std::string& axis, bool normalise) {
+		void jointLinearAccAxis(std::map<std::string, double>& lin_acc_vector, std::shared_ptr<Frame> f1, 
+			std::shared_ptr<Frame> f2, std::shared_ptr<Frame> f3, double frame_time, const std::string& axis, 
+			bool normalise) {
 
-			Frame* global_frame_1 = f1->duplicateFrame();
-			Frame* global_frame_2 = f2->duplicateFrame();
-			Frame* global_frame_3 = f3->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_1 = f1->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_2 = f2->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_3 = f3->duplicateFrame();
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
@@ -542,9 +557,9 @@ namespace Mla {
 				lin_acc_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), linear_acc));
 			}
 
-			delete global_frame_1;
-			delete global_frame_2;
-			delete global_frame_3;
+			//delete global_frame_1;
+			//delete global_frame_2;
+			//delete global_frame_3;
 
 		}
 		
@@ -557,15 +572,17 @@ namespace Mla {
 		* @param frame_time Interframe time
 		* @return A vector containing the jerk
 		*/
-		void jointsJerk(std::map<std::string, glm::vec3>& jerk_vector, Frame* f1, Frame* f2, Frame* f3, Frame* f4, double frame_time) {
+		void jointsJerk(std::map<std::string, glm::vec3>& jerk_vector, std::shared_ptr<Frame> f1, 
+			std::shared_ptr<Frame> f2, std::shared_ptr<Frame> f3, std::shared_ptr<Frame> f4, double frame_time) {
 			// f1 -> t+2
 			// f2 -> t+1
 			// f3 -> t-1
 			// f4 -> t-2
-			Frame* global_frame_1 = f1->duplicateFrame();
-			Frame* global_frame_2 = f2->duplicateFrame();
-			Frame* global_frame_3 = f3->duplicateFrame();
-			Frame* global_frame_4 = f4->duplicateFrame();
+
+			std::shared_ptr<Frame> global_frame_1 = f1->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_2 = f2->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_3 = f3->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_4 = f4->duplicateFrame();
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
@@ -588,10 +605,10 @@ namespace Mla {
 				jerk_vector.insert(std::pair<std::string, glm::dvec3>(global_frame_1->getJoint(j)->getName(), jerk));
 			}
 
-			delete global_frame_1;
+			/*delete global_frame_1;
 			delete global_frame_2;
 			delete global_frame_3;
-			delete global_frame_4;
+			delete global_frame_4;*/
 		}
 
 		/* Compute the normalised jerk of the joints at a given point in time (t).
@@ -603,15 +620,16 @@ namespace Mla {
 		* @param frame_time Interframe time
 		* @return A vector containing the jerk
 		*/
-		void jointsJerkNorm(std::map<std::string, double>& jerk_vector, Frame* f1, Frame* f2, Frame* f3, Frame* f4, double frame_time) {
+		void jointsJerkNorm(std::map<std::string, double>& jerk_vector, std::shared_ptr<Frame> f1, 
+			std::shared_ptr<Frame> f2, std::shared_ptr<Frame> f3, std::shared_ptr<Frame> f4, double frame_time) {
 			// f1 -> t+2
 			// f2 -> t+1
 			// f3 -> t-1
 			// f4 -> t-2
-			Frame* global_frame_1 = f1->duplicateFrame();
-			Frame* global_frame_2 = f2->duplicateFrame();
-			Frame* global_frame_3 = f3->duplicateFrame();
-			Frame* global_frame_4 = f4->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_1 = f1->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_2 = f2->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_3 = f3->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_4 = f4->duplicateFrame();
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
@@ -637,10 +655,10 @@ namespace Mla {
 				jerk_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), jerk_norm));
 			}
 
-			delete global_frame_1;
+			/*delete global_frame_1;
 			delete global_frame_2;
 			delete global_frame_3;
-			delete global_frame_4;
+			delete global_frame_4;*/
 		}
 
 		/* Compute the normalised (or not) jerk of the joints at a given point in time (t) along one axis.
@@ -654,15 +672,17 @@ namespace Mla {
 		* @param normalise Indicating if the values must be normalised or not  
 		* @return A vector containing the jerk
 		*/
-		void jointsJerkAxis(std::map<std::string, double>& jerk_vector, Frame* f1, Frame* f2, Frame* f3, Frame* f4, double frame_time, const std::string& axis, bool normalise) {
+		void jointsJerkAxis(std::map<std::string, double>& jerk_vector, std::shared_ptr<Frame> f1,
+			std::shared_ptr<Frame> f2, std::shared_ptr<Frame> f3, std::shared_ptr<Frame> f4, double frame_time, 
+			const std::string& axis, bool normalise) {
 			// f1 -> t+2
 			// f2 -> t+1
 			// f3 -> t-1
 			// f4 -> t-2
-			Frame* global_frame_1 = f1->duplicateFrame();
-			Frame* global_frame_2 = f2->duplicateFrame();
-			Frame* global_frame_3 = f3->duplicateFrame();
-			Frame* global_frame_4 = f4->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_1 = f1->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_2 = f2->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_3 = f3->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_4 = f4->duplicateFrame();
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 			getGlobalCoordinates(f2, global_frame_2, f2->getJoint("Hips"), glm::dmat4(1.0));
@@ -706,10 +726,10 @@ namespace Mla {
 				jerk_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), jerk));
 			}
 
-			delete global_frame_1;
+			/*delete global_frame_1;
 			delete global_frame_2;
 			delete global_frame_3;
-			delete global_frame_4;
+			delete global_frame_4;*/
 		}
 
 		/** Compute the bounding box (-x, +x, -y, +y, -z, +z) for one frame, on a set of given joints.
@@ -718,8 +738,9 @@ namespace Mla {
 		* @param joints_to_check the joints to check for the bouding box
 		* @return bouding_box the vector containing the 6 values for the bounding box
 		*/
-		void jointsBoundingBox(std::map<std::string, std::vector<double>>& bounding_box, Frame* f1, std::vector<std::string>& joints_to_check, bool normalise) {
-			Frame* global_frame_1 = f1->duplicateFrame();
+		void jointsBoundingBox(std::map<std::string, std::vector<double>>& bounding_box, std::shared_ptr<Frame> f1, 
+			std::vector<std::string>& joints_to_check, bool normalise) {
+			std::shared_ptr<Frame> global_frame_1 = f1->duplicateFrame();
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 
@@ -793,15 +814,15 @@ namespace Mla {
 
 			bounding_box[final_name] = values;
 
-			delete global_frame_1;
+			//delete global_frame_1;
 		}
 		
 		// TODO: doc
 		void jointsBoundingBoxReframed(std::vector<double>& bounding_box, 
-			Frame* f1, std::vector<std::string>& joints_to_check, 
+			std::shared_ptr<Frame> f1, std::vector<std::string>& joints_to_check, 
 			unsigned int vertical_axis, unsigned int width_axis, bool normalise) {
 
-			Frame* global_frame_1 = f1->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_1 = f1->duplicateFrame();
 
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 
@@ -866,7 +887,7 @@ namespace Mla {
 				
 			}
 
-			delete global_frame_1;
+			//delete global_frame_1;
 
 		}
 
@@ -876,7 +897,7 @@ namespace Mla {
 		* @param joints the joints pairs on which the distances will be computed
 		* @return distances the map containing all the computed distances
 		*/
-		void jointsDistance(std::map<std::string, double>& distances, Frame* f1, std::vector<std::string>& joints_to_check, 
+		void jointsDistance(std::map<std::string, double>& distances, std::shared_ptr<Frame> f1, std::vector<std::string>& joints_to_check,
 			const std::vector<std::pair<std::string, std::string>>& joints, bool normalise) {
 			
 			if (joints.empty()) {
@@ -887,7 +908,7 @@ namespace Mla {
 			glm::dvec3 p1;
 			glm::dvec3 p2;
 
-			Frame* global_frame_1 = f1->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_1 = f1->duplicateFrame();
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 			std::string name;
 
@@ -911,7 +932,7 @@ namespace Mla {
 				distances[name] = glm::distance(p1, p2) / n_coef;
 			}
 
-			delete global_frame_1;
+			//delete global_frame_1;
 		}
 
 		/** Compute the distances on all axis for a set of given joints pairs, for one frame.
@@ -920,8 +941,9 @@ namespace Mla {
 		* @param joints the joints pairs on which the distances will be computed
 		* @return distances the map containing all the computed distances
 		*/
-		void jointsDistanceAxis(std::map<std::string, std::vector<double>>& distances, Frame* f1, std::vector<std::string>& joints_to_check,
-			const std::vector<std::pair<std::string, std::string>>& joints, unsigned int vertical_axis, bool normalise) {
+		void jointsDistanceAxis(std::map<std::string, std::vector<double>>& distances, std::shared_ptr<Frame> f1, 
+			std::vector<std::string>& joints_to_check, const std::vector<std::pair<std::string, std::string>>& joints, 
+			unsigned int vertical_axis, bool normalise) {
 			
 			if (joints.empty()) {
 				std::cout << "WARNING in " << __func__ << ": joints list empty (no distance computed)." << std::endl;
@@ -931,7 +953,7 @@ namespace Mla {
 			glm::dvec3 p1;
 			glm::dvec3 p2;
 
-			Frame* global_frame_1 = f1->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_1 = f1->duplicateFrame();
 			getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 			std::string name;
 
@@ -990,7 +1012,7 @@ namespace Mla {
 				distances[name] = distance;
 			}
 
-			delete global_frame_1;
+			//delete global_frame_1;
 		}
 
 		/** Return an interpolated frame from a motion, and a time
@@ -999,8 +1021,9 @@ namespace Mla {
 		* @param Interframe_timeInterframe time from the initial motion
 		* @return The interpolated frame
 		*/
-		Frame* getFrameFromTime (Motion* motion, double current_time, double original_frame_time) {
-			Frame* returnFrame = nullptr;
+		std::shared_ptr<Frame> getFrameFromTime (std::shared_ptr<Motion> motion, double current_time, 
+			double original_frame_time) {
+			std::shared_ptr<Frame> returnFrame = nullptr;
 
 			double frame_wanted = current_time / original_frame_time;
 
@@ -1017,7 +1040,7 @@ namespace Mla {
 			unsigned int frame_bef = static_cast<unsigned int>(frame_wanted);
 
 			// W H Y ???
-			// This is all because the time -> frame space
+			// This is all because of the time -> frame space
 			// let say, 11 frames, from 0 to 5s (interframe_time = 0.5)
 			// std::vector<Frame*>.size() == 11 [0 to 10]
 			// t(f0) = 0s, t(f11) = 5s
@@ -1052,7 +1075,8 @@ namespace Mla {
 		* @param global_mat Modelview matrix (first call: identity matrix)
 		* @return The frame in global coordinates
 		*/
-		void getGlobalCoordinates (Frame* local_frame, Frame* global_frame, Joint* current_joint, glm::dmat4 global_mat) {
+		void getGlobalCoordinates (std::shared_ptr<Frame> local_frame, std::shared_ptr<Frame> global_frame, 
+			std::shared_ptr<Joint> current_joint, glm::dmat4 global_mat) {
 
 			global_mat = glm::translate(global_mat, current_joint->getPositions());
 			global_mat *= glm::mat4_cast(current_joint->getOrientations());
@@ -1389,18 +1413,19 @@ namespace Mla {
 		* @param frames_number New frames count
 		* @return A rebuilded motion
 		*/
-		void motionRebuilding (Motion* original_motion, Motion* new_motion, unsigned int frames_number) {
+		void motionRebuilding (std::shared_ptr<Motion> original_motion, std::shared_ptr<Motion> new_motion, 
+			unsigned int frames_number) {
 			if (frames_number < 2) {
-				*new_motion = Motion();
+				new_motion = std::make_shared<Motion>();
 				return;
 			}
 
 			if (frames_number == original_motion->getFrames().size()) {
-				*new_motion = Motion(*original_motion);
+				new_motion = std::make_shared<Motion>(*original_motion);
 				return;
 			}
 				
-			Frame* frame_to_insert = new Frame();
+			std::shared_ptr<Frame> frame_to_insert = std::make_shared<Frame>();
 
 			// First, we copy the name and the offset frame
 			new_motion->setName(original_motion->getName());
@@ -1443,8 +1468,9 @@ namespace Mla {
 		* @param joint_to_segment Joint used to find the [mini/maxi]mums
 		* @return The different segments of the motion
 		*/
-		void MotionSegmentation (Motion* initial_motion, SegmentationInformation& seg_info, std::vector<Motion*>& motion_segments, const std::string& joint_to_segment) {
-			Motion* sub_motion = nullptr;
+		void MotionSegmentation (std::shared_ptr<Motion> initial_motion, SegmentationInformation& seg_info, 
+			std::vector<std::shared_ptr<Motion>>& motion_segments, const std::string& joint_to_segment) {
+			std::shared_ptr<Motion> sub_motion = nullptr;
 
 			SpeedData speed_data(initial_motion->getFrames().size() - 1, 
 								 initial_motion->getFrameTime(), 
@@ -1469,7 +1495,7 @@ namespace Mla {
 			// Creating the new submotions
 			for (unsigned int i = 0; i < separation_indexes.size(); i++) {
 				
-				sub_motion = new Motion();
+				sub_motion = std::make_shared<Motion>();
 				sub_motion->setName(initial_motion->getName());
 				sub_motion->setFrameTime(initial_motion->getFrameTime());
 				sub_motion->setOffsetFrame(initial_motion->getOffsetFrame()->duplicateFrame());
@@ -1479,11 +1505,11 @@ namespace Mla {
 					sub_motion->addFrame(initial_motion->getFrame(j)->duplicateFrame());
 				}
 
-				Motion* cut_motion = new Motion();
+				std::shared_ptr<Motion> cut_motion = std::make_shared<Motion>();
 				// reconstruct the motion
 				Mla::MotionOperation::motionRebuilding(sub_motion, cut_motion, seg_info.final_frame_number);
 
-				delete sub_motion;
+				//delete sub_motion;
 
 				motion_segments.push_back(cut_motion);
 			}
@@ -1497,8 +1523,9 @@ namespace Mla {
 		* @param joint_to_segment Joint used to find the [mini/maxi]mums
 		* @return The different segments of the motion
 		*/
-		void MotionThrowSegmentation(Motion* initial_motion, SegmentationInformation& seg_info, Motion* result_motion, const std::string& joint_to_segment) {
-			Motion* sub_motion = nullptr;
+		void MotionThrowSegmentation(std::shared_ptr<Motion> initial_motion, SegmentationInformation& seg_info, 
+			std::shared_ptr<Motion> result_motion, const std::string& joint_to_segment) {
+			std::shared_ptr<Motion> sub_motion = nullptr;
 
 			SpeedData speed_data(initial_motion->getFrames().size() - 1,
 				initial_motion->getFrameTime(),
@@ -1522,7 +1549,7 @@ namespace Mla {
 
 			// Creating the new submotion
 
-			sub_motion = new Motion();
+			sub_motion = std::make_shared<Motion>();
 			sub_motion->setName(initial_motion->getName());
 			sub_motion->setFrameTime(initial_motion->getFrameTime());
 			sub_motion->setOffsetFrame(initial_motion->getOffsetFrame()->duplicateFrame());
@@ -1537,7 +1564,7 @@ namespace Mla {
 			// reconstruct the motion
 			Mla::MotionOperation::motionRebuilding(sub_motion, result_motion, seg_info.final_frame_number);
 
-			delete sub_motion;
+			//delete sub_motion;
 		}
 
 		/** Get the indexes of the beginning, max speed value and end of a throw, which correspond respectively to the left local minimum, maximum speed value and right local minimum.
@@ -1547,7 +1574,8 @@ namespace Mla {
 		* @param throw_idx Output vector
 		* @return The 3 desired indexes 
 		*/
-		void getBegMaxEndIndexes (Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<int>& throw_idx) {
+		void getBegMaxEndIndexes (std::shared_ptr<Motion> motion, SegmentationInformation& seg_info, 
+			const std::string& joint_to_segment, std::vector<int>& throw_idx) {
 			SpeedData speed_data(motion->getFrames().size() - 1,
 				motion->getFrameTime(),
 				motion->getFrames().size());
@@ -1575,7 +1603,9 @@ namespace Mla {
 		* @param speed_values Output vector
 		* @return The 3 desired speed values
 		*/
-		void BegMaxEndSpeed (Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<std::map<std::string, glm::dvec3>>& speed_values) {
+		void BegMaxEndSpeed (std::shared_ptr<Motion> motion, SegmentationInformation& seg_info, 
+			const std::string& joint_to_segment, std::vector<std::map<std::string, glm::dvec3>>& speed_values) {
+			
 			std::vector<int> throw_idx;
 			getBegMaxEndIndexes(motion, seg_info, joint_to_segment, throw_idx);
 			
@@ -1610,7 +1640,8 @@ namespace Mla {
 		* @param normalise Indicating if the values must be normalised or not 
 		* @return The 3 desired speed values
 		*/
-		void BegMaxEndSpeedThrow (Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, std::vector<std::map<std::string, glm::dvec3>>& speed_values, bool normalise) {
+		void BegMaxEndSpeedThrow (std::shared_ptr<Motion> motion, SegmentationInformation& seg_info, 
+			const std::string& joint_to_segment, std::vector<std::map<std::string, glm::dvec3>>& speed_values, bool normalise) {
 			// Check if maximum is to the left or to the right
 			// If it 's the case, redo the algorithm on the extracted part
 			// With the 2nd maximum value
@@ -1658,7 +1689,8 @@ namespace Mla {
 		* @param joint_to_segment Joint used to find the values
 		* @return The indexes of the beginning and the end of the throw
 		*/
-		void ThrowDuration (Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment) {
+		void ThrowDuration (std::shared_ptr<Motion> motion, SegmentationInformation& seg_info, 
+			const std::string& joint_to_segment) {
 			SpeedData speed_data(motion->getFrames().size() - 1,
 				motion->getFrameTime(),
 				motion->getFrames().size());
@@ -1687,7 +1719,7 @@ namespace Mla {
 		* @param speed_data Output class (see SpeedData)
 		* @return The computed speed data in a class (see SpeedData)
 		*/
-		void motionSpeedComputing (Motion* motion, SpeedData& speed_data) {
+		void motionSpeedComputing (std::shared_ptr<Motion> motion, SpeedData& speed_data) {
 			std::map<std::string, glm::dvec3> lin_speed;
 
 			// v(t) = ( v(t+1) - v(t-1) ) / 2dt
@@ -1709,7 +1741,7 @@ namespace Mla {
 		* @param acc_vector Output class (see AccData)
 		* @return The computed acceleration data in a class (see AccData)
 		*/
-		void motionAccelerationComputing (Motion* motion, AccData& acc_data) {
+		void motionAccelerationComputing (std::shared_ptr<Motion> motion, AccData& acc_data) {
 			std::map<std::string, glm::dvec3> lin_acc;
 
 			// a(t) = ( x(t+1) - 2 x(t)  + x(t-1) ) / dt²
@@ -1731,7 +1763,8 @@ namespace Mla {
 		* @param speed_data_vector Output vector 
 		* @return The speed data corresponding to the motion's segments
 		*/
-		void ComputeSpeedData (std::vector<Motion*>& motion_segments, std::vector<SpeedData>& speed_data_vector) {
+		void ComputeSpeedData (std::vector<std::shared_ptr<Motion>>& motion_segments, 
+			std::vector<SpeedData>& speed_data_vector) {
 			
 			speed_data_vector.clear();
 
@@ -1751,7 +1784,7 @@ namespace Mla {
 		* @param speed_data_vector Output vector
 		* @return The acceleration data corresponding to the motion's segments
 		*/
-		void ComputeAccData (std::vector<Motion*>& motion_segments, std::vector<AccData>& acc_data_vector) {
+		void ComputeAccData (std::vector<std::shared_ptr<Motion>>& motion_segments, std::vector<AccData>& acc_data_vector) {
 
 			acc_data_vector.clear();
 
@@ -1773,7 +1806,8 @@ namespace Mla {
 		* @param normalise Indicating if the values must be normalised or not 
 		* @return The jerk values along one axis 
 		*/
-		void computeJerk(Motion* motion, std::vector<std::map<std::string, double>>& jerk_vec, std::string& axis, bool normalise) {
+		void computeJerk(std::shared_ptr<Motion> motion, std::vector<std::map<std::string, double>>& jerk_vec, 
+			std::string& axis, bool normalise) {
 			
 			if (axis != "x" && axis != "y" && axis != "z" && axis != "norm") {
 				std::cout << "computeJerk() error: axis parameter must be x, y, z or norm" << std::endl;
@@ -1784,10 +1818,10 @@ namespace Mla {
 
 			std::map<std::string, double> frame_jerk;
 
-			Frame* f1 = nullptr;
-			Frame* f2 = nullptr;
-			Frame* f3 = nullptr;
-			Frame* f4 = nullptr;
+			std::shared_ptr<Frame> f1 = nullptr;
+			std::shared_ptr<Frame> f2 = nullptr;
+			std::shared_ptr<Frame> f3 = nullptr;
+			std::shared_ptr<Frame> f4 = nullptr;
 
 			// jerk = x(t+2) - 2x(t+1) + 2x(t-1) - x(t-2) / 2t^3 
 			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
@@ -1844,7 +1878,8 @@ namespace Mla {
 		* @param bounding_boxes Output vector
 		* @return A vector countaining all the bounding boxes
 		*/
-		void computeBoundingBoxes(Motion* motion, std::vector<std::map<std::string, std::vector<double>>>& bounding_boxes, std::vector<std::string>& joints_to_check) {
+		void computeBoundingBoxes(std::shared_ptr<Motion> motion, std::vector<std::map<std::string, 
+			std::vector<double>>>& bounding_boxes, std::vector<std::string>& joints_to_check) {
 			if (joints_to_check.empty()) {
 				std::cout << "ERROR: please specify a set of joints to extract bounding boxes." << std::endl;
 				return;
@@ -1867,7 +1902,8 @@ namespace Mla {
 		* @param bounding_boxes Output vector
 		* @return The final bouding box coordinates (-x, +x, -y, +y, -z, +z)
 		*/
-		void computeFinalBoudingBox(Motion* motion, std::vector<std::map<std::string, std::vector<double>>>& bounding_box, std::vector<std::string>& KC, bool normalise) {
+		void computeFinalBoudingBox(std::shared_ptr<Motion> motion, std::vector<std::map<std::string, 
+			std::vector<double>>>& bounding_box, std::vector<std::string>& KC, bool normalise) {
 			if (KC.empty()) {
 				std::cout << "ERROR: please specify a set of joints to extract bounding boxes." << std::endl;
 				return;
@@ -1920,7 +1956,7 @@ namespace Mla {
 		}
 		
 		// TODO: doc
-		void computeDistancesBeforeThrow(Motion* motion, SegmentationInformation& seg_info, 
+		void computeDistancesBeforeThrow(std::shared_ptr<Motion> motion, SegmentationInformation& seg_info,
 			const std::string& joint_to_segment, std::vector<std::map<std::string, double>>& distances, 
 			const std::vector<std::pair<std::string, std::string>>& joints, std::vector<std::string>& KC,
 			bool normalise) {
@@ -1952,7 +1988,7 @@ namespace Mla {
 		}
 
 		// TODO: doc
-		void computeDistancesAxisBeforeThrow(Motion* motion, SegmentationInformation& seg_info,
+		void computeDistancesAxisBeforeThrow(std::shared_ptr<Motion> motion, SegmentationInformation& seg_info,
 			const std::string& joint_to_segment, std::vector<std::map<std::string, std::vector<double>>>& distances,
 			const std::vector<std::pair<std::string, std::string>>& joints, std::vector<std::string>& KC,
 			bool normalise) {
@@ -1990,15 +2026,17 @@ namespace Mla {
 		* @param pos_values Output vector
 		* @return The desired positions values for all joints for all frames
 		*/
-		void computePositionBeforeThrow(Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment, 
-			std::vector<std::map<std::string, glm::dvec3>>& pos_values, const std::string& abs_or_rel) {
+		void computePositionBeforeThrow(std::shared_ptr<Motion> motion, SegmentationInformation& seg_info, 
+			const std::string& joint_to_segment, std::vector<std::map<std::string, glm::dvec3>>& pos_values, 
+			const std::string& abs_or_rel) {
+			
 			pos_values.clear();
 
 			std::pair<int, int> throw_idx;
 
 			SpeedData speed_data(motion->getFrames().size() - 1,
 				motion->getFrameTime(),
-				motion->getFrames().size());
+				static_cast<int>(motion->getFrames().size()));
 
 			motionSpeedComputing(motion, speed_data);
 			ComputeSavgol(speed_data, seg_info);
@@ -2015,15 +2053,17 @@ namespace Mla {
 		}
 
 		
-		void computePositionBeforeThrow(Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment,
-			std::vector<std::map<std::string, glm::dvec3>>& pos_values, std::vector<std::string>& KC) {
+		void computePositionBeforeThrow(std::shared_ptr<Motion> motion, SegmentationInformation& seg_info, 
+			const std::string& joint_to_segment, std::vector<std::map<std::string, glm::dvec3>>& pos_values, 
+			std::vector<std::string>& KC) {
+
 			pos_values.clear();
 
 			std::pair<int, int> throw_idx;
 
 			SpeedData speed_data(motion->getFrames().size() - 1,
 				motion->getFrameTime(),
-				motion->getFrames().size());
+				static_cast<int>(motion->getFrames().size()));
 
 			motionSpeedComputing(motion, speed_data);
 			ComputeSavgol(speed_data, seg_info);
@@ -2040,12 +2080,12 @@ namespace Mla {
 		}
 
 		// TODO: either split in two, or change something (because it forces to do some additional processing on the main)
-		void computeBoundingBoxWidth(Motion* motion, std::map<std::string, double>& bb_mean_and_std,
+		void computeBoundingBoxWidth(std::shared_ptr<Motion> motion, std::map<std::string, double>& bb_mean_and_std,
 			std::vector<std::string>& KC) {
 			
 			bb_mean_and_std.clear();
 
-			Frame* global_frame_1 = motion->getFrame(0)->duplicateFrame();
+			std::shared_ptr<Frame> global_frame_1 = motion->getFrame(0)->duplicateFrame();
 
 			getGlobalCoordinates(motion->getFrame(0), global_frame_1, motion->getFrame(0)->getJoint("Hips"), glm::dmat4(1.0));
 
@@ -2087,7 +2127,7 @@ namespace Mla {
 			}
 
 			
-			delete global_frame_1;
+			//delete global_frame_1;
 
 			// Ugly, but it works
 			if (vertical_axis == 0) {
@@ -2227,7 +2267,7 @@ namespace Mla {
 		* @param motion the motion to be filtered
 		* @return The motion with fixed members lengths
 		*/
-		void motionFiltering (Motion* motion) {
+		void motionFiltering (std::shared_ptr<Motion> motion) {
 			// j = 1 because the first frame is the reference
 			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
 				// j = 1 because the root actually has position information

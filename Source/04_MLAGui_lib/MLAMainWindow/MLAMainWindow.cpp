@@ -84,7 +84,7 @@ bool MainWindow::LoadShader(const std::string vertex_shader, const std::string f
 	return true;
 }
 
-void MainWindow::MainLoop(Motion* motion) {
+void MainWindow::MainLoop(std::shared_ptr<Motion> motion) {
 
 	double total_animation_time = motion->getFrames().size() * motion->getFrameTime() * 1000.0f;
 	double loop_beginning = 0, loop_end = 0, elapsed_time = 0;
@@ -262,7 +262,7 @@ void MainWindow::MainLoop(Motion* motion) {
 				if (base_frame >= motion->getFrames().size() - 1)
 					base_frame = 0;
 
-				Frame* interpolated_frame = nullptr;
+				std::shared_ptr<Frame> interpolated_frame = nullptr;
 				interpolated_frame = Mla::MotionOperation::interpolateFrame(motion->getFrame(base_frame), motion->getFrame(base_frame + 1), mix_factor);
 				// GLOBAL CODE -------------------------------------
 				/*Frame* global_frame = new Frame();
@@ -277,7 +277,7 @@ void MainWindow::MainLoop(Motion* motion) {
 										      m_shader);
 
 				
-				delete interpolated_frame;
+				//delete interpolated_frame;
 				//delete global_frame;
 			}
 

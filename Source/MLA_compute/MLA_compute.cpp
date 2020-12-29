@@ -9,7 +9,7 @@
 //       with the highest speed
 #define JOINT_OF_INTEREST "RightHand"
 
-Data ExtractDarts(Motion*, 
+Data ExtractDarts(std::shared_ptr<Motion>,
 				  SegmentationInformation&, 
 				  const std::string&,
 				  std::map<std::string, std::vector<std::string>>&,
@@ -27,81 +27,31 @@ unsigned int DartsExtractionFromFolder(const std::string&, const std::string&, c
 unsigned int GlmFunctionsTest();
 unsigned int MemoryLeakChaser();
 
-int main(int argc, char *argv[]) {
-	std::vector<std::string> all_names;
-	all_names.push_back("Aubert_Julian");
-	all_names.push_back("Audrezet_Remi");
-	all_names.push_back("Beaussier_Simon");
-	all_names.push_back("Bellon_Gregoire");
-	all_names.push_back("Bettenfeld_Vincent");
-	all_names.push_back("Blanchard_Axel");
-	all_names.push_back("Bouligand_Colin");
-	all_names.push_back("Boussard_Clement");
-	all_names.push_back("Brouard_Samuel");
-	all_names.push_back("Brunet_Leo");
-	all_names.push_back("Caillon_Charles");
-	all_names.push_back("Clouet_Alexandre");
-	all_names.push_back("Corgniard_Antoine");
-	all_names.push_back("Coulon_Axel");
-	all_names.push_back("Delhommais_Tony");
-	all_names.push_back("Dizel_Corentin");
-	all_names.push_back("Doneau_Rafael");
-	all_names.push_back("Duchemin_Thomas");
-	all_names.push_back("Duporge_Adrien");
-	all_names.push_back("Durand_Nicolas");
-	all_names.push_back("Euvrard_Louis");
-	all_names.push_back("Griveau_Timothee");
-	all_names.push_back("Guideau_Lucas");
-	all_names.push_back("Huet_Loic");
-	all_names.push_back("Jamet_Baptiste");
-	all_names.push_back("Jonard_Antoine");
-	all_names.push_back("Kherrati_Yazid");
-	all_names.push_back("Laghouaouta_Youness");
-	all_names.push_back("Leborgne_Alex");
-	all_names.push_back("Lechat_William");
-	all_names.push_back("Lefort_Nathan");
-	all_names.push_back("Livain_Corentin");
-	all_names.push_back("Malet_Leo");
-	all_names.push_back("Maurin_Maxime");
-	all_names.push_back("Pechin_Salome");
-	all_names.push_back("Pege_Charly");
-	all_names.push_back("Plaut_Florian");
-	all_names.push_back("Poissonneau_Theo");
-	all_names.push_back("Ponroy_Loris");
-	all_names.push_back("Robert_Flavien");
-	all_names.push_back("Rouxel_Valentin");
-	all_names.push_back("Salles_Wilhelm");
-	all_names.push_back("Saupin_Yanis");
-	all_names.push_back("Sicard_Teddy");
-	all_names.push_back("Valadon_Hugo");
+int main(int argc, char *argv[]) {	
+	std::string input_folder = "E:/Users/quentin/Documents/Programmation/C++/MLA-motion-processing/Data/bvh_test/input/";
+	std::string output_folder = "E:/Users/quentin/Documents/Programmation/C++/MLA-motion-processing/Data/bvh_test/output/";
 
-	for (auto it = all_names.begin(); it != all_names.end(); it++) {
-		//std::string input_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/darts/true_data/students/Jonard/";
-		std::string input_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/darts_batch/" + *it + "/";
-		std::string output_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/alldartsdescriptors/new_students/" + *it + "/";
-		//std::string output_folder = "C:/Users/quentin/Documents/These/Databases/Darts/Aurelien_rotated_new_descriptors/";
+	std::string laterality = "Right";
 
-		std::string laterality = "Right";
-		if (*it == "Plaut_Florian" || *it == "Durand_Nicolas" || *it == "Robert_Flavien" || *it == "Salles_Wilhelm")
-			laterality = "Left";
-		DartsExtractionFromFolder(input_folder, output_folder, laterality);
+	DartsExtractionFromFolder(input_folder, output_folder, laterality);
 
-		std::cout << std::endl << "Press any key to quit...";
-	}
+	std::cout << std::endl << "Press any key to quit...";
+	
 	std::cin.get();
 	return 0;
 }
 
-Data ExtractDarts(Motion* motion, SegmentationInformation& seg_info, const std::string& joint_to_segment,
-	std::map<std::string, std::vector<std::string>>& KCs, const std::vector<std::pair<std::string, std::string>>& distances_to_compute) {
+Data ExtractDarts(std::shared_ptr<Motion> motion, SegmentationInformation& seg_info, const std::string& joint_to_segment,
+	std::map<std::string, std::vector<std::string>>& KCs, const std::vector<std::pair<std::string, 
+	std::string>>& distances_to_compute) {
 
 	std::cout << "Motion filtering..." << std::endl;
 	Mla::MotionOperation::motionFiltering(motion);
 
-	Motion* segmented_motion = new Motion();
+	std::shared_ptr<Motion> segmented_motion = std::make_shared<Motion>();
 
 	seg_info.final_frame_number = motion->getFrames().size();
-	seg_info.final_interframe_time = motion->getFrames().size() * motion->getFrameTime() / static_cast<double>(seg_info.final_frame_number - 1);
+	seg_info.final_interframe_time = motion->getFrames().size() * motion->getFrameTime() / (static_cast<double>(seg_info.final_frame_number) - 1);
 
 	// Computing speed
 	std::cout << "Speed computing..." << std::endl;
@@ -236,7 +186,7 @@ Data ExtractDarts(Motion* motion, SegmentationInformation& seg_info, const std::
 
 	std::cout << "Data export..." << std::endl;
 
-	delete segmented_motion;
+	//delete segmented_motion;
 
 	return data;
 }
@@ -247,7 +197,7 @@ unsigned int DartsExtraction(const std::string& motion_folder_name, const std::s
 							 std::vector<std::pair<std::string, std::string>> distances_to_compute,
 							 const std::string& laterality) {
 	
-	Motion* motion = nullptr;
+	std::shared_ptr<Motion> motion = nullptr;
 
 	motion = Mla::BvhParser::parseBvh(motion_folder_name, motion_name);
 
@@ -281,7 +231,7 @@ unsigned int DartsExtraction(const std::string& motion_folder_name, const std::s
 	Mla::JsonExport::ExportMotionSegmentationInformations(seg_info, folder_name, "segmentation_information");
 	Mla::JsonExport::ExportData(data, folder_name + "/" + subfolder_name, file_name);
 
-	delete motion;
+	//delete motion;
 	return 0;
 }
 
@@ -372,7 +322,7 @@ unsigned int GlmFunctionsTest() {
 }
 
 unsigned int MemoryLeakChaser(){
-	Motion* motion = nullptr;
+	std::shared_ptr<Motion> motion = nullptr;
 	std::string name = "apur.bvh";
 
 	std::vector<std::map<std::string, double>> lin_speed;
@@ -391,7 +341,7 @@ unsigned int MemoryLeakChaser(){
 		lin_speed.clear();
 		Mla::MotionOperation::MeanLinearSpeed(lin_speed, motion, 10);
 
-		delete motion;
+		//delete motion;
 
 	}	
 

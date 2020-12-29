@@ -13,7 +13,7 @@
 
 
 # define minimum cmake version
-cmake_minimum_required(VERSION 3.6.2)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.6.2)
 
 # Our project is called 'MLA' this is how it will be called in
 # visual studio, and in our makefiles.
@@ -148,7 +148,6 @@ IF(WIN_OS)
     #     message(FATAL_ERROR "Error: project valid only for Visual studio 2013 or 2017 version, please reconfigure CmakeLists.txt" )
     # endif(NOT(MSVC12) OR NOT(MSVC15))
 
-
     IF (MSVC_VERSION EQUAL 12)
         SET(CMAKE_VERSION_VISUAL_STUDIO_NAME "Visual Studio 12 2013")
     ENDIF (MSVC_VERSION EQUAL 12)
@@ -158,9 +157,8 @@ IF(WIN_OS)
     ENDIF (MSVC_VERSION EQUAL 14)
 
     IF (MSVC_VERSION EQUAL 15)
-        SET(CMAKE_VERSION_VISUAL_STUDIO_NAME "Visual Studio 15 2017")
+        SET(CMAKE_VERSION_VISUAL_STUDIO_NAME "Visual Studio 16 2019")
     ENDIF (MSVC_VERSION EQUAL 15)
-
 
     SET(WIN_IDE_ARCH 0)
     IF(CMAKE_GENERATOR STREQUAL "${CMAKE_VERSION_VISUAL_STUDIO_NAME} Win64")
@@ -189,7 +187,7 @@ IF(WIN_OS)
         ENDIF(MSVC_VERSION EQUAL 14)
 
         IF(MSVC_VERSION EQUAL 15)
-            MESSAGE(STATUS "Configuration: Visual Studio 2017")
+            MESSAGE(STATUS "Configuration: Visual Studio 2019")
         ENDIF(MSVC_VERSION EQUAL 15)
 
     ENDIF(NOT (WIN_IDE_ARCH))
@@ -199,7 +197,7 @@ ENDIF(WIN_OS)
 
 
 # Manually specifies the build architecture: 32 (please type "x86") or 64 (please type "x64") bits.
-SET(CMAKE_ARCHITECTURE_TYPE x86)
+SET(CMAKE_ARCHITECTURE_TYPE x64)
 
 
 ##---------------------------------------------------------------------------
@@ -283,7 +281,13 @@ IF(WIN_OS)
     # NEURON SDK
     #-------------------------------------
     SET(NEURON_INCLUDE_DIR         ${MLA_SOURCE_DIR}/ThirdParty/Windows/NeuronDataReaderSDK/include)
-    SET(NEURON_LIBRARIES_DIR       ${MLA_SOURCE_DIR}/ThirdParty/Windows/NeuronDataReaderSDK/lib/x86)
+    IF(CMAKE_ARCHITECTURE_TYPE STREQUAL "x86" )
+        SET(NEURON_LIBRARIES_DIR       ${MLA_SOURCE_DIR}/ThirdParty/Windows/NeuronDataReaderSDK/lib/x86)
+    ENDIF(CMAKE_ARCHITECTURE_TYPE STREQUAL "x86" )
+
+    IF(CMAKE_ARCHITECTURE_TYPE STREQUAL "x64" )
+        SET(NEURON_LIBRARIES_DIR       ${MLA_SOURCE_DIR}/ThirdParty/Windows/NeuronDataReaderSDK/lib/x64)
+    ENDIF(CMAKE_ARCHITECTURE_TYPE STREQUAL "x64" )
 
 
     #-------------------------------------
@@ -298,8 +302,8 @@ IF(WIN_OS)
 
     IF(CMAKE_ARCHITECTURE_TYPE STREQUAL "x86" )
 
-        SET(GLEW_LIB        GLEW32_x86.lib
-                    GLEW32s_x86.lib)
+        SET(GLEW_LIB        glew32_x86.lib
+                    glew32s_x86.lib)
 
         SET(SDL_LIB         SDL2_x86.lib
                     SDL2main_x86.lib)
@@ -319,8 +323,8 @@ IF(WIN_OS)
 
     IF(CMAKE_ARCHITECTURE_TYPE STREQUAL "x64" )
 
-        SET(GLEW_LIB        GLEW32_x64.lib
-                    GLEW32s_x64.lib)
+        SET(GLEW_LIB        glew32_x64.lib
+                    glew32s_x64.lib)
 
         SET(SDL_LIB         SDL2_x64.lib
                     SDL2main_x64.lib)

@@ -10,7 +10,7 @@ ADD_LIBRARY(05_MLANeuron_lib STATIC
     MLANeuronConnection/NeuronConnection.cpp
 )
 
-SOURCE_GROUP("Fichiers d'en-tete" FILES MLANeuron_lib.h)
+SOURCE_GROUP("headers" FILES MLANeuron_lib.h)
 
-SOURCE_GROUP("MLANeuronConnection\\Fichiers d'en-tete"    FILES MLANeuronConnection/NeuronConnection.h)
-SOURCE_GROUP("MLANeuronConnection\\Fichiers sources"      FILES MLANeuronConnection/NeuronConnection.cpp)
+SOURCE_GROUP("MLANeuronConnection\\headers"    FILES MLANeuronConnection/NeuronConnection.h)
+SOURCE_GROUP("MLANeuronConnection\\src"      FILES MLANeuronConnection/NeuronConnection.cpp)

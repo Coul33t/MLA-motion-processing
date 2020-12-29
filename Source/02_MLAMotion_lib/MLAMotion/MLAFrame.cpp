@@ -18,9 +18,9 @@ Frame::Frame() {
 */
 Frame::~Frame() {
 	// No need to delete m_root since it will be deleted by this
-	if (!m_joints.empty())
+	/*if (!m_joints.empty())
 		for (unsigned int i = 0; i < m_joints.size(); i++)
-			delete (m_joints[i]);
+			delete (m_joints[i]);*/
 }
 
 // Error? Need a deep copy of the other frame m_joints?
@@ -31,6 +31,10 @@ Frame::Frame(const Frame& frame) {
 	m_joints = frame.m_joints;
 }
 
+/*Frame::Frame(const std::shared_ptr<Frame> frame) {
+	m_joints = frame->m_joints;
+}*/
+
 /** Equal operator overload
 * @param frame The frame to copy
 */
@@ -39,23 +43,28 @@ Frame& Frame::operator=(const Frame& frame) {
 	return *this;
 }
 
-void Frame::setJoints(const std::vector<Joint*>& joints) {
+/*std::shared_ptr<Frame> Frame::operator=(const std::shared_ptr<Frame> frame) {
+	m_joints = frame->m_joints;
+	return std::make_shared<Frame>(this);
+}*/
+
+void Frame::setJoints(const std::vector<std::shared_ptr<Joint>>& joints) {
 	m_joints = joints;
 }
 
-const std::vector<Joint*>& Frame::getJoints() const {
+const std::vector<std::shared_ptr<Joint>>& Frame::getJoints() const {
 	return m_joints;
 }
 
-void Frame::insertJoint(Joint* joint) {
+void Frame::insertJoint(std::shared_ptr<Joint> joint) {
 	m_joints.push_back(joint);
 }
 
-Joint* Frame::getRoot() const {
+std::shared_ptr<Joint> Frame::getRoot() const {
 	return m_root;
 }
 
-void Frame::setRoot(Joint* root) {
+void Frame::setRoot(std::shared_ptr<Joint> root) {
 	m_root = root;
 }
 
@@ -65,7 +74,7 @@ void Frame::setRoot(Joint* root) {
 std::vector<std::string> Frame::getJointsName() const {
 	std::vector<std::string> joint_names;
 
-	for (std::vector<Joint*>::const_iterator it = m_joints.begin(); it != m_joints.end(); ++it) {
+	for (auto it = m_joints.begin(); it != m_joints.end(); ++it) {
 		joint_names.push_back((*it)->getName());
 	}
 
@@ -76,8 +85,8 @@ std::vector<std::string> Frame::getJointsName() const {
 * @param joint_name Name of the desired joint
 * @return The joint if it was found, else a nullptr
 */
-Joint* Frame::getJoint(const std::string& joint_name) {
-	auto it = find_if(m_joints.begin(), m_joints.end(), [&joint_name](const Joint* obj) {return obj->getName() == joint_name; });
+std::shared_ptr<Joint> Frame::getJoint(const std::string& joint_name) {
+	auto it = find_if(m_joints.begin(), m_joints.end(), [&joint_name](const std::shared_ptr<Joint> obj) {return obj->getName() == joint_name; });
 	if (it != m_joints.end()) {
 		return *it;
 	}
@@ -90,7 +99,7 @@ Joint* Frame::getJoint(const std::string& joint_name) {
 * @param idx Index of the desired joint
 * @return The joint if the index is inferior to the joints' vector size, else a nullptr
 */
-Joint* Frame::getJoint(const unsigned int idx) {
+std::shared_ptr<Joint> Frame::getJoint(const unsigned int idx) {
 	if(idx < m_joints.size()) {
 		return m_joints[idx];
 	}
@@ -102,11 +111,11 @@ Joint* Frame::getJoint(const unsigned int idx) {
 /** Duplicates the current frame.
 * @return A copy of the current frame
 */
-Frame* Frame::duplicateFrame() {
-	Frame* copied_frame = new Frame();
+std::shared_ptr<Frame> Frame::duplicateFrame() {
+	std::shared_ptr<Frame> copied_frame = std::make_shared<Frame>();
 
 	for (unsigned int i = 0; i < m_joints.size(); i++) {
-		Joint* new_joint = new Joint(*m_joints[i]);
+		std::shared_ptr<Joint> new_joint = std::make_shared<Joint>(*m_joints[i]);
 
 		new_joint->setParent(nullptr);
 
