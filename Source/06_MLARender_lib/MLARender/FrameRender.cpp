@@ -73,7 +73,7 @@ namespace Mla {
 		@param modelview the modelview matrix
 		@param shader the shader
 		*/
-		void RenderFrame(Frame* frame, glm::dmat4& projection, glm::dmat4& modelview, Shader& shader) {
+		void RenderFrame(std::weak_ptr<Frame> frame, glm::dmat4& projection, glm::dmat4& modelview, Shader& shader) {
 			double line_vertices[6];
 			double point_vertice[3];
 			double line_colour[6] = { 1, 1, 0, 1, 1, 0 };
@@ -83,34 +83,36 @@ namespace Mla {
 
 			std::map<std::string, glm::dmat4> quaternions_to_mat_map;
 
+			auto pframe = frame.lock();
+
 			// For each graph node
-			for (unsigned int j = 0; j < frame->getJoints().size(); j++) {
+			for (unsigned int j = 0; j < pframe->getJoints().size(); j++) {
 
 				// If it's the root
-				if (frame->getJoint(j) == frame->getRoot()) {
-					saved_modelview = glm::translate(saved_modelview, frame->getJoint(j)->getPositions());
+				if (pframe->getJoint(j) == pframe->getRoot()) {
+					saved_modelview = glm::translate(saved_modelview, pframe->getJoint(j)->getPositions());
 
 					// We slerp them, transform into a matrix and we do the rotation
-					saved_modelview = saved_modelview*glm::mat4_cast(frame->getJoint(j)->getOrientations());
+					saved_modelview = saved_modelview*glm::mat4_cast(pframe->getJoint(j)->getOrientations());
 
-					point_vertice[0] = frame->getJoint(j)->getPositions()[0];
-					point_vertice[1] = frame->getJoint(j)->getPositions()[1];
-					point_vertice[2] = frame->getJoint(j)->getPositions()[2];
+					point_vertice[0] = pframe->getJoint(j)->getPositions()[0];
+					point_vertice[1] = pframe->getJoint(j)->getPositions()[1];
+					point_vertice[2] = pframe->getJoint(j)->getPositions()[2];
 
 					DisplayPoint(shader, projection, modelview, point_vertice, point_colour);
 
 					// We pair it with the joint name and we put it into the map
-					quaternions_to_mat_map.insert(std::make_pair(frame->getJoint(j)->getName(), saved_modelview));
+					quaternions_to_mat_map.insert(std::make_pair(pframe->getJoint(j)->getName(), saved_modelview));
 				}
 
 				// Not the root (other joints)
 				else {
 
-					std::map<std::string, glm::dmat4>::iterator it_quat = quaternions_to_mat_map.find(frame->getJoint(j)->getParent()->getName());
+					std::map<std::string, glm::dmat4>::iterator it_quat = quaternions_to_mat_map.find(pframe->getJoint(j)->getParent()->getName());
 
 					// If we don't find the modelview matrix for the parent, ABANDON SHIP
 					if (it_quat == quaternions_to_mat_map.end()){
-						std::cout << "Error : " << frame->getJoint(j)->getParent()->getName() << " not found in std::map<std::string, glm::mat4> quaternions_to_mat_map." << std::endl;
+						std::cout << "Error : " << pframe->getJoint(j)->getParent()->getName() << " not found in std::map<std::string, glm::mat4> quaternions_to_mat_map." << std::endl;
 						exit(EXIT_FAILURE);
 					}
 					
@@ -121,9 +123,9 @@ namespace Mla {
 					line_vertices[1] = 0;
 					line_vertices[2] = 0;
 
-					line_vertices[3] = frame->getJoint(j)->getPositions()[0];
-					line_vertices[4] = frame->getJoint(j)->getPositions()[1];
-					line_vertices[5] = frame->getJoint(j)->getPositions()[2];
+					line_vertices[3] = pframe->getJoint(j)->getPositions()[0];
+					line_vertices[4] = pframe->getJoint(j)->getPositions()[1];
+					line_vertices[5] = pframe->getJoint(j)->getPositions()[2];
 
 					point_vertice[0] = line_vertices[3];
 					point_vertice[1] = line_vertices[4];
@@ -139,10 +141,10 @@ namespace Mla {
 					saved_modelview = glm::translate(saved_modelview, glm::dvec3(point_vertice[0], point_vertice[1], point_vertice[2]));
 
 					// We slerp them, transform into a matrix, and we do the rotation
-					saved_modelview = saved_modelview*glm::mat4_cast(frame->getJoint(j)->getOrientations());
+					saved_modelview = saved_modelview*glm::mat4_cast(pframe->getJoint(j)->getOrientations());
 
 					// We pair it with the joint name and we put it into the map
-					quaternions_to_mat_map.insert(std::make_pair(frame->getJoint(j)->getName(), saved_modelview));
+					quaternions_to_mat_map.insert(std::make_pair(pframe->getJoint(j)->getName(), saved_modelview));
 
 				}
 			}
@@ -155,28 +157,30 @@ namespace Mla {
 		@param modelview the modelview matrix
 		@param shader the shader
 		*/
-		void DrawFromGlobal(Frame* frame, glm::dmat4& projection, glm::dmat4& modelview, Shader& shader) {
+		void DrawFromGlobal(std::weak_ptr<Frame> frame, glm::dmat4& projection, glm::dmat4& modelview, Shader& shader) {
 			double line_vertices[6];
 			double line_colour[6] = { 0, 1, 0, 1, 0, 1 };
 			double point_vertice[3];
 			double point_colour[3] = { 0, 1, 1 };
 
-			// j = joints
-			for (unsigned int j = 0; j < frame->getJoints().size(); j++) {
+			auto pframe = frame.lock();
 
-				point_vertice[0] = frame->getJoint(j)->getPositions().x;
-				point_vertice[1] = frame->getJoint(j)->getPositions().y;
-				point_vertice[2] = frame->getJoint(j)->getPositions().z;
+			// j = joints
+			for (unsigned int j = 0; j < pframe->getJoints().size(); j++) {
+
+				point_vertice[0] = pframe->getJoint(j)->getPositions().x;
+				point_vertice[1] = pframe->getJoint(j)->getPositions().y;
+				point_vertice[2] = pframe->getJoint(j)->getPositions().z;
 
 				DisplayPoint(shader, projection, modelview, point_vertice, point_colour);
 
-				if(frame->getJoint(j)->getParent()) {
-					line_vertices[0] = frame->getJoint(j)->getParent()->getPositions()[0];
-					line_vertices[1] = frame->getJoint(j)->getParent()->getPositions()[1];
-					line_vertices[2] = frame->getJoint(j)->getParent()->getPositions()[2];
-					line_vertices[3] = frame->getJoint(j)->getPositions()[0];
-					line_vertices[4] = frame->getJoint(j)->getPositions()[1];
-					line_vertices[5] = frame->getJoint(j)->getPositions()[2];
+				if(pframe->getJoint(j)->getParent()) {
+					line_vertices[0] = pframe->getJoint(j)->getParent()->getPositions()[0];
+					line_vertices[1] = pframe->getJoint(j)->getParent()->getPositions()[1];
+					line_vertices[2] = pframe->getJoint(j)->getParent()->getPositions()[2];
+					line_vertices[3] = pframe->getJoint(j)->getPositions()[0];
+					line_vertices[4] = pframe->getJoint(j)->getPositions()[1];
+					line_vertices[5] = pframe->getJoint(j)->getPositions()[2];
 
 					DisplayLine(shader, projection, modelview, line_vertices, line_colour);
 				}
