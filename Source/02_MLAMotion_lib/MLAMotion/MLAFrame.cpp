@@ -14,6 +14,11 @@ Frame::Frame() {
 	m_root = nullptr;
 }
 
+Frame::Frame(size_t joints_number) {
+	m_root = nullptr;
+	m_joints.reserve(joints_number);
+}
+
 /** Destructor
 */
 Frame::~Frame() {
@@ -103,7 +108,7 @@ Joint* Frame::getJoint(const unsigned int idx) {
 * @return A copy of the current frame
 */
 Frame* Frame::duplicateFrame() {
-	Frame* copied_frame = new Frame();
+	Frame* copied_frame = new Frame(m_joints.size());
 
 	for (unsigned int i = 0; i < m_joints.size(); i++) {
 		Joint* new_joint = new Joint(*m_joints[i]);
@@ -122,7 +127,7 @@ Frame* Frame::duplicateFrame() {
 			copied_frame->setRoot(new_joint);
 		}
 
-		copied_frame->insertJoint(new_joint);
+		copied_frame->m_joints.push_back(new_joint);
 	}
 
 	return copied_frame;

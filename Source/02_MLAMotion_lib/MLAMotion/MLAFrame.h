@@ -18,6 +18,7 @@ class Frame {
 
 public:
 	Frame();
+	Frame(size_t joints_number);
 	~Frame();
 	Frame(const Frame& frame);
 

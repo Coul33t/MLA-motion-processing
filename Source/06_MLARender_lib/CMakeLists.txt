@@ -17,7 +17,7 @@ ADD_LIBRARY(06_MLARender_lib STATIC
     MLARender/FrameRender.cpp
 )
 
-SOURCE_GROUP("Fichiers d'en-tete" FILES MLARender_lib.h)
+SOURCE_GROUP("headers" FILES MLARender_lib.h)
 
-SOURCE_GROUP("MLARender\\Fichiers d'en-tete"    FILES MLARender/FrameRender.h)
-SOURCE_GROUP("MLARender\\Fichiers sources"      FILES MLARender/FrameRender.cpp)
+SOURCE_GROUP("MLARender\\headers"    FILES MLARender/FrameRender.h)
+SOURCE_GROUP("MLARender\\src"      FILES MLARender/FrameRender.cpp)

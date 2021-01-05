@@ -19,16 +19,16 @@ ADD_LIBRARY(02_MLAMotion_lib STATIC
     MLAMotion/MLAJoint.cpp	
 )
 
-SOURCE_GROUP("Fichiers d'en-tete" FILES MLAMotion_lib.h)
+SOURCE_GROUP("headers" FILES MLAMotion_lib.h)
 
-SOURCE_GROUP("MLAMotion\\Fichiers d'en-tete"    FILES MLAMotion/MLAMotion.h)
-SOURCE_GROUP("MLAMotion\\Fichiers sources"      FILES MLAMotion/MLAMotion.cpp)
+SOURCE_GROUP("MLAMotion\\headers"    FILES MLAMotion/MLAMotion.h)
+SOURCE_GROUP("MLAMotion\\src"      FILES MLAMotion/MLAMotion.cpp)
 
-SOURCE_GROUP("MLAMotion\\Fichiers d'en-tete"    FILES MLAMotion/MLAFrame.h)
-SOURCE_GROUP("MLAMotion\\Fichiers sources"      FILES MLAMotion/MLAFrame.cpp)
+SOURCE_GROUP("MLAMotion\\headers"    FILES MLAMotion/MLAFrame.h)
+SOURCE_GROUP("MLAMotion\\src"      FILES MLAMotion/MLAFrame.cpp)
 
-SOURCE_GROUP("MLAMotion\\Fichiers d'en-tete"    FILES MLAMotion/MLAJoint.h)
-SOURCE_GROUP("MLAMotion\\Fichiers sources"      FILES MLAMotion/MLAJoint.cpp)
+SOURCE_GROUP("MLAMotion\\headers"    FILES MLAMotion/MLAJoint.h)
+SOURCE_GROUP("MLAMotion\\src"      FILES MLAMotion/MLAJoint.cpp)
 
 
 

@@ -32,13 +32,13 @@ project(MLA_compute)
         MLA_compute.cpp
     )
 
-    SOURCE_GROUP("Fichiers d'en-tete" REGULAR_EXPRESSION "[.]h$")
-    SOURCE_GROUP("Fichiers sources" REGULAR_EXPRESSION "[.]cpp$")
+    SOURCE_GROUP("headers" REGULAR_EXPRESSION "[.]h$")
+    SOURCE_GROUP("src" REGULAR_EXPRESSION "[.]cpp$")
 
 
     IF(WIN_OS)
 
-    
+
         TARGET_LINK_LIBRARIES(MLA_compute
             06_MLARender_lib.lib
             05_MLANeuron_lib.lib
@@ -51,12 +51,12 @@ project(MLA_compute)
             ${OPENGL_LIB}
             ${NEURON_LIB}
         )
-    
+
         #-------------------------------------
         # SDL
         #-------------------------------------
 
-    
+
         add_custom_command(TARGET MLA_compute   POST_BUILD      # Adds a post-build event to MyTest
                     COMMAND ${CMAKE_COMMAND} -E copy_if_different   # which executes "cmake - E copy_if_different..."
                     ${SDL_DYNAMIC_LIB}              # <--this is in-file
@@ -83,10 +83,10 @@ project(MLA_compute)
 
 
 
-                    
+
     IF(LINUX_OS)
 
-    
+
         TARGET_LINK_LIBRARIES(MLA_compute
                 06_MLARender_lib.a
                 05_MLANeuron_lib.a
@@ -98,14 +98,14 @@ project(MLA_compute)
                 ${GLEW_LIB}
                 ${OPENGL_LIB}
                 ${THREAD_LIBRARY}
-                ${CMAKE_DL_LIBS}                    
+                ${CMAKE_DL_LIBS}
         )
 
     ENDIF(LINUX_OS)
 
 
     IF(APPLE_OS)
-    
+
         TARGET_LINK_LIBRARIES(MLA_compute
                 06_MLARender_lib.a
                 05_MLANeuron_lib.a

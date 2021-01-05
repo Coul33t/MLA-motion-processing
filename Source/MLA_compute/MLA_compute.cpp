@@ -4,6 +4,7 @@
 
 #include "MLA.h"
 #include <algorithm>
+//#include <filesystem>
 
 // TODO: automatically find the joint
 //       with the highest speed
@@ -28,66 +29,16 @@ unsigned int GlmFunctionsTest();
 unsigned int MemoryLeakChaser();
 
 int main(int argc, char *argv[]) {
-	std::vector<std::string> all_names;
-	all_names.push_back("Aubert_Julian");
-	all_names.push_back("Audrezet_Remi");
-	all_names.push_back("Beaussier_Simon");
-	all_names.push_back("Bellon_Gregoire");
-	all_names.push_back("Bettenfeld_Vincent");
-	all_names.push_back("Blanchard_Axel");
-	all_names.push_back("Bouligand_Colin");
-	all_names.push_back("Boussard_Clement");
-	all_names.push_back("Brouard_Samuel");
-	all_names.push_back("Brunet_Leo");
-	all_names.push_back("Caillon_Charles");
-	all_names.push_back("Clouet_Alexandre");
-	all_names.push_back("Corgniard_Antoine");
-	all_names.push_back("Coulon_Axel");
-	all_names.push_back("Delhommais_Tony");
-	all_names.push_back("Dizel_Corentin");
-	all_names.push_back("Doneau_Rafael");
-	all_names.push_back("Duchemin_Thomas");
-	all_names.push_back("Duporge_Adrien");
-	all_names.push_back("Durand_Nicolas");
-	all_names.push_back("Euvrard_Louis");
-	all_names.push_back("Griveau_Timothee");
-	all_names.push_back("Guideau_Lucas");
-	all_names.push_back("Huet_Loic");
-	all_names.push_back("Jamet_Baptiste");
-	all_names.push_back("Jonard_Antoine");
-	all_names.push_back("Kherrati_Yazid");
-	all_names.push_back("Laghouaouta_Youness");
-	all_names.push_back("Leborgne_Alex");
-	all_names.push_back("Lechat_William");
-	all_names.push_back("Lefort_Nathan");
-	all_names.push_back("Livain_Corentin");
-	all_names.push_back("Malet_Leo");
-	all_names.push_back("Maurin_Maxime");
-	all_names.push_back("Pechin_Salome");
-	all_names.push_back("Pege_Charly");
-	all_names.push_back("Plaut_Florian");
-	all_names.push_back("Poissonneau_Theo");
-	all_names.push_back("Ponroy_Loris");
-	all_names.push_back("Robert_Flavien");
-	all_names.push_back("Rouxel_Valentin");
-	all_names.push_back("Salles_Wilhelm");
-	all_names.push_back("Saupin_Yanis");
-	all_names.push_back("Sicard_Teddy");
-	all_names.push_back("Valadon_Hugo");
 
-	for (auto it = all_names.begin(); it != all_names.end(); it++) {
-		//std::string input_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/darts/true_data/students/Jonard/";
-		std::string input_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/Bvh/darts_batch/" + *it + "/";
-		std::string output_folder = "C:/Users/quentin/Documents/Programmation/C++/MLA/Data/alldartsdescriptors/new_students/" + *it + "/";
-		//std::string output_folder = "C:/Users/quentin/Documents/These/Databases/Darts/Aurelien_rotated_new_descriptors/";
+	std::string input_folder = "../../../Data/bvh_test/input/";
+	std::string output_folder = "../../../Data/bvh_test/output/";
 
-		std::string laterality = "Right";
-		if (*it == "Plaut_Florian" || *it == "Durand_Nicolas" || *it == "Robert_Flavien" || *it == "Salles_Wilhelm")
-			laterality = "Left";
-		DartsExtractionFromFolder(input_folder, output_folder, laterality);
+	//std::cout << std::filesystem::current_path() << std::endl;
+		
+	std::string laterality = "Right";
+	DartsExtractionFromFolder(input_folder, output_folder, laterality);
 
-		std::cout << std::endl << "Press any key to quit...";
-	}
+	std::cout << std::endl << "Press any key to quit...";
 	std::cin.get();
 	return 0;
 }

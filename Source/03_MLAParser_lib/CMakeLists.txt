@@ -14,7 +14,7 @@ ADD_LIBRARY(03_MLAParser_lib STATIC
     MLABvhParser/MLABvhParser.cpp
 )
 
-SOURCE_GROUP("Fichiers d'en-tete" FILES MLAParser_lib.h)
+SOURCE_GROUP("headers" FILES MLAParser_lib.h)
 
-SOURCE_GROUP("MLABvhParser\\Fichiers d'en-tete"    FILES MLABvhParser/MLABvhParser.h)
-SOURCE_GROUP("MLABvhParser\\Fichiers sources"      FILES MLABvhParser/MLABvhParser.cpp)
+SOURCE_GROUP("MLABvhParser\\headers"    FILES MLABvhParser/MLABvhParser.h)
+SOURCE_GROUP("MLABvhParser\\src"      FILES MLABvhParser/MLABvhParser.cpp)
