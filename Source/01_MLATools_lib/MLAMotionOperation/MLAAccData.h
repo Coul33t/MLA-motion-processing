@@ -1,3 +1,5 @@
+// TODO: get rid of this. Slow af.
+
 /**
 Class for the acceleration data.
 MLAAccData.h

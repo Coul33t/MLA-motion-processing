@@ -14,63 +14,64 @@ namespace Mla {
 		**************************************************************/
 		void LUDCMP(MAT A, int N, int *INDX, int *D, int *CODE) {
 
-			#define NMX  100
+			const int nmx = 100;
 
 			double AMAX, DUM, SUM, TINY;
-			double VV[NMX];
-			int   I, IMAX, J, K;
+			double VV[nmx];
+			int i_max = 0;
 
 			TINY = (double)1e-12;
 
-			*D = 1; *CODE = 0;
+			*D = 1; 
+			*CODE = 0;
 
-			for (I = 1; I <= N; I++) {
+			for (int i = 1; i <= N; i++) {
 				AMAX = 0.0;
-				for (J = 1; J <= N; J++)
-					if (fabs(A[I][J]) > AMAX) AMAX = (double)fabs(A[I][J]);
+				for (int j = 1; j <= N; j++)
+					if (fabs(A[i][j]) > AMAX) AMAX = (double)fabs(A[i][j]);
 				if (AMAX < TINY) {
 					*CODE = 1;
 					return;
 				}
-				VV[I] = (double)1.0 / AMAX;
+				VV[i] = (double)1.0 / AMAX;
 			}
 
-			for (J = 1; J <= N; J++) {
-				for (I = 1; I < J; I++) {
-					SUM = A[I][J];
-					for (K = 1; K < I; K++)
-						SUM -= A[I][K] * A[K][J];
-					A[I][J] = SUM;
+			for (int j = 1; j <= N; j++) {
+				for (int i = 1; i < j; i++) {
+					SUM = A[i][j];
+					for (int k = 1; k < i; k++)
+						SUM -= A[i][k] * A[k][j];
+					A[i][j] = SUM;
 				}
 				AMAX = 0.0;
-				for (I = J; I <= N; I++) {
-					SUM = A[I][J];
-					for (K = 1; K < J; K++)
-						SUM -= A[I][K] * A[K][J];
-					A[I][J] = SUM;
-					DUM = VV[I] * (double)fabs(SUM);
+				for (int i = j; i <= N; i++) {
+					SUM = A[i][j];
+					for (int k = 1; k < j; k++)
+						SUM -= A[i][k] * A[k][j];
+					A[i][j] = SUM;
+					DUM = VV[i] * (double)fabs(SUM);
 					if (DUM >= AMAX) {
-						IMAX = I;
+						i_max = i;
 						AMAX = DUM;
 					}
 				}
 
-				if (J != IMAX) {
-					for (K = 1; K <= N; K++) {
-						DUM = A[IMAX][K];
-						A[IMAX][K] = A[J][K];
-						A[J][K] = DUM;
+				if (j != i_max) {
+					for (int k = 1; k <= N; k++) {
+						DUM = A[i_max][k];
+						A[i_max][k] = A[j][k];
+						A[j][k] = DUM;
 					}
 					*D = -(*D);
-					VV[IMAX] = VV[J];
+					VV[i_max] = VV[j];
 				}
 
-				INDX[J] = IMAX;
-				if ((double)fabs(A[J][J]) < TINY)  A[J][J] = TINY;
+				INDX[j] = i_max;
+				if ((double)fabs(A[j][j]) < TINY)  A[j][j] = TINY;
 
-				if (J != N) {
-					DUM = (double)1.0 / A[J][J];
-					for (I = J + 1; I <= N; I++)  A[I][J] *= DUM;
+				if (j != N) {
+					DUM = (double)1.0 / A[j][j];
+					for (int i = j + 1; i <= N; i++)  A[i][j] *= DUM;
 				}
 			} //j loop
 
@@ -130,10 +131,10 @@ namespace Mla {
 			int d, icode, imj, ipj, j, k, mm;
 			int indx[MMAX + 2];
 			double fac, sum;
-			MAT   a;
+			MAT a;
 			double b[MMAX + 2];
 
-			for (unsigned int i = 1; i <= MMAX + 1; i++) {
+			for (size_t i = 1; i <= MMAX + 1; i++) {
 				for (j = 1; j <= MMAX + 1; j++) a[i][j] = 0.0;
 				b[i] = 0.0;
 				indx[i] = 0;
@@ -169,7 +170,7 @@ namespace Mla {
 				coefs.push_back(sum);
 			}
 
-			std::reverse(coefs.begin(), coefs.end()); // reverse the orderof the coefficients
+			std::reverse(coefs.begin(), coefs.end()); // reverse the order of the coefficients
 		}
 
 		void Savgol(std::vector<double>& output_data, const std::vector<double>& data, unsigned int polynom_order, unsigned int window_size) {
@@ -199,7 +200,7 @@ namespace Mla {
 			//  - we can do some zero-padding to the left and the right
 			//  - we can mirror the nth first values and the nth last values
 			// The last option is used there. It gives a pretty smooth beginning and ending, compared to the zero-padding
-			for (unsigned int i = 0; i < half_window; i++) {
+			for (size_t i = 0; i < half_window; i++) {
 				padded_data.insert(padded_data.begin(), data[i]);
 				padded_data.insert(padded_data.end(), data[data.size() - 1 - i]);
 			}
@@ -214,9 +215,9 @@ namespace Mla {
 			SavgolCoeffs(coefs, half_window, half_window, 0, polynom_order);
 
 			// Apply filter to input data.
-			for (unsigned int i = 0; i < data.size(); i++) {
+			for (size_t i = 0; i < data.size(); i++) {
 				output_data.push_back(0.0);
-				for (unsigned int j = 0; j < coefs.size(); j++)
+				for (size_t j = 0; j < coefs.size(); j++)
 					output_data[i] += coefs[j] * padded_data[j + i];
 			}
 		}
