@@ -12,7 +12,7 @@ namespace Mla {
 		* in combination with LUBKSB to solve linear equations or to  *
 		* invert a matrix. Return code is 1, if matrix is singular.   *
 		**************************************************************/
-		void LUDCMP(MAT A, int N, int *INDX, int *D, int *CODE) {
+		void LUDCMP(MAT A, int N, int *INDX, int *D) {
 
 			const int nmx = 100;
 
@@ -23,30 +23,28 @@ namespace Mla {
 			TINY = (double)1e-12;
 
 			*D = 1; 
-			*CODE = 0;
 
-			for (int i = 1; i <= N; i++) {
+			for (int i = 0; i < N; i++) {
 				AMAX = 0.0;
-				for (int j = 1; j <= N; j++)
+				for (int j = 0; j < N; j++)
 					if (fabs(A[i][j]) > AMAX) AMAX = (double)fabs(A[i][j]);
 				if (AMAX < TINY) {
-					*CODE = 1;
 					return;
 				}
 				VV[i] = (double)1.0 / AMAX;
 			}
 
-			for (int j = 1; j <= N; j++) {
-				for (int i = 1; i < j; i++) {
+			for (int j = 0; j < N; j++) {
+				for (int i = 0; i < j - 1; i++) {
 					SUM = A[i][j];
-					for (int k = 1; k < i; k++)
+					for (int k = 0; k < i - 1; k++)
 						SUM -= A[i][k] * A[k][j];
 					A[i][j] = SUM;
 				}
 				AMAX = 0.0;
-				for (int i = j; i <= N; i++) {
+				for (int i = j; i < N; i++) {
 					SUM = A[i][j];
-					for (int k = 1; k < j; k++)
+					for (int k = 0; k < j - 1; k++)
 						SUM -= A[i][k] * A[k][j];
 					A[i][j] = SUM;
 					DUM = VV[i] * (double)fabs(SUM);
@@ -57,7 +55,7 @@ namespace Mla {
 				}
 
 				if (j != i_max) {
-					for (int k = 1; k <= N; k++) {
+					for (int k = 0; k < N; k++) {
 						DUM = A[i_max][k];
 						A[i_max][k] = A[j][k];
 						A[j][k] = DUM;
@@ -95,16 +93,16 @@ namespace Mla {
 
 			II = 0;
 
-			for (I = 1; I <= N; I++) {
-				LL = INDX[I];
+			for (int i = 0; i < N; i++) {
+				LL = INDX[i];
 				SUM = B[LL];
-				B[LL] = B[I];
+				B[LL] = B[i];
 				if (II != 0)
-					for (J = II; J < I; J++)
-						SUM -= A[I][J] * B[J];
+					for (int j = II; j < i - 1; j++)
+						SUM -= A[i][j] * B[j];
 				else if (SUM != 0.0)
-					II = I;
-				B[I] = SUM;
+					II = i;
+				B[i] = SUM;
 			}
 
 			for (I = N; I > 0; I--) {
@@ -128,35 +126,44 @@ namespace Mla {
 			(e.g., ld = 0 for smoothed function). m is the order of the smoothing polynomial, also
 			equal to the highest conserved moment; usual values are m = 2 or m = 4.
 			-------------------------------------------------------------------------------------------*/
-			int d, icode, imj, ipj, j, k, mm;
-			int indx[MMAX + 2];
+			int d, imj, ipj, j, k, mm;
+			int indx[MMAX + 1];
 			double fac, sum;
 			MAT a;
-			double b[MMAX + 2];
+			double b[MMAX + 1];
 
-			for (size_t i = 1; i <= MMAX + 1; i++) {
-				for (j = 1; j <= MMAX + 1; j++) a[i][j] = 0.0;
+			for (size_t i = 0; i < MMAX + 1; i++) {
+				for (j = 0; j < MMAX + 1; j++) 
+					a[i][j] = 0.0;
 				b[i] = 0.0;
 				indx[i] = 0;
 			}
 
 			for (ipj = 0; ipj <= 2 * m; ipj++) { //Set up the normal equations of the desired leastsquares fit.
 				sum = 0.0;
-				if (ipj == 0) sum = 1.0;
-				for (k = 1; k <= nr; k++) sum += (double)pow(k, ipj);
-				for (k = 1; k <= nl; k++) sum += (double)pow(-k, ipj);
+				if (ipj == 0) 
+					sum = 1.0;
+
+				for (k = 0; k < nr; k++) 
+					sum += (double)pow(k + 1, ipj);
+
+				for (k = 0; k < nl; k++) 
+					sum += (double)pow(-(k + 1), ipj);
+
 				mm = std::min(ipj, 2 * m - ipj);
 				imj = -mm;
+
 				do {
-					a[1 + (ipj + imj) / 2][1 + (ipj - imj) / 2] = sum;
+					a[(ipj + imj) / 2][(ipj - imj) / 2] = sum;
 					imj += 2;
 				} while (imj <= mm);
 			}
 
-			LUDCMP(a, m + 1, indx, &d, &icode);    //Solve them: LU decomposition
+			LUDCMP(a, m + 1, indx, &d);    //Solve them: LU decomposition
 
-			for (j = 1; j <= m + 1; j++) b[j] = 0.0;
-			b[ld + 1] = 1.0;    //Right-hand side vector is unit vector, depending on which derivative we want.
+			for (j = 0; j < m + 1; j++) 
+				b[j] = 0.0;
+			b[ld] = 1.0;    //Right-hand side vector is unit vector, depending on which derivative we want.
 
 			LUBKSB(a, m + 1, indx, b);      //Backsubstitute, giving one row of the inverse matrix.
 
