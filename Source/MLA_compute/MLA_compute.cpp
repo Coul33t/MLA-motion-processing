@@ -31,7 +31,8 @@ void SavgolTest();
 
 int main(int argc, char *argv[]) {
 
-	std::string input_folder = "../../../Data/bvh_test/input/";
+	SavgolTest();
+	/*std::string input_folder = "../../../Data/bvh_test/input/";
 	std::string output_folder = "../../../Data/bvh_test/output/";
 
 	//std::cout << std::filesystem::current_path() << std::endl;
@@ -40,7 +41,7 @@ int main(int argc, char *argv[]) {
 	DartsExtractionFromFolder(input_folder, output_folder, laterality);
 
 	std::cout << std::endl << "Press any key to quit...";
-	std::cin.get();
+	std::cin.get();*/
 	return 0;
 }
 
@@ -351,5 +352,34 @@ unsigned int MemoryLeakChaser(){
 }
 
 void SavgolTest() {
+	/*
+		REFERENCE:
+			0 -> 0.0857143
+			1 -> 0.914286
+			2 -> 2.17143
+			3 -> 2.48571
+			2 -> 2.51429
+			3 -> 2.82857
+			4 -> 4
+			5 -> 5
+			6 -> 6
+			7 -> 7.42857
+			8 -> 6.97143
+			4 -> 4.51429
+			2 -> 2.17143
+			3 -> 3.42857
+			6 -> 5.4
+			5 -> 4.22857
+			1 -> 2.71429
+			4 -> 3.14286
+	*/
+	std::vector<double> savgoled;
 
+	std::vector<double> input = { 0, 1, 2, 3, 2, 3, 4, 5, 6, 7, 8, 4, 2, 3, 6, 5, 1, 4 };
+
+	Mla::Filters::Savgol(savgoled, input, 3, 5);
+
+	for (size_t i = 0; i < input.size(); i++) {
+		std::cout << input[i] << " -> " << savgoled[i] << std::endl;
+	}
 }
