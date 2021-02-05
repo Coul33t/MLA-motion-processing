@@ -89,28 +89,31 @@ namespace Mla {
 		void LUBKSB(MAT A, int N, int *INDX, double *B)  {
 
 			double SUM;
-			int I, II, J, LL;
+			int I, J, LL;
 
-			II = 0;
+			int ii = 0;
 
+			
 			for (int i = 0; i < N; i++) {
 				LL = INDX[i];
 				SUM = B[LL];
 				B[LL] = B[i];
-				if (II != 0)
-					for (int j = II; j < i - 1; j++)
+				if (ii != 0)
+					for (int j = ii - 1; j < i; j++)
 						SUM -= A[i][j] * B[j];
 				else if (SUM != 0.0)
-					II = i;
+					ii = i + 1;
 				B[i] = SUM;
 			}
 
-			for (I = N; I > 0; I--) {
-				SUM = B[I];
-				if (I < N)
-					for (J = I + 1; J <= N; J++)
-						SUM -= A[I][J] * B[J];
-				B[I] = SUM / A[I][I];
+			
+			for (int i = N - 1; i >= 0; i--) {
+				// HERE
+				SUM = B[i];
+				if (i < N)
+					for (int j = i + 1; j <= N; j++)
+						SUM -= A[i][j] * B[j];
+				B[i] = SUM / A[i][i];
 			}
 
 		}
@@ -167,6 +170,7 @@ namespace Mla {
 
 			LUBKSB(a, m + 1, indx, b);      //Backsubstitute, giving one row of the inverse matrix.
 
+			// HERE
 			for (k = -nl; k <= nr; k++) {         //Each Savitzky-Golay coefficient is the dot product
 				sum = b[1];                       //of powers of an integer with the inverse matrix row.
 				fac = 1.0;
