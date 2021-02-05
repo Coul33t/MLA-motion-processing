@@ -27,6 +27,7 @@ unsigned int DartsExtractionFromFolder(const std::string&, const std::string&, c
 
 unsigned int GlmFunctionsTest();
 unsigned int MemoryLeakChaser();
+void SavgolTest();
 
 int main(int argc, char *argv[]) {
 
@@ -347,4 +348,8 @@ unsigned int MemoryLeakChaser(){
 	}	
 
 	return 0;
+}
+
+void SavgolTest() {
+
 }
