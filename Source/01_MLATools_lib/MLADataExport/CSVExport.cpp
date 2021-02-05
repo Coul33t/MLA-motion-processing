@@ -153,7 +153,7 @@ namespace Mla {
 
 					if (!outfile.fail()) {
 
-						for (unsigned int i = 0; i < frame->getJoints().size(); i++) {
+						for (size_t i = 0; i < frame->getJoints().size(); i++) {
 							outfile << frame->getJoint(i)->getName() << ","
 									<< frame->getJoint(i)->getPositions().x << ","
 									<< frame->getJoint(i)->getPositions().y << ","
@@ -191,7 +191,7 @@ namespace Mla {
 			
 			data.getNorm(speed_set);
 			
-			for (unsigned int i = 0; i < speed_set.size(); i++) {
+			for (size_t i = 0; i < speed_set.size(); i++) {
 				ExportData(speed_set[i], folder_name, subfolder_name, file_name + std::to_string(i));
 			}
 
@@ -203,7 +203,7 @@ namespace Mla {
 			//ExportMotionInformations(motion_info, folder_name, "motion_information");
 			//ExportMotionSegmentationInformations(seg_info, folder_name, "segmentation_information");
 
-			for (unsigned int i = 0; i < data.size(); i++) {
+			for (size_t i = 0; i < data.size(); i++) {
 				ExportData(data[i], folder_name, subfolder_name + std::to_string(i), file_name);
 			}
 

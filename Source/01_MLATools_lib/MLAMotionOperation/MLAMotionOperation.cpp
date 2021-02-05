@@ -41,7 +41,7 @@ namespace Mla {
 
 			Frame* interpolated_frame = new Frame();
 
-			for (unsigned int i = 0; i < f1->getJoints().size(); i++) {
+			for (size_t i = 0; i < f1->getJoints().size(); i++) {
 				Joint* new_joint = interpolateJoint(f1->getJoint(i), f2->getJoint(i), mix_factor);
 
 				new_joint->setName(f1->getJoint(i)->getName());
@@ -82,14 +82,14 @@ namespace Mla {
 			double dRE = glm::distance(current_root, extremity);
 			double sumKC = 0;
 
-			for (unsigned int i = 0; i < KC.size() - 1; i++) {
+			for (size_t i = 0; i < KC.size() - 1; i++) {
 				sumKC += glm::distance(global_frame_1->getJoint(KC[i])->getPositions(),
 					global_frame_1->getJoint(KC[i + 1])->getPositions());
 			}
 
 			n_coef = dRE / pow(sumKC, 2);
 
-			for (unsigned int j = 0; j < f1->getJoints().size(); j++) {
+			for (size_t j = 0; j < f1->getJoints().size(); j++) {
 				vec_pos = global_frame_1->getJoint(j)->getPositions();
 				vec_pos[0] = vec_pos[0] * n_coef;
 				vec_pos[1] = vec_pos[1] * n_coef;
@@ -112,7 +112,7 @@ namespace Mla {
 				Frame* global_frame_1 = f1->duplicateFrame();
 				getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 
-				for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+				for (size_t j = 0; j < global_frame_1->getJoints().size(); j++) {
 					vec_pos = global_frame_1->getJoint(j)->getPositions();
 					pos_vector.insert(std::pair<std::string, glm::dvec3>(global_frame_1->getJoint(j)->getName(), vec_pos));
 				}
@@ -121,7 +121,7 @@ namespace Mla {
 			}
 
 			else if (abs_or_rel == "rel") {
-				for (unsigned int j = 0; j < f1->getJoints().size(); j++) {
+				for (size_t j = 0; j < f1->getJoints().size(); j++) {
 					vec_pos = f1->getJoint(j)->getPositions();
 					pos_vector.insert(std::pair<std::string, glm::dvec3>(f1->getJoint(j)->getName(), vec_pos));
 				}
@@ -149,7 +149,7 @@ namespace Mla {
 				Frame* global_frame_1 = f1->duplicateFrame();
 				getGlobalCoordinates(f1, global_frame_1, f1->getJoint("Hips"), glm::dmat4(1.0));
 
-				for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+				for (size_t j = 0; j < global_frame_1->getJoints().size(); j++) {
 					vec_pos = global_frame_1->getJoint(j)->getPositions();
 					if (axis == "x")
 						pos_vector.insert(std::pair<std::string, double>(global_frame_1->getJoint(j)->getName(), vec_pos[0]));
@@ -163,7 +163,7 @@ namespace Mla {
 			}
 
 			else if (abs_or_rel == "rel") {
-				for (unsigned int j = 0; j < f1->getJoints().size(); j++) {
+				for (size_t j = 0; j < f1->getJoints().size(); j++) {
 					vec_pos = f1->getJoint(j)->getPositions();
 					if (axis == "x")
 						pos_vector.insert(std::pair<std::string, double>(f1->getJoint(j)->getName(), vec_pos[0]));
@@ -193,7 +193,7 @@ namespace Mla {
 				
 			double linear_speed = 0;
 
-			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+			for (size_t j = 0; j < global_frame_1->getJoints().size(); j++) {
 				glm::dvec3 vec1 = global_frame_1->getJoint(j)->getPositions();
 				glm::dvec3 vec2 = global_frame_2->getJoint(j)->getPositions();
 
@@ -224,8 +224,7 @@ namespace Mla {
 
 			glm::dvec3 linear_speed = glm::dvec3();
 
-			//TODO: iterator
-			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+			for (size_t j = 0; j < global_frame_1->getJoints().size(); j++) {
 				glm::dvec3 vec1 = global_frame_1->getJoint(j)->getPositions();
 				glm::dvec3 vec2 = global_frame_2->getJoint(j)->getPositions();
 
@@ -269,7 +268,7 @@ namespace Mla {
 
 			double linear_speed = 0;
 
-			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+			for (size_t j = 0; j < global_frame_1->getJoints().size(); j++) {
 				glm::dvec3 vec1 = global_frame_1->getJoint(j)->getPositions();
 				glm::dvec3 vec2 = global_frame_2->getJoint(j)->getPositions();
 				
@@ -311,7 +310,7 @@ namespace Mla {
 
 			double angular_speed = 0;
 
-			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+			for (size_t j = 0; j < global_frame_1->getJoints().size(); j++) {
 				glm::dvec3 p1 = global_frame_1->getJoint(j)->getPositions();
 				glm::dvec3 p2 = global_frame_2->getJoint(j)->getPositions();
 
@@ -347,7 +346,7 @@ namespace Mla {
 			double first_frame_time = 0;
 			double end_frame_time = interval;
 
-			for (unsigned int i = 0; i < n; i++) {
+			for (size_t i = 0; i < n; i++) {
 				beg_frame = getFrameFromTime(motion, first_frame_time, frame_time);
 				end_frame = getFrameFromTime(motion, end_frame_time, frame_time);
 
@@ -384,7 +383,7 @@ namespace Mla {
 			double first_frame_time = 0;
 			double end_frame_time = interval;
 
-			for (unsigned int i = 0; i < n; i++) {
+			for (size_t i = 0; i < n; i++) {
 				beg_frame = getFrameFromTime(motion, first_frame_time, frame_time);
 				end_frame = getFrameFromTime(motion, end_frame_time, frame_time);
 
@@ -420,8 +419,7 @@ namespace Mla {
 			double linear_acc = 0.0;
 			glm::dvec3 lacc_vec;
 
-			//TODO: iterator
-			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+			for (size_t j = 0; j < global_frame_1->getJoints().size(); j++) {
 				lacc_vec = glm::dvec3(0.0, 0.0, 0.0);
 
 				glm::dvec3 vec1 = global_frame_1->getJoint(j)->getPositions();
@@ -462,8 +460,7 @@ namespace Mla {
 
 			glm::dvec3 linear_acc = glm::dvec3();
 
-			//TODO: iterator
-			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+			for (size_t j = 0; j < global_frame_1->getJoints().size(); j++) {
 				glm::dvec3 vec1 = global_frame_1->getJoint(j)->getPositions();
 				glm::dvec3 vec2 = global_frame_2->getJoint(j)->getPositions();
 				glm::dvec3 vec3 = global_frame_3->getJoint(j)->getPositions();
@@ -514,7 +511,7 @@ namespace Mla {
 			double linear_acc = 0.0;
 			glm::dvec3 lacc_vec;
 
-			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+			for (size_t j = 0; j < global_frame_1->getJoints().size(); j++) {
 				if (normalise)
 					lacc_vec = glm::dvec3(0.0, 0.0, 0.0);
 
@@ -575,7 +572,7 @@ namespace Mla {
 			glm::dvec3 jerk = glm::dvec3();
 			jerk_vector.clear();
 
-			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+			for (size_t j = 0; j < global_frame_1->getJoints().size(); j++) {
 				glm::dvec3 vec1 = global_frame_1->getJoint(j)->getPositions();
 				glm::dvec3 vec2 = global_frame_2->getJoint(j)->getPositions();
 				glm::dvec3 vec3 = global_frame_3->getJoint(j)->getPositions();
@@ -623,7 +620,7 @@ namespace Mla {
 
 			jerk_vector.clear();
 
-			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+			for (size_t j = 0; j < global_frame_1->getJoints().size(); j++) {
 				glm::dvec3 vec1 = global_frame_1->getJoint(j)->getPositions();
 				glm::dvec3 vec2 = global_frame_2->getJoint(j)->getPositions();
 				glm::dvec3 vec3 = global_frame_3->getJoint(j)->getPositions();
@@ -674,7 +671,7 @@ namespace Mla {
 
 			jerk_vector.clear();
 
-			for (unsigned int j = 0; j < global_frame_1->getJoints().size(); j++) {
+			for (size_t j = 0; j < global_frame_1->getJoints().size(); j++) {
 
 				if (normalise)
 					jerk_vec = glm::dvec3(0.0, 0.0, 0.0);
@@ -744,7 +741,7 @@ namespace Mla {
 				glm::dvec3 extremity = global_frame_1->getJoint(joints_to_check.back())->getPositions();
 				double dRE = glm::distance(current_root, extremity);
 				double sumKC = 0;
-				for (unsigned int i = 0; i < joints_to_check.size() - 1; i++) {
+				for (size_t i = 0; i < joints_to_check.size() - 1; i++) {
 					sumKC += glm::distance(global_frame_1->getJoint(joints_to_check[i])->getPositions(),
 						global_frame_1->getJoint(joints_to_check[i + 1])->getPositions());
 				}
@@ -811,7 +808,7 @@ namespace Mla {
 			// Returns angles (X, Y, Z) from a quaternion
 			glm::dvec3 euler_angles = glm::eulerAngles(f1->getJoint(joints_to_check.front())->getOrientations());
 
-			for (unsigned int i = 0; i < 3; i++)
+			for (size_t i = 0; i < 3; i++)
 				if (i != vertical_axis)
 					euler_angles[i] = 0.0;
 
@@ -825,7 +822,7 @@ namespace Mla {
 			if (normalise) {
 
 				n_coef = 0;
-				for (unsigned int i = 0; i < joints_to_check.size() - 1; i++) {
+				for (size_t i = 0; i < joints_to_check.size() - 1; i++) {
 					n_coef += glm::distance(global_frame_1->getJoint(joints_to_check[i])->getPositions(),
 						global_frame_1->getJoint(joints_to_check[i + 1])->getPositions());
 				}
@@ -898,7 +895,7 @@ namespace Mla {
 			if (normalise) {
 
 				n_coef = 0;
-				for (unsigned int i = 0; i < joints_to_check.size() - 1; i++) {
+				for (size_t i = 0; i < joints_to_check.size() - 1; i++) {
 					n_coef += glm::distance(global_frame_1->getJoint(joints_to_check[i])->getPositions(),
 						global_frame_1->getJoint(joints_to_check[i + 1])->getPositions());
 				}
@@ -939,7 +936,7 @@ namespace Mla {
 			// Returns angles (X, Y, Z) from a quaternion
 			glm::dvec3 euler_angles = glm::eulerAngles(f1->getJoint(joints_to_check.front())->getOrientations());
 
-			for (unsigned int i = 0; i < 3; i++)
+			for (size_t i = 0; i < 3; i++)
 				if (i != vertical_axis)
 					euler_angles[i] = 0.0;
 
@@ -953,7 +950,7 @@ namespace Mla {
 			if (normalise) {
 
 				n_coef = 0;
-				for (unsigned int i = 0; i < joints_to_check.size() - 1; i++) {
+				for (size_t i = 0; i < joints_to_check.size() - 1; i++) {
 					n_coef += glm::distance(global_frame_1->getJoint(joints_to_check[i])->getPositions(),
 						global_frame_1->getJoint(joints_to_check[i + 1])->getPositions());
 				}
@@ -1060,7 +1057,7 @@ namespace Mla {
 			global_frame->getJoint(current_joint->getName())->setPositions(glm::dvec3(global_mat[3][0], global_mat[3][1], global_mat[3][2]));
 			global_frame->getJoint(current_joint->getName())->setOrientations(glm::dvec3(0, 0, 0));
 
-			for (unsigned int i = 0; i < current_joint->getChilds().size(); i++) {
+			for (size_t i = 0; i < current_joint->getChilds().size(); i++) {
 				getGlobalCoordinates(local_frame, global_frame, current_joint->getChilds()[i], global_mat);
 			}
 		}
@@ -1428,7 +1425,7 @@ namespace Mla {
 
 			double current_time = 0.0;
 
-			for (unsigned int i = 0; i < frames_number; i++) {
+			for (size_t i = 0; i < frames_number; i++) {
 				frame_to_insert = getFrameFromTime(original_motion, current_time, original_frame_time);
 				new_motion->addFrame(frame_to_insert);
 				current_time += new_interval;
@@ -1467,7 +1464,7 @@ namespace Mla {
 			Mla::MotionOperation::FindIndexSeparation(savgoled, seg_info.left_cut, seg_info.right_cut, separation_indexes);
 
 			// Creating the new submotions
-			for (unsigned int i = 0; i < separation_indexes.size(); i++) {
+			for (size_t i = 0; i < separation_indexes.size(); i++) {
 				
 				sub_motion = new Motion();
 				sub_motion->setName(initial_motion->getName());
@@ -1591,7 +1588,7 @@ namespace Mla {
 			std::map<std::string, glm::dvec3> speed_end;
 
 			// For each joint, we're going to populate the vector of map
-			for (unsigned int j = 0; j < motion->getFrame(0)->getJoints().size(); ++j) {
+			for (size_t j = 0; j < motion->getFrame(0)->getJoints().size(); ++j) {
 				speed_beg.insert(std::pair<std::string, glm::dvec3>(motion->getFrame(0)->getJoint(j)->getName(), speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[0])));
 				speed_max.insert(std::pair<std::string, glm::dvec3>(motion->getFrame(0)->getJoint(j)->getName(), speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[1])));
 				speed_end.insert(std::pair<std::string, glm::dvec3>(motion->getFrame(0)->getJoint(j)->getName(), speed_data.getJointSpeed(motion->getFrame(0)->getJoint(j)->getName(), throw_idx[2])));
@@ -1640,7 +1637,7 @@ namespace Mla {
 			std::map<std::string, glm::dvec3> speed_end;
 
 			// For each joint, we're going to populate the vector of map
-			for (unsigned int j = 0; j < motion->getFrame(0)->getJoints().size(); ++j) {
+			for (size_t j = 0; j < motion->getFrame(0)->getJoints().size(); ++j) {
 				std::string joint_name = motion->getFrame(0)->getJoint(j)->getName();
 				speed_beg.insert(std::pair<std::string, glm::dvec3>(joint_name, normalised_val[throw_idx.first][joint_name]));
 				speed_max.insert(std::pair<std::string, glm::dvec3>(joint_name, normalised_val[max_idx][joint_name]));
@@ -1691,7 +1688,7 @@ namespace Mla {
 			std::map<std::string, glm::dvec3> lin_speed;
 
 			// v(t) = ( v(t+1) - v(t-1) ) / 2dt
-			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
+			for (size_t i = 0; i < motion->getFrames().size(); i++) {
 				lin_speed.clear();
 				if (i == 0)
 					Mla::MotionOperation::jointsLinearSpeed(lin_speed, motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime());
@@ -1713,7 +1710,7 @@ namespace Mla {
 			std::map<std::string, glm::dvec3> lin_acc;
 
 			// a(t) = ( x(t+1) - 2 x(t)  + x(t-1) ) / dt²
-			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
+			for (size_t i = 0; i < motion->getFrames().size(); i++) {
 				lin_acc.clear();
 				if (i == 0)
 					Mla::MotionOperation::jointsLinearAcc(lin_acc, motion->getFrame(i), motion->getFrame(i), motion->getFrame(i + 1), motion->getFrameTime());
@@ -1790,7 +1787,7 @@ namespace Mla {
 			Frame* f4 = nullptr;
 
 			// jerk = x(t+2) - 2x(t+1) + 2x(t-1) - x(t-2) / 2t^3 
-			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
+			for (size_t i = 0; i < motion->getFrames().size(); i++) {
 				frame_jerk.clear();
 
 				if (i == 0) {
@@ -1855,7 +1852,7 @@ namespace Mla {
 			std::map<std::string, std::vector<double>> bb;
 			glm::dvec3 root = glm::dvec3(0, 0, 0);
 
-			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
+			for (size_t i = 0; i < motion->getFrames().size(); i++) {
 				jointsBoundingBox(bb, motion->getFrame(i), joints_to_check);
 				bounding_boxes.push_back(bb);
 			}
@@ -1878,7 +1875,7 @@ namespace Mla {
 			std::vector<std::map<std::string, std::vector<double>>> bounding_boxes;
 			std::map<std::string, std::vector<double>> bb;
 
-			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
+			for (size_t i = 0; i < motion->getFrames().size(); i++) {
 				jointsBoundingBox(bb, motion->getFrame(i), KC, normalise);
 				bounding_boxes.push_back(bb);
 			}	
@@ -2114,7 +2111,7 @@ namespace Mla {
 			std::vector<std::vector<double>> all_bounding_boxes;
 			std::vector<double> current_bouding_box;
 
-			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
+			for (size_t i = 0; i < motion->getFrames().size(); i++) {
 				current_bouding_box.clear();
 				jointsBoundingBoxReframed(current_bouding_box, motion->getFrame(i), KC, vertical_axis, width_axis, true);
 				all_bounding_boxes.push_back(current_bouding_box);
@@ -2229,9 +2226,9 @@ namespace Mla {
 		*/
 		void motionFiltering (Motion* motion) {
 			// j = 1 because the first frame is the reference
-			for (unsigned int i = 0; i < motion->getFrames().size(); i++) {
+			for (size_t i = 0; i < motion->getFrames().size(); i++) {
 				// j = 1 because the root actually has position information
-				for (unsigned int j = 0; j < motion->getFrame(i)->getJoints().size(); j++) {
+				for (size_t j = 0; j < motion->getFrame(i)->getJoints().size(); j++) {
 					// if the joint has no parent = root
 					if (motion->getFrame(i)->getJoint(j)->getParent() != nullptr)
 						motion->getFrame(i)->getJoint(j)->setPositions(glm::dvec3(motion->getOffsetFrame()->getJoint(j)->getPositions()));
