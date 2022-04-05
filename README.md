@@ -1,4 +1,5 @@
 # MLA #
+*Note: this repository is under the copyleft licence. Basically, " Copyleft is an arrangement whereby software or artistic work may be used, modified, and distributed freely on condition that anything derived from it is bound by the same conditions ".*
 
 ### What is this repository for? ###
 
